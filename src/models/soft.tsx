@@ -8,9 +8,9 @@ type Vec3 = [number, number, number]
 /**
  * Shared scale for toy-edge rounding and bevels.
  * 1 keeps the generous post-polish radii; 0 is a hard box.
- * 0.6 is the middle ground: chunky toys with soft but still crisp edges.
+ * 0.8 sits halfway between the 0.6 crisp pass and the original soft look.
  */
-export const SOFT_EDGE_SCALE = 0.6
+export const SOFT_EDGE_SCALE = 0.8
 
 export function scaleSoft(value: number) {
   return value * SOFT_EDGE_SCALE
