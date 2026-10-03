@@ -5,14 +5,13 @@ import { Vector3 } from 'three'
 import type { OrthographicCamera as OrthographicCameraImpl } from 'three'
 import { damp } from '../lib/math'
 import { useLook } from '../look'
-import { useYard } from '../sim/yard'
+import { runtime, useYard } from '../sim/yard'
 
 export function CameraRig() {
   const camera = useThree((s) => s.camera)
   const gl = useThree((s) => s.gl)
   const look = useLook()
   const selectedId = useYard((s) => s.selectedId)
-  const units = useYard((s) => s.units)
   const target = useRef(new Vector3(0, 0, 3.2))
   const zoomBy = useLook((s) => s.zoomBy)
 
@@ -27,7 +26,7 @@ export function CameraRig() {
   }, [gl, zoomBy])
 
   useFrame((_, dt) => {
-    const unit = selectedId && selectedId !== 'wh-northpoint' ? units[selectedId] : null
+    const unit = selectedId && selectedId !== 'wh-northpoint' ? runtime.units[selectedId] : null
     const goalX = (unit?.x ?? 1.2) + look.panX
     const goalZ = (unit?.z ?? 4.5) + look.panZ
     target.current.x = damp(target.current.x, goalX, 3.1, dt)

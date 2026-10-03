@@ -2,17 +2,17 @@ import { RoundedBox } from '@react-three/drei'
 import { Matte } from './Matte'
 
 export function Fence() {
-  const posts: [number, number][] = []
-  for (let x = -26; x <= 26; x += 2.4) posts.push([x, -19.2])
-  for (let z = -19.2; z <= -8; z += 2.4) {
-    posts.push([-26, z])
-    posts.push([26, z])
+  const posts: { key: string; x: number; z: number }[] = []
+  for (let x = -26; x <= 26; x += 2.4) posts.push({ key: `n-${x}`, x, z: -19.2 })
+  for (let z = -16.8; z <= -8; z += 2.4) {
+    posts.push({ key: `w-${z}`, x: -26, z })
+    posts.push({ key: `e-${z}`, x: 26, z })
   }
 
   return (
     <group>
-      {posts.map(([x, z]) => (
-        <RoundedBox key={`${x}:${z}`} args={[0.12, 1.15, 0.12]} radius={0.03} smoothness={2} position={[x, 0.58, z]} castShadow>
+      {posts.map((post) => (
+        <RoundedBox key={post.key} args={[0.12, 1.15, 0.12]} radius={0.03} smoothness={2} position={[post.x, 0.58, post.z]} castShadow>
           <Matte color="#cbd5e1" />
         </RoundedBox>
       ))}

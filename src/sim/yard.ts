@@ -49,11 +49,10 @@ type YardState = {
   selectedId: string | null
   clock: number
   units: Record<string, Unit>
-  pallets: Record<string, Pallet>
   stockOnHand: number
   onTime: number
   select: (id: string | null) => void
-  tick: (dt: number) => void
+  publish: () => void
 }
 
 export const DOCKS = [
@@ -298,110 +297,124 @@ function initialPallets(): Record<string, Pallet> {
   }
 }
 
-export const useYard = create<YardState>((set, get) => ({
-  selectedId: 'fl-10',
+export const runtime = {
   clock: 0,
   units: initialUnits(),
   pallets: initialPallets(),
+}
+
+export const UNIT_IDS = Object.keys(runtime.units)
+export const PALLET_IDS = Object.keys(runtime.pallets)
+
+export function tick(dt: number) {
+  runtime.clock += dt
+  const clock = runtime.clock
+  const { units, pallets } = runtime
+
+  for (const pallet of Object.values(pallets)) {
+    if (pallet.hiddenUntil && clock >= pallet.hiddenUntil && !pallet.carriedBy) {
+      pallet.hiddenUntil = 0
+      pallet.x = pallet.spawnX
+      pallet.z = pallet.spawnZ
+    }
+  }
+
+  for (const unit of Object.values(units)) {
+    const path = compiled[unit.pathId]
+    if (!path) continue
+
+    const local = clock % path.cycle
+    const cycleIndex = Math.floor(clock / path.cycle)
+    const seg = path.segs.find((item) => local >= item.start && local < item.end) ?? path.segs[0]
+    const traveling = local < seg.arrive
+    const progress = traveling
+      ? easeInOutCubic((local - seg.start) / Math.max(0.0001, seg.arrive - seg.start))
+      : 1
+    const nextX = lerp(seg.from.x, seg.to.x, progress)
+    const nextZ = lerp(seg.from.z, seg.to.z, progress)
+    const dist = length2(nextX - unit.x, nextZ - unit.z)
+    const instSpeed = dt > 0 ? (dist / dt) * 3.6 : 0
+
+    const moveHeading = Math.atan2(seg.to.x - seg.from.x, seg.to.z - seg.from.z)
+    const desired = seg.reverse ? moveHeading + Math.PI : moveHeading
+    const heading = traveling ? dampAngle(unit.heading, desired, 6.2, dt) : unit.heading
+
+    const arrived = !traveling && local < seg.arrive + Math.min(0.2, (seg.to.wait ?? 0.2))
+    const fireKey = `${unit.id}:${cycleIndex}:${seg.start}:${seg.to.action ?? 'hold'}`
+    if (arrived && seg.to.action && !fired.has(fireKey)) {
+      fired.add(fireKey)
+      unit.movesToday += 1
+      if (seg.to.action === 'pickup') {
+        const target = nearestFreePallet(pallets, nextX, nextZ, clock)
+        if (target) {
+          target.carriedBy = unit.id
+          unit.carryingId = target.id
+        }
+      }
+      if (seg.to.action === 'dropoff' && unit.carryingId) {
+        const held = pallets[unit.carryingId]
+        if (held) {
+          held.carriedBy = null
+          held.x = nextX + Math.sin(heading) * 1.15
+          held.z = nextZ + Math.cos(heading) * 1.15
+          held.heading = heading
+          if (held.z < 3.4) {
+            held.hiddenUntil = clock + 7
+            held.x = held.spawnX
+            held.z = held.spawnZ
+          }
+        }
+        unit.carryingId = null
+      }
+    }
+
+    if (unit.carryingId) {
+      const held = pallets[unit.carryingId]
+      if (held) {
+        held.x = nextX + Math.sin(heading) * 1.05
+        held.z = nextZ + Math.cos(heading) * 1.05
+        held.heading = heading
+      }
+    }
+
+    unit.x = nextX
+    unit.z = nextZ
+    unit.heading = heading
+    unit.speed = damp(unit.speed, instSpeed, 8, dt)
+    unit.task = seg.to.task ?? unit.task
+    unit.title = titleFromTask(unit, seg.to.task ?? unit.task)
+    unit.battery =
+      unit.kind === 'forklift'
+        ? clampBattery(68 + 18 * Math.sin(clock * 0.07 + unit.movesToday))
+        : 100
+  }
+}
+
+export const useYard = create<YardState>((set) => ({
+  selectedId: 'fl-10',
+  clock: 0,
+  units: snapshotUnits(),
   stockOnHand: 610,
   onTime: 96.2,
   select: (id) => set({ selectedId: id }),
-  tick: (dt) => {
-    const prev = get()
-    const clock = prev.clock + dt
-    const units = { ...prev.units }
-    const pallets = { ...prev.pallets }
-
-    for (const pallet of Object.values(pallets)) {
-      if (pallet.hiddenUntil && clock >= pallet.hiddenUntil && !pallet.carriedBy) {
-        pallet.hiddenUntil = 0
-        pallet.x = pallet.spawnX
-        pallet.z = pallet.spawnZ
-      }
-    }
-
-    for (const unit of Object.values(units)) {
-      const path = compiled[unit.pathId]
-      if (!path) continue
-
-      const local = clock % path.cycle
-      const cycleIndex = Math.floor(clock / path.cycle)
-      const seg = path.segs.find((item) => local >= item.start && local < item.end) ?? path.segs[0]
-      const traveling = local < seg.arrive
-      const progress = traveling
-        ? easeInOutCubic((local - seg.start) / Math.max(0.0001, seg.arrive - seg.start))
-        : 1
-      const nextX = lerp(seg.from.x, seg.to.x, progress)
-      const nextZ = lerp(seg.from.z, seg.to.z, progress)
-      const dx = nextX - unit.x
-      const dz = nextZ - unit.z
-      const dist = length2(dx, dz)
-      const instSpeed = dt > 0 ? (dist / dt) * 3.6 : 0
-
-      const moveHeading = Math.atan2(seg.to.x - seg.from.x, seg.to.z - seg.from.z)
-      const desired = seg.reverse ? moveHeading + Math.PI : moveHeading
-      const heading = traveling ? dampAngle(unit.heading, desired, 6.2, dt) : unit.heading
-
-      const arrived = !traveling && local < seg.arrive + Math.min(0.2, (seg.to.wait ?? 0.2))
-      const fireKey = `${unit.id}:${cycleIndex}:${seg.start}:${seg.to.action ?? 'hold'}`
-      if (arrived && seg.to.action && !fired.has(fireKey)) {
-        fired.add(fireKey)
-        unit.movesToday += 1
-        if (seg.to.action === 'pickup') {
-          const target = nearestFreePallet(pallets, nextX, nextZ, clock)
-          if (target) {
-            target.carriedBy = unit.id
-            unit.carryingId = target.id
-          }
-        }
-        if (seg.to.action === 'dropoff' && unit.carryingId) {
-          const held = pallets[unit.carryingId]
-          if (held) {
-            held.carriedBy = null
-            held.x = nextX + Math.sin(heading) * 1.15
-            held.z = nextZ + Math.cos(heading) * 1.15
-            held.heading = heading
-            if (held.z < 3.4) {
-              held.hiddenUntil = clock + 7
-              held.x = held.spawnX
-              held.z = held.spawnZ
-            }
-          }
-          unit.carryingId = null
-        }
-      }
-
-      if (unit.carryingId) {
-        const held = pallets[unit.carryingId]
-        if (held) {
-          held.x = nextX + Math.sin(heading) * 1.05
-          held.z = nextZ + Math.cos(heading) * 1.05
-          held.heading = heading
-        }
-      }
-
-      unit.x = nextX
-      unit.z = nextZ
-      unit.heading = heading
-      unit.speed = damp(unit.speed, instSpeed, 8, dt)
-      unit.task = seg.to.task ?? unit.task
-      unit.title = titleFromTask(unit, seg.to.task ?? unit.task)
-      unit.battery =
-        unit.kind === 'forklift'
-          ? clampBattery(68 + 18 * Math.sin(clock * 0.07 + unit.movesToday))
-          : 100
-    }
-
-    const stockWave = 610 + Math.round(8 * Math.sin(clock * 0.05) + clock * 0.12)
+  publish: () => {
+    const clock = runtime.clock
     set({
       clock,
-      units,
-      pallets,
-      stockOnHand: stockWave,
+      units: snapshotUnits(),
+      stockOnHand: 610 + Math.round(8 * Math.sin(clock * 0.05) + clock * 0.12),
       onTime: 96.2 + 0.25 * Math.sin(clock * 0.04),
     })
   },
 }))
+
+function snapshotUnits() {
+  const copy: Record<string, Unit> = {}
+  for (const [id, unit] of Object.entries(runtime.units)) {
+    copy[id] = { ...unit }
+  }
+  return copy
+}
 
 function nearestFreePallet(
   pallets: Record<string, Pallet>,

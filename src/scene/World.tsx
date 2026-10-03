@@ -1,9 +1,10 @@
 import { ContactShadows } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
+import { useRef } from 'react'
 import { Tree } from '../models/Tree'
 import { Fence } from '../models/Fence'
 import { Warehouse } from '../models/Warehouse'
-import { useYard } from '../sim/yard'
+import { tick, useYard } from '../sim/yard'
 import { CameraRig } from './CameraRig'
 import { Ground } from './Ground'
 import { Lights } from './Lights'
@@ -12,10 +13,16 @@ import { Units } from './Units'
 import { YardMarkings } from './YardMarkings'
 
 export function World() {
-  const tick = useYard((s) => s.tick)
+  const publish = useYard((s) => s.publish)
+  const hudAcc = useRef(0)
 
   useFrame((_, dt) => {
     tick(Math.min(dt, 0.05))
+    hudAcc.current += dt
+    if (hudAcc.current > 0.14) {
+      hudAcc.current = 0
+      publish()
+    }
   })
 
   return (
@@ -30,12 +37,13 @@ export function World() {
       <Trees />
       <ContactShadows
         position={[0, 0.012, 0]}
-        opacity={0.22}
+        opacity={0.2}
         scale={70}
-        blur={2.6}
-        far={6.5}
+        blur={2.4}
+        far={6}
         color="#475569"
         resolution={512}
+        frames={1}
       />
       <PostFX />
     </>
