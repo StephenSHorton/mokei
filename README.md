@@ -37,26 +37,25 @@ serves that build on the same port.
 
 ## What to tune
 
-Press **L** (or open with `?look`) to show the **Look** panel. It is hidden by default so the HUD composition matches the reference. The knobs that change the clay reading the most:
+The **Look** panel is hidden so it stays out of the composition. Press **L** to toggle it, or open the page with `?look`. The knobs that change the clay look the most:
 
-1. **AO strength / AO radius** — N8AO in world units (radius ~1.5–3). Strength is the clay contact.
-2. **Sun angle / sun height / softness** — a gentle key from the front-left. Intensities are in "albedo units": sky + sun ≈ 1 keeps white surfaces white.
-3. **Sky color / sky intensity** — cool hemisphere light does most of the work.
-4. **Zoom / angle around / angle down** — locked orthographic view (36° around, 37° down by default). Zoom is defined for a 1728px-wide window and scales with the window.
-5. **Palette** — lavender-pale lot (`#E9EEF8`), periwinkle roads, white walls, blue roof, safety yellow, tan cardboard, mint trees.
+1. **AO strength / AO radius**: N8AO in world units (radius about 1.5–3). Strength controls how dark the clay contact gets.
+2. **Sun angle / sun height / sun softness**: a gentle key from the front-left. Softness is the PCF shadow blur radius.
+3. **Sky color / sky intensity**: the cool hemisphere light does most of the lighting. Light values are in albedo units, so sky plus sun near 1.0 keeps white surfaces white.
+4. **Zoom / angle around / angle down**: a locked orthographic view (about 36° around and 37° down). Zoom is defined for a 1728 px wide window and scales with the window.
+5. **Palette**: lavender-tinted ground (`#E9EEF8`), periwinkle road, white corrugated walls, blue roofs, safety yellow, tan cardboard, mint trees.
 
 There is no bloom, grain, outline, or vignette on purpose.
 
 ## Controls
 
-- Click a unit or the warehouse to select it, or pick a row in the docks board
-- Drag the yard to pan; scroll or `+` / `−` to zoom; the rotate buttons turn the view 15°
-- Home recenters the view
-- The dashed floor path is the selected unit's remaining route
+- Click a unit or the warehouse to select it. You can also pick a row in the Docks / Forklifts / Trucks board.
+- Drag the yard to pan. Zoom with the scroll wheel or `+` / `−`, rotate with the arrows, and reset with Home.
+- The dashed floor path is the selected unit's remaining route. The 3D corner brackets mark the selection.
 
-## UI notes
+## HUD
 
-The HUD is laid out in reference pixels measured from the 1728×995 promo capture and zoomed down on smaller windows. Type is SF Pro on Apple platforms (as in the capture) and Inter elsewhere, set slightly smaller and tighter to match SF widths.
+The HUD is laid out at the 1728×995 reference size of the promo frames and scales down to fit smaller windows. It uses SF Pro on Apple platforms, matching the promo, and falls back to Inter elsewhere, set slightly smaller and tighter to match SF's widths. Icons are lucide-react.
 
 ## Stack
 
