@@ -13,13 +13,21 @@ npm run dev
 
 Then open [http://127.0.0.1:43123](http://127.0.0.1:43123).
 
+## GitHub Pages
+
+Live site: [https://stephenshorton.github.io/yardline/](https://stephenshorton.github.io/yardline/)
+
+Pushes to `main` build with `npm ci && npm run build` and deploy `dist/` via GitHub Actions. Vite uses `base: './'`, so JS, CSS, and the favicon stay relative and load under the `/yardline/` subpath. Fonts come from Google Fonts. Models are built in the client from primitives, so there are no extra asset files to resolve.
+
+In the repo settings, set Pages source to **GitHub Actions** if it is not already.
+
 ## Static deploy
 
 ```bash
 npm run build
 ```
 
-`dist/` is a static site (`base: './'`), so it can be dropped on any host.
+`dist/` is a static site (`base: './'`), so it can be dropped on any host — including a project Pages URL.
 
 ```bash
 npm run preview
