@@ -1,7 +1,9 @@
-import { Html, Line } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { Line } from '@react-three/drei'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useMemo, useRef, useState } from 'react'
+import { Vector3 } from 'three'
 import type { Group } from 'three'
+import { writeLabel } from '../ui/labelBridge'
 import { useLook } from '../look'
 import { Forklift } from '../models/Forklift'
 import { MapPin } from '../models/MapPin'
@@ -23,6 +25,7 @@ export function Units() {
 
   return (
     <group>
+      <LabelTracker selectedId={selectedId} />
       {UNIT_IDS.map((id) => (
         <UnitMesh
           key={id}
@@ -50,7 +53,7 @@ function UnitMesh({
 }) {
   const group = useRef<Group>(null)
   const unit = runtime.units[id]
-  const radius = unit.kind === 'truck' ? 2.35 : 1.45
+  const radius = unit.kind === 'truck' ? 2.6 : 1.75
 
   useFrame(() => {
     const live = runtime.units[id]
@@ -76,26 +79,33 @@ function UnitMesh({
         <Forklift />
       )}
       {selected ? <SelectionMarker radius={radius} /> : null}
-      {selected ? (
-        <Html position={[0, unit.kind === 'truck' ? 3.15 : 2.35, 0]} center zIndexRange={[20, 0]}>
-          <div className="pointer-events-none whitespace-nowrap rounded-full bg-white/92 px-3 py-1 text-[12px] font-medium text-slate-700 shadow-[0_8px_20px_rgba(15,23,42,0.08)] ring-1 ring-white">
-            <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-blue-600 align-middle" />
-            <LiveLabel id={id} />
-          </div>
-        </Html>
-      ) : null}
     </group>
   )
 }
 
-function LiveLabel({ id }: { id: string }) {
-  const unit = useYard((s) => s.units[id])
-  if (!unit) return null
-  return (
-    <>
-      {unit.code} · {unit.title}
-    </>
-  )
+function LabelTracker({ selectedId }: { selectedId: string | null }) {
+  const camera = useThree((s) => s.camera)
+  const size = useThree((s) => s.size)
+  const scratch = useMemo(() => new Vector3(), [])
+
+  useFrame(() => {
+    if (!selectedId || selectedId === 'wh-northpoint') {
+      writeLabel(0, 0, '', false)
+      return
+    }
+    const unit = runtime.units[selectedId]
+    if (!unit) {
+      writeLabel(0, 0, '', false)
+      return
+    }
+    scratch.set(unit.x, unit.kind === 'truck' ? 3.4 : 2.6, unit.z)
+    scratch.project(camera)
+    const x = (scratch.x * 0.5 + 0.5) * size.width
+    const y = (-scratch.y * 0.5 + 0.5) * size.height
+    writeLabel(x, y, `${unit.code} · ${unit.title}`, scratch.z < 1)
+  })
+
+  return null
 }
 
 function PalletActor({ id }: { id: string }) {

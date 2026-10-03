@@ -8,21 +8,24 @@ export function YardMarkings() {
 
   return (
     <group>
-      <Stripe x={0} z={5.8} w={0.16} d={18} color={yellow} />
-      <Stripe x={-16.8} z={6} w={0.12} d={16} color={yellow} />
-      <Stripe x={16.8} z={6} w={0.12} d={16} color={yellow} />
-      <Stripe x={0} z={16.8} w={34} d={0.12} color={yellow} />
+      <Stripe x={0} z={5.8} w={0.22} d={18} color={yellow} />
+      <Stripe x={-16.8} z={6} w={0.18} d={16} color={yellow} />
+      <Stripe x={16.8} z={6} w={0.18} d={16} color={yellow} />
+      <Stripe x={0} z={16.8} w={34} d={0.18} color={yellow} />
 
       {DOCKS.map((dock) => (
         <group key={dock.id} position={[dock.x, 0, 2.15]}>
-          <Stripe x={-1.35} z={0} w={0.1} d={8.4} color={yellow} />
-          <Stripe x={1.35} z={0} w={0.1} d={8.4} color={yellow} />
+          <Stripe x={-1.45} z={0} w={0.16} d={8.4} color={yellow} />
+          <Stripe x={1.45} z={0} w={0.16} d={8.4} color={yellow} />
         </group>
       ))}
 
+      <DashedBay x={-10.5} z={2.3} />
+      <DashedBay x={-3.5} z={2.3} />
+      <DashedBay x={3.5} z={2.3} />
       <DashedBay x={10.5} z={2.3} />
-      <DashedBay x={18.4} z={12.6} w={3.4} d={6.2} />
-      <DashedBay x={-18.5} z={12.8} w={3.4} d={6.2} />
+      <DashedBay x={18.4} z={12.6} w={3.6} d={6.4} />
+      <DashedBay x={-18.5} z={12.8} w={3.6} d={6.4} />
     </group>
   )
 }

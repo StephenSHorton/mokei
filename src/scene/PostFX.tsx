@@ -11,9 +11,10 @@ export function PostFX() {
       <N8AO
         aoRadius={aoRadius}
         intensity={aoIntensity}
-        distanceFalloff={1.05}
+        distanceFalloff={0.7}
         quality="medium"
         halfRes
+        screenSpaceRadius
         color={aoColor}
       />
       <SMAA />

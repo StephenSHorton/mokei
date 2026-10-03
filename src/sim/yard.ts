@@ -56,10 +56,10 @@ type YardState = {
 }
 
 export const DOCKS = [
-  { id: 'bay-1', x: -10.5, z: -0.95, label: 'Bay 1' },
-  { id: 'bay-2', x: -3.5, z: -0.95, label: 'Bay 2' },
-  { id: 'bay-3', x: 3.5, z: -0.95, label: 'Bay 3' },
-  { id: 'bay-4', x: 10.5, z: -0.95, label: 'Bay 4' },
+  { id: 'bay-1', x: -10.5, z: 0.7, label: 'Bay 1' },
+  { id: 'bay-2', x: -3.5, z: 0.7, label: 'Bay 2' },
+  { id: 'bay-3', x: 3.5, z: 0.7, label: 'Bay 3' },
+  { id: 'bay-4', x: 10.5, z: 0.7, label: 'Bay 4' },
 ] as const
 
 export const WAREHOUSE_ID = 'wh-northpoint'
@@ -86,7 +86,7 @@ const PATHS: Record<string, PathNode[]> = {
     { x: -27, z: 13.4, duration: 0, wait: 0.2, task: 'Inbound to yard' },
     { x: 3.5, z: 13.4, duration: 7.5, wait: 0.15, task: 'Cross the apron' },
     { x: 3.5, z: 6.4, duration: 3.6, wait: 0.35, task: 'Align on Bay 3' },
-    { x: 3.5, z: -0.95, duration: 4.2, wait: 7.2, reverse: true, task: 'Unloading at Bay 3' },
+    { x: 3.5, z: 0.7, duration: 4.2, wait: 7.2, reverse: true, task: 'Unloading at Bay 3' },
     { x: 3.5, z: 7.6, duration: 3.8, wait: 0.2, task: 'Pull clear' },
     { x: 24.5, z: 7.6, duration: 6.2, wait: 0.1, task: 'Outbound' },
     { x: 24.5, z: 16.6, duration: 2.8, wait: 0.1, task: 'Loop north' },
@@ -94,20 +94,20 @@ const PATHS: Record<string, PathNode[]> = {
     { x: -27, z: 13.4, duration: 2.2, wait: 0.2, task: 'Re-enter' },
   ],
   'trk-12': [
-    { x: -10.5, z: -0.95, duration: 0, wait: 9.0, reverse: true, task: 'Unloading at Bay 1' },
+    { x: -10.5, z: 0.7, duration: 0, wait: 9.0, reverse: true, task: 'Unloading at Bay 1' },
     { x: -10.5, z: 8.2, duration: 4.0, wait: 0.25, task: 'Pull clear' },
     { x: -23.5, z: 8.2, duration: 4.4, wait: 0.1, task: 'West gate' },
     { x: -23.5, z: 16.2, duration: 2.6, wait: 0.1, task: 'Loop north' },
     { x: 17.8, z: 16.2, duration: 7.8, wait: 0.1, task: 'Circle yard' },
     { x: 17.8, z: 8.4, duration: 2.8, wait: 0.15, task: 'Turn in' },
     { x: -10.5, z: 8.4, duration: 6.6, wait: 0.4, task: 'Align on Bay 1' },
-    { x: -10.5, z: -0.95, duration: 4.2, wait: 0.2, reverse: true, task: 'Back into Bay 1' },
+    { x: -10.5, z: 0.7, duration: 4.2, wait: 0.2, reverse: true, task: 'Back into Bay 1' },
   ],
   'trk-22': [
     { x: 18.4, z: 12.6, duration: 0, wait: 3.5, task: 'Hold on apron' },
     { x: 10.5, z: 12.6, duration: 3.2, wait: 0.2, task: 'Approach Bay 4' },
     { x: 10.5, z: 6.2, duration: 3.0, wait: 0.35, task: 'Align on Bay 4' },
-    { x: 10.5, z: -0.95, duration: 4.0, wait: 6.5, reverse: true, task: 'Loading at Bay 4' },
+    { x: 10.5, z: 0.7, duration: 4.0, wait: 6.5, reverse: true, task: 'Loading at Bay 4' },
     { x: 10.5, z: 9.4, duration: 3.6, wait: 0.2, task: 'Pull clear' },
     { x: 18.4, z: 9.4, duration: 2.8, wait: 0.15, task: 'Return to hold' },
     { x: 18.4, z: 12.6, duration: 2.0, wait: 0.2, task: 'Hold on apron' },
@@ -215,7 +215,7 @@ function initialUnits(): Record<string, Unit> {
       title: 'Bay 1 docked',
       task: 'Unloading at Bay 1',
       x: -10.5,
-      z: -0.95,
+      z: 0.7,
       heading: 0,
       speed: 0,
       battery: 100,
@@ -247,7 +247,7 @@ function initialUnits(): Record<string, Unit> {
       title: 'Bay 2 docked',
       task: 'Unloading at Bay 2',
       x: -3.5,
-      z: -0.95,
+      z: 0.7,
       heading: 0,
       speed: 0,
       battery: 100,

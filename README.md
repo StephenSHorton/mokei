@@ -31,7 +31,7 @@ serves that build on the same port.
 
 The **Look** panel (bottom-left) is the point of the prototype. The knobs that change the clay reading the most:
 
-1. **AO strength / AO radius** — contact darkening where walls meet the apron and under vehicles. Too low and it goes flat; too high and it smudges.
+1. **AO strength / AO radius** — screen-space AO. Strength is the clay contact. Radius is in pixels (try 18–40). Too low and the yard goes flat; too high and it smudges.
 2. **Sun angle / sun softness** — shadows should fall toward the lower right. Softness is the overcast, toy-set fill.
 3. **Sky color / sky intensity** — cool hemisphere light. Keep it pale and slightly blue; that is the overcast key.
 4. **Zoom / angle around / angle down** — locked isometric-ish view (no orbit). Defaults are 45° around and 35° down.

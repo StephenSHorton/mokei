@@ -13,7 +13,7 @@ export function Truck({ accent = 'blue' }: TruckProps) {
   const stripe = accent === 'teal' ? '#0f766e' : roof
 
   return (
-    <group>
+    <group scale={1.06}>
       <RoundedBox args={[2.15, 1.42, 1.85]} radius={0.12} smoothness={3} position={[0, 1.12, 2.15]} castShadow receiveShadow>
         <Matte color={wall} />
       </RoundedBox>

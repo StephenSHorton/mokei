@@ -13,21 +13,21 @@ export function Pallet({ stacks = 2, wrap = 'tan' }: PalletProps) {
   const box = wrap === 'blue' ? accent : cardboard
 
   return (
-    <group>
-      <RoundedBox args={[1.15, 0.12, 0.92]} radius={0.03} smoothness={2} position={[0, 0.06, 0]} castShadow receiveShadow>
-        <Matte color="#b08950" />
+    <group scale={1.18}>
+      <RoundedBox args={[1.28, 0.14, 1.02]} radius={0.03} smoothness={2} position={[0, 0.07, 0]} castShadow receiveShadow>
+        <Matte color="#a9844f" />
       </RoundedBox>
       {Array.from({ length: stacks }, (_, index) => (
         <RoundedBox
           key={index}
-          args={[1.02, 0.42, 0.8]}
-          radius={0.05}
+          args={[1.14, 0.48, 0.9]}
+          radius={0.06}
           smoothness={2}
-          position={[0, 0.3 + index * 0.44, 0]}
+          position={[0, 0.36 + index * 0.5, 0]}
           castShadow
           receiveShadow
         >
-          <Matte color={box} />
+          <Matte color={index % 2 === 0 ? box : wrap === 'blue' ? '#3b82f6' : '#d2b27a'} />
         </RoundedBox>
       ))}
     </group>

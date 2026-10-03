@@ -4,8 +4,8 @@ import { lookDefaults, useLook } from '../look'
 
 export function LevaLook() {
   const lighting = useControls('Lighting', {
-    aoIntensity: { value: lookDefaults.aoIntensity, min: 0, max: 8, step: 0.05, label: 'AO strength' },
-    aoRadius: { value: lookDefaults.aoRadius, min: 0.2, max: 6, step: 0.05, label: 'AO radius' },
+    aoIntensity: { value: lookDefaults.aoIntensity, min: 0, max: 10, step: 0.05, label: 'AO strength' },
+    aoRadius: { value: lookDefaults.aoRadius, min: 1, max: 80, step: 0.5, label: 'AO radius' },
     aoColor: { value: lookDefaults.aoColor, label: 'AO color' },
     sunAzimuth: { value: lookDefaults.sunAzimuth, min: 0, max: 360, step: 1, label: 'Sun angle' },
     sunElevation: { value: lookDefaults.sunElevation, min: 8, max: 85, step: 1, label: 'Sun height' },
@@ -51,7 +51,7 @@ export function LevaLook() {
     <div id="yard-leva" className="pointer-events-auto fixed bottom-4 left-4 z-40 w-[280px] max-w-[calc(100vw-1.5rem)]">
       <Leva
         fill
-        collapsed={false}
+        collapsed={true}
         titleBar={{ title: 'Look', filter: false }}
         hideCopyButton
         theme={{

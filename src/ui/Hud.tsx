@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useLook } from '../look'
 import { trucksOnSite, useYard, WAREHOUSE_ID } from '../sim/yard'
+import { FloatingLabel } from './FloatingLabel'
 
 export function Hud() {
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 text-slate-700">
+    <div className="pointer-events-none absolute inset-0 z-[5] text-slate-700">
+      <FloatingLabel />
       <TopBar />
       <KpiRow />
       <CameraStack />
@@ -215,7 +217,7 @@ function UnitStats({
 function WarehouseStats() {
   const stock = useYard((s) => s.stockOnHand)
   const units = useYard((s) => s.units)
-  const docked = Object.values(units).filter((unit) => unit.kind === 'truck' && unit.z < 0).length
+  const docked = Object.values(units).filter((unit) => unit.kind === 'truck' && unit.z < 2.4).length
   return (
     <div className="space-y-2.5 text-sm">
       <Row label="Status" value="Operational" />

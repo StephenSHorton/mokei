@@ -31,17 +31,17 @@ export type LookState = {
 }
 
 export const lookDefaults = {
-  aoIntensity: 2.6,
-  aoRadius: 1.7,
+  aoIntensity: 6.2,
+  aoRadius: 28,
   sunAzimuth: 218,
-  sunElevation: 46,
-  sunIntensity: 1.05,
-  shadowSoftness: 14,
-  skyColor: '#d5e3f2',
-  groundBounce: '#e8eef4',
-  skyIntensity: 0.92,
+  sunElevation: 34,
+  sunIntensity: 0.92,
+  shadowSoftness: 18,
+  skyColor: '#c9d9eb',
+  groundBounce: '#dce3eb',
+  skyIntensity: 0.58,
   sunColor: '#f4f7fb',
-  cameraZoom: 24,
+  cameraZoom: 28,
   cameraAzimuth: 45,
   cameraElevation: 35,
   panX: 0,
@@ -50,11 +50,11 @@ export const lookDefaults = {
   wall: '#ffffff',
   roof: '#1d4ed8',
   accent: '#1d4ed8',
-  yellow: '#f4c430',
+  yellow: '#eab308',
   cardboard: '#c9a36b',
   tree: '#34d399',
   tire: '#1e293b',
-  aoColor: '#64748b',
+  aoColor: '#4b5b70',
 } satisfies Omit<LookState, 'setLook' | 'zoomBy' | 'resetView'>
 
 export const useLook = create<LookState>((set, get) => ({

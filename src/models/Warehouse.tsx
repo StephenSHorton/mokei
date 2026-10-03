@@ -23,28 +23,32 @@ export function Warehouse() {
         select(WAREHOUSE_ID)
       }}
     >
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.011, 0.4]} receiveShadow>
+        <planeGeometry args={[36, 18]} />
+        <meshStandardMaterial color="#d7dee7" roughness={1} metalness={0} />
+      </mesh>
       <RoundedBox args={[32.2, 5.4, 14.2]} radius={0.16} smoothness={3} position={[0, 2.7, 0]} castShadow receiveShadow>
         <Matte color={wall} />
       </RoundedBox>
-      <RoundedBox args={[33.1, 0.42, 15.1]} radius={0.08} smoothness={3} position={[0, 5.55, 0]} castShadow receiveShadow>
+      <RoundedBox args={[33.2, 0.5, 15.2]} radius={0.08} smoothness={3} position={[0, 5.58, 0]} castShadow receiveShadow>
         <Matte color={roof} />
       </RoundedBox>
-      <RoundedBox args={[32.8, 0.28, 14.8]} radius={0.04} smoothness={2} position={[0, 5.28, 0]} castShadow>
+      <RoundedBox args={[32.9, 0.32, 14.9]} radius={0.04} smoothness={2} position={[0, 5.28, 0]} castShadow>
         <Matte color={accent} />
       </RoundedBox>
-      <RoundedBox args={[32.4, 0.18, 1.1]} radius={0.04} smoothness={2} position={[0, 0.09, 7.2]} receiveShadow>
-        <Matte color="#e2e8f0" />
+      <RoundedBox args={[32.6, 0.22, 1.4]} radius={0.04} smoothness={2} position={[0, 0.11, 7.25]} receiveShadow>
+        <Matte color="#c5d0dc" />
       </RoundedBox>
-      <RoundedBox args={[33, 0.12, 4.6]} radius={0.02} smoothness={2} position={[0, 0.04, 8.6]} receiveShadow>
+      <RoundedBox args={[33, 0.12, 5.2]} radius={0.02} smoothness={2} position={[0, 0.04, 8.8]} receiveShadow>
         <Matte color={ground} />
       </RoundedBox>
 
       {DOOR_XS.map((x) => (
         <group key={x} position={[x, 0, 7.05]}>
-          <RoundedBox args={[2.7, 3.15, 0.22]} radius={0.05} smoothness={2} position={[0, 1.62, 0]} castShadow>
+          <RoundedBox args={[2.95, 3.35, 0.28]} radius={0.05} smoothness={2} position={[0, 1.7, 0]} castShadow>
             <Matte color={accent} />
           </RoundedBox>
-          <RoundedBox args={[2.28, 2.78, 0.7]} radius={0.04} smoothness={2} position={[0, 1.5, -0.18]}>
+          <RoundedBox args={[2.35, 2.9, 0.85]} radius={0.04} smoothness={2} position={[0, 1.52, -0.2]}>
             <Matte color={selected ? '#0f172a' : tire} />
           </RoundedBox>
           <RoundedBox args={[2.7, 0.16, 0.9]} radius={0.03} smoothness={2} position={[0, 0.1, 0.28]} receiveShadow>
