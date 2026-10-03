@@ -5,6 +5,17 @@ import { Matte } from './Matte'
 
 type Vec3 = [number, number, number]
 
+/**
+ * Shared scale for toy-edge rounding and bevels.
+ * 1 keeps the generous post-polish radii; 0 is a hard box.
+ * 0.6 is the middle ground: chunky toys with soft but still crisp edges.
+ */
+export const SOFT_EDGE_SCALE = 0.6
+
+export function scaleSoft(value: number) {
+  return value * SOFT_EDGE_SCALE
+}
+
 type SoftBoxProps = {
   size: Vec3
   color: string
@@ -31,7 +42,7 @@ export function SoftBox({
   emissive,
 }: SoftBoxProps) {
   const min = Math.min(size[0], size[1], size[2])
-  const radius = Math.max(0.004, Math.min(r ?? min * 0.24, min / 2 - 0.002))
+  const radius = Math.max(0.004, Math.min(scaleSoft(r ?? min * 0.24), min / 2 - 0.002))
   return (
     <RoundedBox
       args={size}
@@ -87,7 +98,7 @@ export function RoundCyl({
   cast = true,
   segments,
 }: RoundCylProps) {
-  const geo = useRoundCylinder(radius, height, fillet ?? Math.min(radius, height) * 0.35, segments)
+  const geo = useRoundCylinder(radius, height, scaleSoft(fillet ?? Math.min(radius, height) * 0.35), segments)
   return (
     <mesh geometry={geo} position={position} rotation={rotation} castShadow={cast} receiveShadow>
       <Matte color={color} />

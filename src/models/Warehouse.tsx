@@ -4,7 +4,7 @@ import { useLook } from '../look'
 import { WAREHOUSE_ID, useYard } from '../sim/yard'
 import { Matte } from './Matte'
 import { Pallet } from './Pallet'
-import { RoundCyl, SoftBox } from './soft'
+import { RoundCyl, SoftBox, scaleSoft } from './soft'
 import { ribTexture, roofLogo, signTexture } from './textures'
 
 const DOOR_XS = [-10.5, -3.5, 3.5, 10.5]
@@ -52,8 +52,8 @@ function Hall({ W, D, H, RISE, doors, logo: showLogo = false, units = [] }: Hall
     return new ExtrudeGeometry(shape, {
       depth: 0.3,
       bevelEnabled: true,
-      bevelThickness: 0.06,
-      bevelSize: 0.06,
+      bevelThickness: scaleSoft(0.06),
+      bevelSize: scaleSoft(0.06),
       bevelSegments: 3,
     })
   }, [D, RISE])
