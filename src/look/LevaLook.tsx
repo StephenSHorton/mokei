@@ -2,29 +2,31 @@ import { Leva, button, useControls } from 'leva'
 import { useEffect } from 'react'
 import { lookDefaults, useLook } from '../look'
 
-export function LevaLook() {
+export function LevaLook({ hidden = false }: { hidden?: boolean }) {
   const lighting = useControls('Lighting', {
     aoIntensity: { value: lookDefaults.aoIntensity, min: 0, max: 10, step: 0.05, label: 'AO strength' },
-    aoRadius: { value: lookDefaults.aoRadius, min: 1, max: 80, step: 0.5, label: 'AO radius' },
+    aoRadius: { value: lookDefaults.aoRadius, min: 0.2, max: 8, step: 0.05, label: 'AO radius' },
     aoColor: { value: lookDefaults.aoColor, label: 'AO color' },
-    sunAzimuth: { value: lookDefaults.sunAzimuth, min: 0, max: 360, step: 1, label: 'Sun angle' },
+    sunAzimuth: { value: lookDefaults.sunAzimuth, min: -180, max: 180, step: 1, label: 'Sun angle' },
     sunElevation: { value: lookDefaults.sunElevation, min: 8, max: 85, step: 1, label: 'Sun height' },
-    sunIntensity: { value: lookDefaults.sunIntensity, min: 0, max: 3, step: 0.02, label: 'Sun intensity' },
-    shadowSoftness: { value: lookDefaults.shadowSoftness, min: 1, max: 40, step: 0.5, label: 'Sun softness' },
+    sunIntensity: { value: lookDefaults.sunIntensity, min: 0, max: 1.5, step: 0.01, label: 'Sun intensity' },
+    shadowSoftness: { value: lookDefaults.shadowSoftness, min: 0, max: 20, step: 0.5, label: 'Sun softness' },
     sunColor: { value: lookDefaults.sunColor, label: 'Sun color' },
     skyColor: { value: lookDefaults.skyColor, label: 'Sky color' },
     groundBounce: { value: lookDefaults.groundBounce, label: 'Sky ground' },
-    skyIntensity: { value: lookDefaults.skyIntensity, min: 0, max: 2.4, step: 0.02, label: 'Sky intensity' },
+    skyIntensity: { value: lookDefaults.skyIntensity, min: 0, max: 1.6, step: 0.01, label: 'Sky intensity' },
   })
 
   const camera = useControls('Camera', {
-    cameraZoom: { value: lookDefaults.cameraZoom, min: 12, max: 52, step: 0.2, label: 'Zoom' },
-    cameraAzimuth: { value: lookDefaults.cameraAzimuth, min: 20, max: 70, step: 0.5, label: 'Angle around' },
+    cameraZoom: { value: lookDefaults.cameraZoom, min: 12, max: 60, step: 0.2, label: 'Zoom' },
+    cameraAzimuth: { value: lookDefaults.cameraAzimuth, min: 0, max: 90, step: 0.5, label: 'Angle around' },
     cameraElevation: { value: lookDefaults.cameraElevation, min: 18, max: 58, step: 0.5, label: 'Angle down' },
   })
 
   const palette = useControls('Palette', {
     ground: { value: lookDefaults.ground, label: 'Ground' },
+    road: { value: lookDefaults.road, label: 'Road' },
+    grass: { value: lookDefaults.grass, label: 'Grass' },
     wall: { value: lookDefaults.wall, label: 'Walls' },
     roof: { value: lookDefaults.roof, label: 'Roof / blue' },
     yellow: { value: lookDefaults.yellow, label: 'Safety yellow' },
@@ -48,10 +50,10 @@ export function LevaLook() {
   }, [lighting, camera, palette])
 
   return (
-    <div id="yard-leva" className="pointer-events-auto fixed bottom-4 left-4 z-40 w-[280px] max-w-[calc(100vw-1.5rem)]">
+    <div id="yard-leva" className="pointer-events-auto fixed top-24 left-1/2 z-40 w-[280px] -translate-x-1/2" style={{ display: hidden ? 'none' : undefined }}>
       <Leva
         fill
-        collapsed={true}
+        collapsed={false}
         titleBar={{ title: 'Look', filter: false }}
         hideCopyButton
         theme={{

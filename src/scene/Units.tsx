@@ -53,7 +53,7 @@ function UnitMesh({
 }) {
   const group = useRef<Group>(null)
   const unit = runtime.units[id]
-  const radius = unit.kind === 'truck' ? 2.6 : 1.75
+  const box: [number, number, number] = unit.kind === 'truck' ? [3.1, 3.4, 7.4] : [2.1, 3.0, 3.6]
 
   useFrame(() => {
     const live = runtime.units[id]
@@ -78,7 +78,11 @@ function UnitMesh({
       ) : (
         <Forklift />
       )}
-      {selected ? <SelectionMarker radius={radius} /> : null}
+      {selected ? (
+        <group position={[0, 0, unit.kind === 'truck' ? 0.2 : 0.55]}>
+          <SelectionMarker size={box} />
+        </group>
+      ) : null}
     </group>
   )
 }
@@ -89,24 +93,34 @@ function LabelTracker({ selectedId }: { selectedId: string | null }) {
   const scratch = useMemo(() => new Vector3(), [])
 
   useFrame(() => {
-    if (!selectedId || selectedId === 'wh-northpoint') {
-      writeLabel(0, 0, '', false)
-      return
-    }
-    const unit = runtime.units[selectedId]
+    const unit = selectedId ? runtime.units[selectedId] : null
     if (!unit) {
-      writeLabel(0, 0, '', false)
+      writeLabel('unit', 0, 0, '', false)
+    } else {
+      scratch.set(unit.x, unit.kind === 'truck' ? 4.3 : 3.55, unit.z)
+      scratch.project(camera)
+      const x = (scratch.x * 0.5 + 0.5) * size.width
+      const y = (-scratch.y * 0.5 + 0.5) * size.height
+      writeLabel('unit', x, y - 6, `<b>${unit.code}</b><span>${unit.title}</span>`, scratch.z < 1)
+    }
+
+    const pallet = runtime.pallets[FOCUS_PALLET]
+    if (!pallet || pallet.carriedBy || pallet.hiddenUntil > runtime.clock) {
+      writeLabel('pallet', 0, 0, '', false)
       return
     }
-    scratch.set(unit.x, unit.kind === 'truck' ? 3.4 : 2.6, unit.z)
+    scratch.set(pallet.x, (0.3 + pallet.stacks * 0.58) * 1.14 + 0.35, pallet.z)
     scratch.project(camera)
     const x = (scratch.x * 0.5 + 0.5) * size.width
     const y = (-scratch.y * 0.5 + 0.5) * size.height
-    writeLabel(x, y, `${unit.code} · ${unit.title}`, scratch.z < 1)
+    writeLabel('pallet', x, y - 4, `<b>${pallet.code}</b><span>${FOCUS_PALLET_TITLE}</span>`, true)
   })
 
   return null
 }
+
+const FOCUS_PALLET = 'p6'
+const FOCUS_PALLET_TITLE = 'Safety Helmet'
 
 function PalletActor({ id }: { id: string }) {
   const group = useRef<Group>(null)
@@ -125,10 +139,10 @@ function PalletActor({ id }: { id: string }) {
 
   return (
     <group ref={group} position={[pallet.x, 0, pallet.z]} rotation={[0, pallet.heading, 0]}>
-      <Pallet stacks={pallet.stacks} wrap={pallet.wrap} />
+      <Pallet stacks={pallet.stacks} wrap={pallet.wrap} seed={pallet.code.length + pallet.stacks} />
       {pallet.pin ? (
         <group ref={pin}>
-          <MapPin />
+          <MapPin height={(0.3 + pallet.stacks * 0.58) * 1.14 + 0.28} />
         </group>
       ) : null}
     </group>
@@ -162,5 +176,5 @@ function RouteLine({ selectedId, color }: { selectedId: string | null; color: st
 
   if (!selectedId || selectedId === 'wh-northpoint' || points.length < 2) return null
 
-  return <Line points={points} color={color} dashed dashSize={0.42} gapSize={0.28} lineWidth={1.35} />
+  return <Line points={points} color={color} dashed dashSize={0.5} gapSize={0.32} lineWidth={2.2} transparent opacity={0.85} />
 }

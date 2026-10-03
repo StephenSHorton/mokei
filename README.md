@@ -37,23 +37,27 @@ serves that build on the same port.
 
 ## What to tune
 
-The **Look** panel (bottom-left) is the point of the prototype. The knobs that change the clay reading the most:
+Press **L** (or open with `?look`) to show the **Look** panel. It is hidden by default so the HUD composition matches the reference. The knobs that change the clay reading the most:
 
-1. **AO strength / AO radius** — screen-space AO. Strength is the clay contact. Radius is in pixels (try 18–40). Too low and the yard goes flat; too high and it smudges.
-2. **Sun angle / sun softness** — shadows should fall toward the lower right. Softness is the overcast, toy-set fill.
-3. **Sky color / sky intensity** — cool hemisphere light. Keep it pale and slightly blue; that is the overcast key.
-4. **Zoom / angle around / angle down** — locked isometric-ish view (no orbit). Defaults are 45° around and 35° down.
-5. **Palette** — pale ground (`#F1F5F9`), white walls, corporate blue roof, safety yellow, tan cardboard, mint trees, slate tires.
+1. **AO strength / AO radius** — N8AO in world units (radius ~1.5–3). Strength is the clay contact.
+2. **Sun angle / sun height / softness** — a gentle key from the front-left. Intensities are in "albedo units": sky + sun ≈ 1 keeps white surfaces white.
+3. **Sky color / sky intensity** — cool hemisphere light does most of the work.
+4. **Zoom / angle around / angle down** — locked orthographic view (36° around, 37° down by default). Zoom is defined for a 1728px-wide window and scales with the window.
+5. **Palette** — lavender-pale lot (`#E9EEF8`), periwinkle roads, white walls, blue roof, safety yellow, tan cardboard, mint trees.
 
 There is no bloom, grain, outline, or vignette on purpose.
 
 ## Controls
 
-- Click a unit or the warehouse to select it
-- Drag the yard to pan; scroll or the `+` / `−` stack to zoom
+- Click a unit or the warehouse to select it, or pick a row in the docks board
+- Drag the yard to pan; scroll or `+` / `−` to zoom; the rotate buttons turn the view 15°
 - Home recenters the view
-- The dashed floor path is the selected unit’s remaining route
+- The dashed floor path is the selected unit's remaining route
+
+## UI notes
+
+The HUD is laid out in reference pixels measured from the 1728×995 promo capture and zoomed down on smaller windows. Type is SF Pro on Apple platforms (as in the capture) and Inter elsewhere, set slightly smaller and tighter to match SF widths.
 
 ## Stack
 
-Vite + React + TypeScript, react-three-fiber, drei, N8AO + SMAA, ContactShadows, Tailwind, leva, zustand. Models are rounded boxes and other primitives — one matte color per part.
+Vite + React + TypeScript, react-three-fiber, drei, N8AO + SMAA, Tailwind, leva, zustand, lucide-react. Models are rounded boxes, filleted lathe cylinders and beveled extrusions — no hard edges, one matte (Lambert) color per part.

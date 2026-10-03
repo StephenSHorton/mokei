@@ -7,14 +7,13 @@ export function PostFX() {
   const aoColor = useLook((s) => s.aoColor)
 
   return (
-    <EffectComposer multisampling={0} enableNormalPass>
+    <EffectComposer multisampling={0} enableNormalPass={false}>
       <N8AO
         aoRadius={aoRadius}
         intensity={aoIntensity}
-        distanceFalloff={0.7}
-        quality="medium"
-        halfRes
-        screenSpaceRadius
+        distanceFalloff={1.2}
+        quality="high"
+        halfRes={false}
         color={aoColor}
       />
       <SMAA />

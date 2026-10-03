@@ -1,15 +1,9 @@
 type MatteProps = {
   color: string
-  roughness?: number
+  emissive?: string
 }
 
-export function Matte({ color, roughness = 1 }: MatteProps) {
-  return (
-    <meshStandardMaterial
-      color={color}
-      roughness={roughness}
-      metalness={0}
-      envMapIntensity={0}
-    />
-  )
+// Fully matte, no specular: Lambert keeps the clay look flat and soft.
+export function Matte({ color, emissive }: MatteProps) {
+  return <meshLambertMaterial color={color} emissive={emissive ?? '#000000'} />
 }

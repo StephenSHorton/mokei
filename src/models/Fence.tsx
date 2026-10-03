@@ -1,27 +1,35 @@
-import { RoundedBox } from '@react-three/drei'
-import { Matte } from './Matte'
+import { useMemo } from 'react'
+import { DoubleSide } from 'three'
+import { fenceTexture } from './textures'
+import { RoundCyl, SoftBox } from './soft'
 
-export function Fence() {
-  const posts: { key: string; x: number; z: number }[] = []
-  for (let x = -26; x <= 26; x += 2.4) posts.push({ key: `n-${x}`, x, z: -19.2 })
-  for (let z = -16.8; z <= -8; z += 2.4) {
-    posts.push({ key: `w-${z}`, x: -26, z })
-    posts.push({ key: `e-${z}`, x: 26, z })
-  }
-
+/** Light chain-link fence run between two points along X or Z. */
+export function FenceRun({
+  from,
+  to,
+  height = 1.5,
+}: {
+  from: [number, number]
+  to: [number, number]
+  height?: number
+}) {
+  const dx = to[0] - from[0]
+  const dz = to[1] - from[1]
+  const len = Math.hypot(dx, dz)
+  const angle = Math.atan2(dx, dz)
+  const tex = useMemo(() => fenceTexture(len / 1.2), [len])
+  const posts = Math.max(2, Math.round(len / 2.6) + 1)
   return (
-    <group>
-      {posts.map((post) => (
-        <RoundedBox key={post.key} args={[0.12, 1.15, 0.12]} radius={0.03} smoothness={2} position={[post.x, 0.58, post.z]} castShadow>
-          <Matte color="#cbd5e1" />
-        </RoundedBox>
+    <group position={[from[0], 0, from[1]]} rotation={[0, angle, 0]}>
+      <mesh position={[0, height / 2 + 0.1, len / 2]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[len, height]} />
+        <meshLambertMaterial map={tex} transparent side={DoubleSide} depthWrite={false} color="#dbe3f0" />
+      </mesh>
+      <SoftBox size={[0.07, 0.07, len]} r={0.03} color="#cfd8e6" position={[0, height + 0.1, len / 2]} />
+      <SoftBox size={[0.07, 0.07, len]} r={0.03} color="#cfd8e6" position={[0, 0.16, len / 2]} />
+      {Array.from({ length: posts }, (_, i) => (
+        <RoundCyl key={i} radius={0.055} height={height + 0.2} fillet={0.04} color="#e2e8f0" position={[0, (height + 0.2) / 2, (i / (posts - 1)) * len]} segments={10} />
       ))}
-      <RoundedBox args={[52.2, 0.07, 0.07]} radius={0.02} smoothness={2} position={[0, 0.95, -19.2]}>
-        <Matte color="#94a3b8" />
-      </RoundedBox>
-      <RoundedBox args={[52.2, 0.07, 0.07]} radius={0.02} smoothness={2} position={[0, 0.42, -19.2]}>
-        <Matte color="#94a3b8" />
-      </RoundedBox>
     </group>
   )
 }

@@ -1,149 +1,204 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  ArrowUp,
+  ArrowUpRight,
+  Bell,
+  Box,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  House,
+  LocateFixed,
+  Minus,
+  Package,
+  Plus,
+  RotateCcw,
+  RotateCw,
+  Search,
+  Truck as TruckLine,
+  X,
+} from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useLook } from '../look'
-import { trucksOnSite, useYard, WAREHOUSE_ID } from '../sim/yard'
-import { FloatingLabel } from './FloatingLabel'
+import { DOCKS, trucksOnSite, useYard, WAREHOUSE_ID, type Unit } from '../sim/yard'
+import { FloatingLabels } from './FloatingLabel'
+import {
+  Avatar,
+  BoxArt,
+  BrandCube,
+  DockBoard,
+  ForkliftArt,
+  KpiClock,
+  KpiCube,
+  KpiTruck,
+  TrackTruck,
+  TruckArt,
+  WarehouseArt,
+} from './icons'
+import { setLabelScale } from './labelBridge'
+
+const SITE = { code: 'WH-01', name: 'Northpoint Hub', address: '7 Harbor Way, Elizabeth NJ', capacity: 1400 }
+
+/** HUD is laid out at the 1728×995 reference size of the frames and scaled to fit. */
+function useHudScale() {
+  const [scale, setScale] = useState(1)
+  useEffect(() => {
+    const update = () => {
+      const s = Math.min(1, window.innerWidth / 1728, window.innerHeight / 995)
+      const clamped = Math.max(0.62, s)
+      setScale(clamped)
+      setLabelScale(clamped)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+  return scale
+}
 
 export function Hud() {
+  const scale = useHudScale()
   return (
-    <div className="pointer-events-none absolute inset-0 z-[5] text-slate-700">
-      <FloatingLabel />
-      <TopBar />
-      <KpiRow />
-      <CameraStack />
-      <Inspector />
-      <BottomTrack />
-      <UnitList />
-    </div>
+    <>
+      <FloatingLabels />
+      <div className="hud" style={{ zoom: scale }}>
+        <TopBar />
+        <KpiRow />
+        <CameraStack />
+        <Inspector />
+        <BottomTrack />
+        <UnitBoard />
+      </div>
+    </>
   )
 }
 
+/* ───────────────────────────── top bar ───────────────────────────── */
+
 function TopBar() {
   const [now, setNow] = useState(() => formatClock(new Date()))
+  const docked = useYard((s) => Object.values(s.units).filter((u) => u.kind === 'truck' && u.z < 1.2).length)
+  const stock = useYard((s) => s.stockOnHand)
   useEffect(() => {
     const id = window.setInterval(() => setNow(formatClock(new Date())), 1000)
     return () => window.clearInterval(id)
   }, [])
 
   return (
-    <header className="pointer-events-auto mx-auto flex h-14 w-full items-center gap-3 border-b border-white/70 bg-white/80 px-4 backdrop-blur-xl">
-      <div className="flex items-center gap-2.5">
-        <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue-600 text-white shadow-sm">
-          <CubeIcon />
-        </span>
-        <div>
-          <p className="text-[15px] font-semibold tracking-tight text-slate-900">Yardline</p>
-        </div>
+    <header className="topbar pointer-events-auto">
+      <div className="brand">
+        <BrandCube size={38} />
+        <span>Yardline</span>
       </div>
-      <label className="relative mx-auto hidden min-w-0 max-w-md flex-1 md:block">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-          <SearchIcon />
-        </span>
-        <input
-          className="h-9 w-full rounded-full border border-slate-200/80 bg-slate-50/80 pl-9 pr-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-300 focus:bg-white"
-          placeholder="Search sites, trucks, forklifts, pallets..."
-        />
+      <label className="search">
+        <Search size={20} strokeWidth={2} className="search__icon" />
+        <input placeholder="Search sites, trucks, forklifts, pallets, shipments..." />
+        <kbd>/</kbd>
       </label>
-      <div className="ml-auto flex items-center gap-3 text-sm">
-        <span className="hidden rounded-full bg-slate-50 px-3 py-1.5 text-slate-600 ring-1 ring-slate-200/80 sm:inline">
-          WH-01 · Northpoint Cross-Dock
-        </span>
-        <span className="flex items-center gap-1.5 text-slate-500">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          Live {now}
-        </span>
-        <div className="hidden items-center gap-2 sm:flex">
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-slate-100 text-[11px] font-semibold text-slate-600">
-            JH
+      <button type="button" className="site">
+        <span className="site__badge">{SITE.code}</span>
+        <span className="site__text">
+          <b>{SITE.name}</b>
+          <span>
+            {Math.round((stock / SITE.capacity) * 100)}% full · {docked}/4 docked
           </span>
-          <div className="leading-tight">
-            <p className="text-xs font-semibold text-slate-800">Jordan Hale</p>
-            <p className="text-[10px] text-slate-500">Yard lead</p>
-          </div>
-        </div>
+        </span>
+        <ChevronRight size={18} strokeWidth={2} className="site__chev" />
+        <span className="site__menu">
+          <ChevronDown size={19} strokeWidth={2.2} />
+        </span>
+      </button>
+      <div className="live">
+        <span className="live__dot" />
+        <b>Live</b>
+        <span className="live__time">{now}</span>
+      </div>
+      <button type="button" className="bell" aria-label="Notifications">
+        <Bell size={23} strokeWidth={2} />
+        <span />
+      </button>
+      <span className="topbar__rule" />
+      <div className="user">
+        <span className="user__avatar">
+          <Avatar />
+        </span>
+        <span className="user__text">
+          <b>Jordan Hale</b>
+          <span>Yard Lead</span>
+        </span>
+        <ChevronDown size={20} strokeWidth={2} className="user__chev" />
       </div>
     </header>
   )
 }
+
+/* ───────────────────────────── KPI row ───────────────────────────── */
 
 function KpiRow() {
   const stock = useYard((s) => s.stockOnHand)
   const onTime = useYard((s) => s.onTime)
   const units = useYard((s) => s.units)
   const trucks = trucksOnSite(units)
-
   return (
-    <div className="pointer-events-none absolute left-4 top-20 flex flex-wrap gap-2.5">
-      <Kpi icon={<BoxIcon />} label="Stock on hand" value={stock.toLocaleString()} delta="+20" unit="pallets · WH-01" />
-      <Kpi icon={<TruckIcon />} label="Trucks on site" value={String(trucks)} delta="+1" unit={`${trucks} inbound · WH-01`} />
-      <Kpi icon={<ClockIcon />} label="On-time delivery" value={`${onTime.toFixed(1)}%`} delta="+0.4%" unit="last 30 days · WH-01" />
+    <div className="kpis">
+      <Kpi icon={<KpiCube />} label="Stock on hand" value={stock.toLocaleString()} delta="+20" sub={`pallets · ${SITE.code}`} />
+      <Kpi icon={<KpiTruck />} label="Trucks on site" value={String(trucks)} delta="+1" sub={`1 inbound · ${SITE.code}`} />
+      <Kpi icon={<KpiClock />} label="On-time delivery" value={`${onTime.toFixed(1)}%`} delta="+0.4%" sub={`last 30 days · ${SITE.code}`} />
     </div>
   )
 }
 
-function Kpi({
-  icon,
-  label,
-  value,
-  delta,
-  unit,
-}: {
-  icon: ReactNode
-  label: string
-  value: string
-  delta: string
-  unit: string
-}) {
+function Kpi({ icon, label, value, delta, sub }: { icon: ReactNode; label: string; value: string; delta: string; sub: string }) {
   return (
-    <div className="glass pointer-events-auto min-w-[168px] rounded-2xl px-3.5 py-3">
-      <div className="mb-2 flex items-center gap-2 text-slate-400">{icon}</div>
-      <p className="hud-label">{label}</p>
-      <div className="mt-0.5 flex items-end gap-2">
-        <p className="text-[28px] font-semibold leading-none tracking-tight text-slate-900">{value}</p>
-        <span className="mb-0.5 text-[11px] font-semibold text-emerald-500">{delta}</span>
+    <div className="glass kpi pointer-events-auto">
+      <span className="kpi__tile">{icon}</span>
+      <div className="kpi__body">
+        <p className="kpi__label">{label}</p>
+        <p className="kpi__value">
+          {value}
+          <span className="delta">
+            <span className="delta__chip">
+              <ArrowUp size={12} strokeWidth={2.6} />
+            </span>
+            {delta}
+          </span>
+        </p>
+        <p className="kpi__sub">{sub}</p>
       </div>
-      <p className="mt-1 text-[11px] text-slate-400">{unit}</p>
     </div>
   )
 }
+
+/* ─────────────────────────── camera stack ─────────────────────────── */
 
 function CameraStack() {
   const zoomBy = useLook((s) => s.zoomBy)
+  const rotateBy = useLook((s) => s.rotateBy)
   const resetView = useLook((s) => s.resetView)
   return (
-    <div className="pointer-events-auto absolute right-4 top-20 flex flex-col gap-2">
-      <CamBtn label="Zoom in" onClick={() => zoomBy(2.2)}>
-        +
-      </CamBtn>
-      <CamBtn label="Reset camera" onClick={resetView}>
-        <HomeIcon />
-      </CamBtn>
-      <CamBtn label="Zoom out" onClick={() => zoomBy(-2.2)}>
-        −
-      </CamBtn>
+    <div className="glass camstack pointer-events-auto">
+      <button type="button" aria-label="Zoom in" onClick={() => zoomBy(3)}>
+        <Plus size={21} strokeWidth={2} />
+      </button>
+      <button type="button" aria-label="Zoom out" onClick={() => zoomBy(-3)}>
+        <Minus size={21} strokeWidth={2} />
+      </button>
+      <span className="camstack__rule" />
+      <button type="button" aria-label="Rotate left" onClick={() => rotateBy(-15)}>
+        <RotateCcw size={19} strokeWidth={2.1} />
+      </button>
+      <button type="button" aria-label="Rotate right" onClick={() => rotateBy(15)}>
+        <RotateCw size={19} strokeWidth={2.1} />
+      </button>
+      <span className="camstack__rule" />
+      <button type="button" aria-label="Reset view" onClick={resetView}>
+        <House size={19} strokeWidth={2.1} />
+      </button>
     </div>
   )
 }
 
-function CamBtn({
-  children,
-  onClick,
-  label,
-}: {
-  children: ReactNode
-  onClick: () => void
-  label: string
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className="glass grid h-10 w-10 place-items-center rounded-full text-lg font-medium text-slate-600 transition hover:bg-white"
-    >
-      {children}
-    </button>
-  )
-}
+/* ───────────────────────────── inspector ───────────────────────────── */
 
 function Inspector() {
   const selectedId = useYard((s) => s.selectedId)
@@ -151,160 +206,368 @@ function Inspector() {
   const select = useYard((s) => s.select)
   const unit = selectedId && selectedId !== WAREHOUSE_ID ? units[selectedId] : null
   const warehouse = selectedId === WAREHOUSE_ID
-
   if (!unit && !warehouse) return null
 
+  const head = warehouse
+    ? { eyebrow: `Cross-dock · ${SITE.code}`, title: SITE.name, sub: SITE.address, art: <WarehouseArt /> }
+    : unit!.kind === 'forklift'
+      ? { eyebrow: `Forklift · ${SITE.code}`, title: unit!.code, sub: forkliftMeta(unit!.id), art: <ForkliftArt /> }
+      : { eyebrow: unit!.accent === 'teal' ? 'Nordline Freight' : 'Yardline Freight', title: unit!.code, sub: truckMeta(unit!.id), art: <TruckArt width={46} /> }
+
   return (
-    <aside className="glass-strong pointer-events-auto absolute right-4 top-52 hidden w-[300px] rounded-2xl p-4 lg:block">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <p className="hud-label">{warehouse ? 'Cold store · WH-01' : unit?.kind === 'truck' ? 'Box truck' : 'Forklift'}</p>
-          <h2 className="text-lg font-semibold tracking-tight text-slate-900">
-            {warehouse ? 'Northpoint Cross-Dock' : unit?.code}
-          </h2>
-          <p className="text-sm text-slate-500">
-            {warehouse ? '7 Harbor Way, Northpoint' : unit?.title}
-          </p>
+    <aside className="glass inspector pointer-events-auto">
+      <div className="insp-head">
+        <span className="insp-head__thumb">{head.art}</span>
+        <div className="insp-head__text">
+          <p className="eyebrow">{head.eyebrow}</p>
+          <h2>{head.title}</h2>
+          <p className="insp-head__sub">{head.sub}</p>
         </div>
-        <button
-          type="button"
-          className="grid h-7 w-7 place-items-center rounded-full text-slate-400 hover:bg-slate-100"
-          onClick={() => select(null)}
-          aria-label="Close inspector"
-        >
-          ×
-        </button>
+        <div className="insp-head__actions">
+          <button type="button" className="icon-btn" aria-label="Locate">
+            <LocateFixed size={18} strokeWidth={2.1} />
+          </button>
+          {warehouse ? null : (
+            <>
+              <button type="button" className="icon-btn" aria-label="Open">
+                <ArrowUpRight size={19} strokeWidth={2.1} />
+              </button>
+              <button type="button" className="icon-btn" aria-label="Close" onClick={() => select(null)}>
+                <X size={18} strokeWidth={2.2} />
+              </button>
+            </>
+          )}
+        </div>
       </div>
-      {warehouse ? <WarehouseStats /> : unit ? <UnitStats unit={unit} /> : null}
+      <div className="insp-rule" />
+      {warehouse ? <WarehouseBody /> : unit!.kind === 'forklift' ? <ForkliftBody unit={unit!} /> : <TruckBody unit={unit!} />}
     </aside>
   )
 }
 
-function UnitStats({
-  unit,
-}: {
-  unit: {
-    kind: string
-    task: string
-    battery: number
-    speed: number
-    movesToday: number
-    carryingId: string | null
+function forkliftMeta(id: string) {
+  return id === 'fl-10' ? 'Sam Haddad · Toyota 8FBE18' : 'Zoe Larsen · Linde E20'
+}
+
+function truckMeta(id: string) {
+  const plates: Record<string, string> = {
+    'trk-18': 'Sam Chen · ZBY-5648',
+    'trk-12': 'Ava Ruiz · NRD-2210',
+    'trk-22': 'Leo Park · YRD-8812',
+    'trk-07': 'Mia Holt · NRD-4471',
   }
-}) {
+  return plates[id] ?? 'Driver assigned'
+}
+
+type Tone = 'green' | 'amber' | 'blue' | 'slate'
+
+function statusFor(unit: Unit): { label: string; tone: Tone } {
+  const task = unit.task.toLowerCase()
+  if (unit.kind === 'forklift') {
+    if (task.includes('collect') || task.includes('lift')) return { label: 'Picking pallet', tone: 'blue' }
+    if (task.includes('stage') || task.includes('feed') || task.includes('build')) return { label: 'Loading truck', tone: 'green' }
+    if (task.includes('hold') || task.includes('idle')) return { label: 'Idle', tone: 'slate' }
+    return { label: 'Moving', tone: 'blue' }
+  }
+  if (task.includes('unloading')) return { label: 'Unloading', tone: 'green' }
+  if (task.includes('loading')) return { label: 'Loading', tone: 'green' }
+  if (task.includes('hold')) return { label: 'Waiting', tone: 'amber' }
+  if (task.includes('back') || task.includes('align')) return { label: 'Docking', tone: 'blue' }
+  return { label: 'En route', tone: 'blue' }
+}
+
+function Pill({ tone, children }: { tone: Tone; children: ReactNode }) {
+  return <span className={`pill pill--${tone}`}>{children}</span>
+}
+
+function Bar({ value, tone = 'blue' }: { value: number; tone?: 'blue' | 'green' }) {
   return (
-    <div className="space-y-2.5 text-sm">
-      <Row label="Task" value={unit.task} />
-      {unit.kind === 'forklift' ? (
-        <div>
-          <div className="flex items-center justify-between text-[12px]">
-            <span className="text-slate-400">Battery</span>
-            <span className="font-medium text-slate-800">{Math.round(unit.battery)}%</span>
-          </div>
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full rounded-full bg-emerald-400" style={{ width: `${unit.battery}%` }} />
-          </div>
-        </div>
-      ) : null}
-      <Row label="Speed" value={`${unit.speed.toFixed(1)} km/h`} />
-      <Row label="Moves today" value={String(unit.movesToday)} />
-      <Row label="Carrying" value={unit.carryingId ? unit.carryingId.toUpperCase() : 'Empty'} />
-      <Row label="Site" value="Northpoint Cross-Dock" />
-    </div>
+    <span className="bar">
+      <span className={`bar__fill bar__fill--${tone}`} style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+    </span>
   )
 }
 
-function WarehouseStats() {
+function Rows({ rows }: { rows: [string, ReactNode, boolean?][] }) {
+  return (
+    <dl className="rows">
+      {rows.map(([label, value, link]) => (
+        <div key={label} className="rows__row">
+          <dt>{label}</dt>
+          <dd className={link ? 'is-link' : undefined}>{value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+function ForkliftBody({ unit }: { unit: Unit }) {
+  const status = statusFor(unit)
+  return (
+    <>
+      <div className="insp-status">
+        <Pill tone={status.tone}>{status.label}</Pill>
+        <span>{unit.title}</span>
+      </div>
+      <div className="insp-battery">
+        <Bar value={unit.battery} tone="green" />
+        <span>Battery {Math.round(unit.battery)}%</span>
+      </div>
+      <Rows
+        rows={[
+          ['Carrying', unit.carryingId ? 'Pallet ' + unit.carryingId.toUpperCase() : 'Empty'],
+          ['Moves today', String(unit.movesToday)],
+          ['Speed', `${unit.speed.toFixed(1)} km/h`],
+          ['Charger', unit.id === 'fl-10' ? 'C1' : 'C3', true],
+          ['Site', SITE.name],
+        ]}
+      />
+    </>
+  )
+}
+
+function TruckBody({ unit }: { unit: Unit }) {
+  const status = statusFor(unit)
+  const bay = DOCKS.find((d) => Math.abs(d.x - unit.x) < 1.2)
+  const progress = status.tone === 'green' ? 2 : 0
+  return (
+    <>
+      <div className="insp-status">
+        <Pill tone={status.tone}>{status.label}</Pill>
+        <span>
+          {SITE.code} · {bay ? bay.label : 'Yard'} · {progress}/6 pallets
+        </span>
+      </div>
+      <div className="insp-battery">
+        <Bar value={(progress / 6) * 100} tone="green" />
+        <span>{progress}/6</span>
+      </div>
+      <Rows
+        rows={[
+          ['Shipment', '#SHP-44012', true],
+          ['Customer', 'Oakridge Market'],
+          ['Destination', `${SITE.code} ${SITE.name}`],
+          ['Speed', `${unit.speed.toFixed(1)} km/h`],
+          ['Bay', bay ? bay.label : '—'],
+          ['Cargo', `${progress + 1}/7 pallets · 1.2 t`],
+        ]}
+      />
+    </>
+  )
+}
+
+function WarehouseBody() {
   const stock = useYard((s) => s.stockOnHand)
   const units = useYard((s) => s.units)
-  const docked = Object.values(units).filter((unit) => unit.kind === 'truck' && unit.z < 2.4).length
+  const docked = Object.values(units).filter((u) => u.kind === 'truck' && u.z < 1.2).length
+  const working = Object.values(units).filter((u) => u.kind === 'forklift' && u.speed > 0.1).length
   return (
-    <div className="space-y-2.5 text-sm">
-      <Row label="Status" value="Operational" />
-      <Row label="Docked / arriving" value={`${docked} docked · 1 arriving`} />
-      <div>
-        <div className="flex items-center justify-between text-[12px]">
-          <span className="text-slate-400">Stock on hand</span>
-          <span className="font-medium text-slate-800">{stock.toLocaleString()} / 1,400</span>
+    <>
+      <div className="insp-status">
+        <Pill tone="green">Operational</Pill>
+        <span>{docked} docked · 1 arriving · 3 staged</span>
+      </div>
+      <div className="tiles">
+        <div className="tile">
+          <p>Stock on hand</p>
+          <p className="tile__value">
+            {stock.toLocaleString()} <small>/ {SITE.capacity.toLocaleString()}</small>
+          </p>
+          <Bar value={(stock / SITE.capacity) * 100} />
         </div>
-        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full bg-blue-500" style={{ width: `${Math.min(100, (stock / 1400) * 100)}%` }} />
+        <div className="tile">
+          <p>Truck bays</p>
+          <p className="tile__value">
+            {docked} <small>/ 4 busy</small>
+          </p>
+          <Bar value={(docked / 4) * 100} tone="green" />
+        </div>
+        <div className="tile">
+          <p>Outbound today</p>
+          <p className="tile__value">
+            31 <small>trucks</small>
+          </p>
+        </div>
+        <div className="tile">
+          <p>Put-aways today</p>
+          <p className="tile__value">
+            18 <small>pallets</small>
+          </p>
         </div>
       </div>
-      <Row label="Truck bays" value="4 / 4 busy" />
-      <Row label="Outbound today" value="31 trucks" />
-    </div>
+      <div className="inv-head">
+        <b>Inventory</b>
+        <span>units</span>
+      </div>
+      <ul className="inv">
+        {[
+          ['Cardboard Box (M)', '1,906', 'tan', 'In Stock'],
+          ['Safety Helmet', '334', 'tan', 'In Stock'],
+          ['Nitrile Gloves', '95', 'blue', 'Low Stock'],
+          ['Stretch Film', '208', 'white', 'In Stock'],
+        ].map(([name, qty, tone, state]) => (
+          <li key={name}>
+            <span className="inv__art">
+              <BoxArt tone={tone as 'tan' | 'blue' | 'white'} />
+            </span>
+            <span className="inv__name">{name}</span>
+            <b>{qty}</b>
+            <Pill tone={state === 'In Stock' ? 'green' : 'amber'}>{state}</Pill>
+          </li>
+        ))}
+      </ul>
+      <div className="fleet">
+        <div className="inv-head">
+          <b>Forklift fleet</b>
+          <span>{working}/2 working</span>
+        </div>
+        <div className="fleet__row">
+          <b>FL-10</b>
+          <span>{units['fl-10']?.title ?? 'Idle'}</span>
+          <Bar value={units['fl-10']?.battery ?? 80} tone="green" />
+          <span className="fleet__pct">{Math.round(units['fl-10']?.battery ?? 80)}%</span>
+        </div>
+      </div>
+    </>
   )
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-slate-400">{label}</span>
-      <span className="text-right font-medium text-slate-800">{value}</span>
-    </div>
-  )
-}
+/* ─────────────────────────── shipment tracking ─────────────────────────── */
+
+const STEPS = [
+  { label: 'Order Confirmed', time: '06:49', icon: <FileText size={15} strokeWidth={2.1} /> },
+  { label: 'Picked', time: '08:20', icon: <Box size={15} strokeWidth={2.1} /> },
+  { label: 'Loaded', time: '09:12', icon: <Package size={15} strokeWidth={2.1} /> },
+  { label: 'In Transit', time: '09:38', icon: <TruckLine size={15} strokeWidth={2.1} /> },
+  { label: 'Unloading 2/6', time: 'ETA 09:57', icon: <Check size={15} strokeWidth={2.6} /> },
+]
 
 function BottomTrack() {
-  const units = useYard((s) => s.units)
-  const truck = units['trk-18']
-  const steps = useMemo(
-    () => ['Order confirmed', 'Picked', 'Loaded', 'In transit', 'Unloading'],
-    [],
-  )
+  const truck = useYard((s) => s.units['trk-18'])
+  const task = truck?.task.toLowerCase() ?? ''
+  const current = task.includes('unloading') ? 4 : task.includes('align') || task.includes('apron') || task.includes('inbound') ? 3 : 4
+  const done = task.includes('pull') || task.includes('outbound') || task.includes('loop') || task.includes('re-enter')
 
   return (
-    <div className="glass pointer-events-auto absolute bottom-4 left-1/2 hidden w-[min(720px,calc(100vw-24rem))] -translate-x-1/2 rounded-2xl px-5 py-3 xl:block">
-      <div className="mb-2 flex items-center justify-between text-xs">
-        <p className="font-semibold text-slate-800">Shipment tracking</p>
-        <p className="text-slate-400">{truck?.code} · Yardline Freight</p>
+    <div className="glass track pointer-events-auto">
+      <div className="track__main">
+        <div className="track__head">
+          <span className="track__title">
+            <TrackTruck />
+            Shipment Tracking
+          </span>
+          <span className="track__meta">{truck?.code ?? 'TRK-18'} · Yardline Freight</span>
+        </div>
+        <ol className="steps">
+          {STEPS.map((step, i) => {
+            const state = done || i < current ? 'done' : i === current ? 'current' : 'todo'
+            return (
+              <li key={step.label} className={`step step--${state}`}>
+                {i > 0 ? <span className={`step__line ${i <= current || done ? 'is-on' : ''}`} /> : null}
+                <span className="step__dot">{step.icon}</span>
+                <span className="step__label">{step.label}</span>
+                <span className="step__time">{step.time}</span>
+              </li>
+            )
+          })}
+        </ol>
       </div>
-      <div className="relative mb-2 flex justify-between">
-        <div className="absolute top-[7px] right-2 left-2 h-px bg-slate-200" />
-        <div className="absolute top-[7px] left-2 h-px w-[78%] bg-blue-500" />
-        {steps.map((step, index) => (
-          <div key={step} className="relative z-10 flex flex-1 flex-col items-center">
-            <span className={`h-2 w-2 rounded-full ${index < 4 ? 'bg-blue-600' : 'bg-slate-300'}`} />
-            <span className="mt-2 text-[10px] font-medium text-slate-500">{step}</span>
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center justify-between text-[11px] text-slate-500">
-        <span>SHP-44012 · To Northpoint Cross-Dock</span>
-        <span>{truck?.task ?? 'In yard'}</span>
-      </div>
+      <button type="button" className="shipcard">
+        <span className="shipcard__art">
+          <TruckArt width={78} />
+        </span>
+        <span className="shipcard__body">
+          <b>#SHP-44012</b>
+          <span>To: Northpoint Hub</span>
+          <Pill tone="green">{done ? 'Delivered' : current === 4 ? 'Unloading' : 'In transit'}</Pill>
+          <span className="shipcard__meta">{SITE.code} · Bay 3 · 13 min left</span>
+        </span>
+        <ChevronRight size={20} strokeWidth={2.2} className="shipcard__chev" />
+      </button>
     </div>
   )
 }
 
-function UnitList() {
+/* ─────────────────────────── docks / units board ─────────────────────────── */
+
+type Tab = 'docks' | 'forklifts' | 'trucks'
+
+function UnitBoard() {
   const units = useYard((s) => s.units)
-  const selectedId = useYard((s) => s.selectedId)
   const select = useYard((s) => s.select)
-  const rows = Object.values(units)
-    .filter((unit) => unit.kind === 'truck' || unit.kind === 'forklift')
-    .slice(0, 4)
+  const selectedId = useYard((s) => s.selectedId)
+  const [tab, setTab] = useState<Tab>('docks')
+  const all = Object.values(units)
+  const trucks = all.filter((u) => u.kind === 'truck')
+  const forklifts = all.filter((u) => u.kind === 'forklift')
+  const docked = trucks.filter((u) => u.z < 1.2)
+
+  let rows: { id: string | null; name: string; sub: string; dot: string | null; text: string; pill: [Tone, string]; tail: ReactNode }[] = []
+  if (tab === 'docks') {
+    rows = DOCKS.map((dock) => {
+      const t = trucks.find((u) => Math.abs(u.x - dock.x) < 1.2 && u.z < 6)
+      if (!t) return { id: null, name: dock.label, sub: SITE.code, dot: null, text: 'No truck assigned', pill: ['slate', 'Available'], tail: null }
+      const s = statusFor(t)
+      return {
+        id: t.id,
+        name: dock.label,
+        sub: SITE.code,
+        dot: t.accent === 'teal' ? '#0f766e' : '#2563eb',
+        text: `${t.code} · ${t.accent === 'teal' ? 'Nordline' : 'Yardline'}`,
+        pill: [s.tone, s.label],
+        tail: s.tone === 'green' ? <Progress value={2} of={6} /> : <span className="board__eta">{t.speed > 0.1 ? '2 min' : 'docked'}</span>,
+      }
+    })
+  } else {
+    const list = tab === 'trucks' ? trucks : forklifts
+    rows = list.map((u) => {
+      const s = statusFor(u)
+      return {
+        id: u.id,
+        name: u.code,
+        sub: u.kind === 'truck' ? (u.accent === 'teal' ? 'Nordline' : 'Yardline') : SITE.code,
+        dot: '#2563eb',
+        text: u.task,
+        pill: [s.tone, s.label],
+        tail: u.kind === 'forklift' ? <Progress value={Math.round(u.battery)} of={100} pct /> : <span className="board__eta">{u.speed > 0.1 ? '2 min' : 'docked'}</span>,
+      }
+    })
+  }
 
   return (
-    <div className="glass pointer-events-auto absolute right-4 bottom-4 hidden w-[300px] rounded-2xl p-3 md:block">
-      <div className="mb-2 flex items-center justify-between text-[11px] text-slate-400">
-        <span>Docks 4/4</span>
-        <span>Forklifts 2/2</span>
-        <span>Trucks {trucksOnSite(units)}</span>
+    <div className="glass board pointer-events-auto">
+      <div className="board__head">
+        <span className="board__icon">
+          <DockBoard />
+        </span>
+        <div className="tabs">
+          <TabBtn active={tab === 'docks'} onClick={() => setTab('docks')} label="Docks" count={`${docked.length}/4`} />
+          <TabBtn active={tab === 'forklifts'} onClick={() => setTab('forklifts')} label="Forklifts" count={`${forklifts.filter((f) => f.speed > 0.1).length}/${forklifts.length}`} />
+          <TabBtn active={tab === 'trucks'} onClick={() => setTab('trucks')} label="Trucks" count={String(trucksOnSite(units))} />
+        </div>
+        <span className="board__site">{SITE.name}</span>
       </div>
-      <ul className="space-y-1.5">
-        {rows.map((unit) => (
-          <li key={unit.id}>
+      <ul className="board__rows">
+        {rows.map((row) => (
+          <li key={row.name}>
             <button
               type="button"
-              onClick={() => select(unit.id)}
-              className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-left text-xs transition ${
-                selectedId === unit.id ? 'bg-blue-50 text-blue-800' : 'hover:bg-slate-50'
-              }`}
+              className={row.id && row.id === selectedId ? 'is-selected' : undefined}
+              onClick={() => row.id && select(row.id)}
             >
-              <span className="font-semibold">{unit.code}</span>
-              <span className="truncate pl-3 text-slate-500">{unit.task}</span>
+              <span className="board__name">
+                <b>{row.name}</b>
+                <span>{row.sub}</span>
+              </span>
+              <span className={`board__text ${row.dot ? '' : 'is-muted'}`}>
+                {row.dot ? <i style={{ background: row.dot }} /> : null}
+                {row.text}
+              </span>
+              <span className="board__pill">
+                <Pill tone={row.pill[0]}>{row.pill[1]}</Pill>
+              </span>
+              <span className="board__tail">{row.tail}</span>
+              <ChevronRight size={18} strokeWidth={2.2} className="board__chev" />
             </button>
           </li>
         ))}
@@ -313,61 +576,23 @@ function UnitList() {
   )
 }
 
+function TabBtn({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count: string }) {
+  return (
+    <button type="button" className={`tab ${active ? 'is-active' : ''}`} onClick={onClick}>
+      {label} <span>{count}</span>
+    </button>
+  )
+}
+
+function Progress({ value, of, pct = false }: { value: number; of: number; pct?: boolean }) {
+  return (
+    <span className="mini">
+      <Bar value={(value / of) * 100} tone="green" />
+      <span>{pct ? `${value}%` : `${value}/${of}`}</span>
+    </span>
+  )
+}
+
 function formatClock(date: Date) {
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
-}
-
-function CubeIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M8 1.6 14 5v6L8 14.4 2 11V5L8 1.6Z" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M8 14.4V8M14 5 8 8 2 5" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
-  )
-}
-
-function SearchIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="7" cy="7" r="4.2" stroke="currentColor" strokeWidth="1.4" />
-      <path d="m10.2 10.2 3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function BoxIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M8 2 14 5v6L8 14 2 11V5L8 2Z" stroke="currentColor" strokeWidth="1.3" />
-    </svg>
-  )
-}
-
-function TruckIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M2 10V5h8v5H2Z" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M10 7h3l1 2v1h-4V7Z" stroke="currentColor" strokeWidth="1.3" />
-      <circle cx="4.5" cy="11.2" r="1.1" stroke="currentColor" strokeWidth="1.2" />
-      <circle cx="12" cy="11.2" r="1.1" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  )
-}
-
-function ClockIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="5.2" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8 5.2V8l2 1.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function HomeIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M2.5 8 8 3.2 13.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M4 7.5V13h8V7.5" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
-  )
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
 }

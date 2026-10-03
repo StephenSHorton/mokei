@@ -252,7 +252,7 @@ function initialUnits(): Record<string, Unit> {
       speed: 0,
       battery: 100,
       movesToday: 3,
-      accent: 'teal',
+      accent: 'blue',
       carryingId: null,
       pathId: '',
     },
@@ -403,7 +403,7 @@ export const useYard = create<YardState>((set) => ({
       clock,
       units: snapshotUnits(),
       stockOnHand: 610 + Math.round(8 * Math.sin(clock * 0.05) + clock * 0.12),
-      onTime: 96.2 + 0.25 * Math.sin(clock * 0.04),
+      onTime: 96.2 + 0.25 * Math.sin(clock * 0.07),
     })
   },
 }))
@@ -457,7 +457,7 @@ export function sampleRemainingPath(unit: Unit, clock: number): [number, number,
   const path = compiled[unit.pathId]
   if (!path) return []
   const local = clock % path.cycle
-  const points: [number, number, number][] = [[unit.x, 0.04, unit.z]]
+  const points: [number, number, number][] = [[unit.x, 0.07, unit.z]]
   for (const seg of path.segs) {
     if (seg.end <= local) continue
     if (seg.arrive > local) {
@@ -467,12 +467,12 @@ export function sampleRemainingPath(unit: Unit, clock: number): [number, number,
         const t = startT + ((1 - startT) * i) / steps
         points.push([
           lerp(seg.from.x, seg.to.x, t),
-          0.04,
+          0.07,
           lerp(seg.from.z, seg.to.z, t),
         ])
       }
     }
-    points.push([seg.to.x, 0.04, seg.to.z])
+    points.push([seg.to.x, 0.07, seg.to.z])
   }
   return points.slice(0, 36)
 }

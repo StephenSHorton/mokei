@@ -1,59 +1,60 @@
-import { RoundedBox } from '@react-three/drei'
+import { useMemo } from 'react'
 import { useLook } from '../look'
-import { Matte } from './Matte'
+import { brandDecal } from './textures'
+import { SoftBox, Wheel } from './soft'
 
 type TruckProps = {
   accent?: 'blue' | 'teal'
 }
 
+/** Box truck. Cab faces +Z. Toy proportions: short tall cab, fat trailer, big wheels. */
 export function Truck({ accent = 'blue' }: TruckProps) {
   const roof = useLook((s) => s.roof)
   const tire = useLook((s) => s.tire)
   const wall = useLook((s) => s.wall)
-  const stripe = accent === 'teal' ? '#0f766e' : roof
+  const teal = accent === 'teal'
+  const cab = teal ? '#f8fafc' : roof
+  const band = teal ? '#14b8a6' : roof
+  const decal = useMemo(() => brandDecal(accent), [accent])
+  const glass = '#1b2236'
 
   return (
     <group scale={1.06}>
-      <RoundedBox args={[2.15, 1.42, 1.85]} radius={0.12} smoothness={3} position={[0, 1.12, 2.15]} castShadow receiveShadow>
-        <Matte color={wall} />
-      </RoundedBox>
-      <RoundedBox args={[2.05, 0.72, 0.08]} radius={0.03} smoothness={2} position={[0, 1.42, 3.05]}>
-        <Matte color="#0f172a" />
-      </RoundedBox>
-      <RoundedBox args={[2.28, 2.05, 4.35]} radius={0.12} smoothness={3} position={[0, 1.55, -0.55]} castShadow receiveShadow>
-        <Matte color={wall} />
-      </RoundedBox>
-      <RoundedBox args={[2.32, 0.22, 4.4]} radius={0.04} smoothness={2} position={[0, 2.62, -0.55]} castShadow>
-        <Matte color={stripe} />
-      </RoundedBox>
-      <RoundedBox args={[2.34, 0.34, 4.2]} radius={0.04} smoothness={2} position={[0, 0.42, -0.5]} receiveShadow>
-        <Matte color={stripe} />
-      </RoundedBox>
-      <RoundedBox args={[2.05, 0.08, 1.55]} radius={0.02} smoothness={2} position={[0, 1.55, 3.08]}>
-        <Matte color="#94a3b8" />
-      </RoundedBox>
-      <Wheel x={-0.92} z={1.85} />
-      <Wheel x={0.92} z={1.85} />
-      <Wheel x={-0.92} z={-1.55} />
-      <Wheel x={0.92} z={-1.55} />
-      <Wheel x={-0.92} z={-2.35} />
-      <Wheel x={0.92} z={-2.35} />
-      <RoundedBox args={[0.18, 0.32, 0.22]} radius={0.03} smoothness={2} position={[-1.18, 1.55, 2.85]} castShadow>
-        <Matte color={tire} />
-      </RoundedBox>
-      <RoundedBox args={[0.18, 0.32, 0.22]} radius={0.03} smoothness={2} position={[1.18, 1.55, 2.85]} castShadow>
-        <Matte color={tire} />
-      </RoundedBox>
+      {/* cab */}
+      <SoftBox size={[2.12, 1.86, 1.6]} r={0.34} color={cab} position={[0, 1.36, 2.3]} />
+      <SoftBox size={[2.16, 0.5, 1.7]} r={0.2} color={teal ? '#e2e8f0' : '#1f45bf'} position={[0, 0.6, 2.32]} />
+      {/* windshield + side windows */}
+      <SoftBox size={[1.78, 0.68, 0.1]} r={0.045} color={glass} position={[0, 1.78, 3.08]} cast={false} />
+      <SoftBox size={[2.15, 0.56, 0.62]} r={0.05} color={glass} position={[0, 1.8, 2.5]} cast={false} />
+      {/* grille + bumper + lights */}
+      <SoftBox size={[1.2, 0.42, 0.08]} r={0.035} color="#2a3247" position={[0, 0.98, 3.1]} cast={false} />
+      <SoftBox size={[2.12, 0.28, 0.26]} r={0.11} color="#3a4256" position={[0, 0.48, 3.12]} />
+      <SoftBox size={[0.32, 0.16, 0.06]} r={0.05} color="#f8fafc" position={[-0.82, 0.98, 3.12]} cast={false} />
+      <SoftBox size={[0.32, 0.16, 0.06]} r={0.05} color="#f8fafc" position={[0.82, 0.98, 3.12]} cast={false} />
+      {/* mirrors */}
+      <SoftBox size={[0.12, 0.4, 0.14]} r={0.05} color="#2a3247" position={[-1.16, 1.66, 2.86]} />
+      <SoftBox size={[0.12, 0.4, 0.14]} r={0.05} color="#2a3247" position={[1.16, 1.66, 2.86]} />
+      {/* chassis between cab and box */}
+      <SoftBox size={[1.7, 0.36, 5.6]} r={0.14} color="#2a3247" position={[0, 0.56, 0.1]} />
+      {/* box trailer */}
+      <SoftBox size={[2.36, 2.36, 4.3]} r={0.2} color={wall} position={[0, 1.96, -0.56]} />
+      <SoftBox size={[2.4, 0.34, 4.18]} r={0.15} color={band} position={[0, 0.92, -0.56]} />
+      <SoftBox size={[2.2, 2.1, 0.08]} r={0.035} color="#e8edf6" position={[0, 1.98, -2.72]} cast={false} />
+      {/* side decals */}
+      <mesh position={[1.192, 2.08, -0.5]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[3.4, 0.85]} />
+        <meshLambertMaterial map={decal} transparent depthWrite={false} />
+      </mesh>
+      <mesh position={[-1.192, 2.08, -0.62]} rotation={[0, -Math.PI / 2, 0]}>
+        <planeGeometry args={[3.4, 0.85]} />
+        <meshLambertMaterial map={decal} transparent depthWrite={false} />
+      </mesh>
+      <Wheel position={[-0.98, 0.44, 2.18]} radius={0.44} width={0.36} tire={tire} />
+      <Wheel position={[0.98, 0.44, 2.18]} radius={0.44} width={0.36} tire={tire} />
+      <Wheel position={[-0.98, 0.44, -1.36]} radius={0.44} width={0.36} tire={tire} />
+      <Wheel position={[0.98, 0.44, -1.36]} radius={0.44} width={0.36} tire={tire} />
+      <Wheel position={[-0.98, 0.44, -2.3]} radius={0.44} width={0.36} tire={tire} />
+      <Wheel position={[0.98, 0.44, -2.3]} radius={0.44} width={0.36} tire={tire} />
     </group>
-  )
-}
-
-function Wheel({ x, z }: { x: number; z: number }) {
-  const tire = useLook((s) => s.tire)
-  return (
-    <mesh position={[x, 0.38, z]} rotation={[0, 0, Math.PI / 2]} castShadow>
-      <cylinderGeometry args={[0.38, 0.38, 0.28, 16]} />
-      <Matte color={tire} />
-    </mesh>
   )
 }
