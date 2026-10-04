@@ -25,10 +25,10 @@ const badgeVariants = cva(
       },
       size: {
         default: "",
-        hud: "h-[29px] rounded-lg px-[11px] py-0 text-[length:calc(14.2px*var(--fs))] font-medium",
-        "hud-sm": "h-[25px] rounded-full px-3 py-0 text-[length:calc(13.9px*var(--fs))] font-medium",
+        hud: "h-[29px] rounded-lg border-0 px-[11px] py-0 text-[length:calc(14.2px*var(--fs))] font-medium",
+        "hud-sm": "h-[25px] rounded-full border-0 px-3 py-0 text-[length:calc(13.9px*var(--fs))] font-medium",
         "hud-live":
-          "h-[34px] gap-0 rounded-full bg-[#dcf1e3] px-3.5 pr-3.5 pl-3 text-[length:calc(14.5px*var(--fs))] font-semibold text-success tabular-nums",
+          "h-[34px] gap-0 rounded-full border-0 bg-[#dcf1e3] px-3.5 pr-3.5 pl-3 text-[length:calc(14.5px*var(--fs))] font-normal text-success tabular-nums",
       },
     },
     defaultVariants: {

@@ -73,7 +73,8 @@
 
 @utility glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  /* Match main's LightningCSS output: -webkit only, so Linux Chrome does
+   * not frost the scene behind HUD glass. */
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);

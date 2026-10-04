@@ -19,7 +19,7 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -108,9 +108,7 @@ function TopBar() {
   }, [frozen])
 
   return (
-    <header
-      className="pointer-events-auto absolute inset-x-0 top-0 flex h-20 items-center border-b border-[color:var(--topbar-border)] bg-[color:var(--topbar-bg)] pr-[38px] pl-[60px] shadow-[var(--topbar-shadow)] backdrop-blur-[22px] backdrop-saturate-130"
-    >
+    <header className="pointer-events-auto absolute inset-x-0 top-0 flex h-20 items-center pr-[38px] pl-[60px]">
       <div className="flex w-[265px] shrink-0 items-center gap-[17px]">
         <span className="drop-shadow-[0_4px_6px_rgba(37,99,235,0.25)]">
           <BrandCube size={38} />
@@ -128,11 +126,11 @@ function TopBar() {
         <DropdownMenuTrigger
           render={<Button variant="hud" size="hud-site" className="ml-[115px]" data-site-switcher="" />}
         >
-          <span className="grid h-[34px] w-12 place-items-center rounded-lg bg-[linear-gradient(160deg,#4c86fa_0%,#2357e6_100%)] text-[length:calc(14px*var(--fs))] font-bold tracking-tight text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
+          <span className="grid h-[34px] w-12 place-items-center rounded-lg bg-[linear-gradient(160deg,#4c86fa_0%,#2357e6_100%)] text-[length:calc(14px*var(--fs))] font-bold tracking-[-0.01em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
             {SITE.code}
           </span>
           <span className="ml-3 flex min-w-0 flex-1 flex-col text-left leading-[1.2]">
-            <b className="overflow-hidden text-[length:calc(15.6px*var(--fs))] font-bold tracking-tight text-ellipsis whitespace-nowrap">
+            <b className="overflow-hidden text-[length:calc(15.6px*var(--fs))] font-bold tracking-[-0.015em] text-ellipsis whitespace-nowrap">
               {SITE.name}
             </b>
             <span className="text-[length:calc(13.7px*var(--fs))] text-muted-foreground">
@@ -169,18 +167,13 @@ function TopBar() {
       <Separator orientation="vertical" className="mx-[18px] ml-5 h-[38px] w-px self-auto bg-[#dfe5ef]" />
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button variant="hud-ghost" className="h-auto flex-1 justify-start gap-0 rounded-none px-0 font-normal" />}>
-          <Avatar className="size-[50px] overflow-hidden bg-white shadow-[0_2px_8px_rgba(30,41,90,0.16)] after:border-0">
-            <AvatarImage
-              src={`${import.meta.env.BASE_URL}jordan-hale.svg`}
-              alt="Jordan Hale"
-              className="m-auto size-[44px] max-w-[44px]"
-            />
-            <AvatarFallback className="bg-white">
+          <Avatar className="size-[50px] overflow-hidden bg-white shadow-[0_2px_8px_rgba(30,41,90,0.16)] after:hidden">
+            <AvatarFallback delay={0} className="bg-transparent">
               <UserMark />
             </AvatarFallback>
           </Avatar>
           <span className="ml-[19px] flex flex-col text-left leading-[1.25]">
-            <b className="text-[length:calc(16.5px*var(--fs))] font-semibold tracking-tight">Jordan Hale</b>
+            <b className="text-[length:calc(16.5px*var(--fs))] font-semibold tracking-[-0.015em]">Jordan Hale</b>
             <span className="text-[length:calc(14.8px*var(--fs))] text-muted-foreground">Yard Lead</span>
           </span>
           <ChevronDown size={20} strokeWidth={2} className="ml-auto text-ink-2" />
@@ -221,7 +214,7 @@ function Kpi({ icon, label, value, delta, sub }: { icon: ReactNode; label: strin
       <span className="grid size-[52px] shrink-0 place-items-center rounded-[12px] bg-[#e9eefc]">{icon}</span>
       <div className="ml-[14px] leading-[1.2]">
         <p className="m-0 text-[length:calc(14.2px*var(--fs))] font-medium text-ink-2">{label}</p>
-        <p className="my-px mb-0.5 flex items-center text-[length:calc(24px*var(--fs))] font-bold tracking-tight text-ink tabular-nums">
+        <p className="my-px mb-0.5 flex items-center text-[length:calc(24px*var(--fs))] font-bold tracking-[-0.02em] text-ink tabular-nums">
           {value}
           <span className="ml-3 inline-flex items-center text-[length:calc(14.2px*var(--fs))] font-medium tracking-normal text-[#16a34a]">
             <span className="mr-1.5 grid size-5 place-items-center rounded-full bg-[#dcfce7]">
@@ -300,7 +293,7 @@ function Inspector() {
           <p className="mt-px mb-px pr-[110px] text-[length:calc(11.8px*var(--fs))] font-bold tracking-[0.06em] text-blue-deep uppercase">
             {head.eyebrow}
           </p>
-          <h2 className="m-0 overflow-hidden pr-[110px] text-[length:calc(18.6px*var(--fs))] font-bold tracking-tight text-ellipsis whitespace-nowrap">
+          <h2 className="m-0 overflow-hidden pr-[110px] text-[length:calc(18.6px*var(--fs))] font-bold tracking-[-0.02em] text-ellipsis whitespace-nowrap">
             {head.title}
           </h2>
           <p className="mt-0.5 mb-0 text-[length:calc(14.2px*var(--fs))] text-muted-foreground">{head.sub}</p>
@@ -543,7 +536,7 @@ function BottomTrack() {
     <Card size="hud" className="pointer-events-auto absolute bottom-[42px] left-[37px] flex h-[138px] w-[985px] flex-row items-center overflow-visible rounded-[16px] pr-[15px] pl-[22px]">
       <div className="min-w-0 flex-1 self-stretch pt-5">
         <div className="flex items-center justify-between pr-[22px]">
-          <span className="flex items-center gap-[15px] text-[length:calc(17.5px*var(--fs))] font-bold tracking-tight">
+          <span className="flex items-center gap-[15px] text-[length:calc(17.5px*var(--fs))] font-bold tracking-[-0.015em]">
             <TrackTruck />
             Shipment Tracking
           </span>
@@ -556,7 +549,7 @@ function BottomTrack() {
           <TruckArt width={78} />
         </span>
         <span className="ml-3 flex min-w-0 flex-1 flex-col items-start text-[length:calc(13.9px*var(--fs))] leading-[1.3] text-[#475569]">
-          <b className="text-[length:calc(15.8px*var(--fs))] font-bold tracking-tight text-ink">#SHP-44012</b>
+          <b className="text-[length:calc(15.8px*var(--fs))] font-bold tracking-[-0.01em] text-ink">#SHP-44012</b>
           <span>To: Northpoint Hub</span>
           <Badge variant="success" size="hud-sm" className="my-1">
             {pill}
