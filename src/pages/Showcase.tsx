@@ -1,5 +1,5 @@
 import { OrthographicCamera } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { ChevronDown, LocateFixed, Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { NoToneMapping, PCFShadowMap, SRGBColorSpace } from 'three'
@@ -24,15 +24,15 @@ import { Separator } from '@/components/ui/separator'
 import { Stepper } from '@/components/ui/stepper'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { RoleCart, useLook } from '@/kit/clay'
+import { RoleCart, applyLook, useLook } from '@/kit/clay'
 import { REGISTRY_BASE, registryAddCommand, registryCatalog } from '@/kit/registry-catalog'
 import { activateScene, getScene, listScenes, type SceneDefinition } from '@/kit/scene'
-import '@/kit/scene/blank'
 import '@/kit/scene/yardline'
+import '@/kit/scene/blank'
 import { applyTheme, listThemes, useMaterialColor, type ThemeDefinition } from '@/kit/theme'
+import '@/kit/theme/yardline'
 import '@/kit/theme/blank'
 import '@/kit/theme/quarry'
-import '@/kit/theme/yardline'
 
 const SWATCHES: { name: string; varName: string }[] = [
   { name: 'Background', varName: '--background' },
@@ -49,6 +49,14 @@ const SWATCHES: { name: string; varName: string }[] = [
   { name: 'Ground', varName: '--mokei-ground' },
 ]
 
+function AimOrigin() {
+  const camera = useThree((s) => s.camera)
+  camera.position.set(3.6, 2.6, 3.6)
+  camera.lookAt(0, 0.4, 0)
+  camera.updateProjectionMatrix()
+  return null
+}
+
 function RoleCartPreview() {
   const base = useMaterialColor('base')
   return (
@@ -60,9 +68,10 @@ function RoleCartPreview() {
         gl={{ antialias: true, toneMapping: NoToneMapping, outputColorSpace: SRGBColorSpace }}
       >
         <color attach="background" args={[base]} />
-        <OrthographicCamera makeDefault position={[5.4, 4.2, 5.4]} zoom={78} near={-40} far={80} />
-        <ambientLight intensity={0.9} />
-        <directionalLight position={[6, 10, 4]} intensity={0.45} />
+        <OrthographicCamera makeDefault position={[3.6, 2.6, 3.6]} zoom={92} near={-40} far={80} />
+        <AimOrigin />
+        <ambientLight intensity={0.95} />
+        <directionalLight position={[6, 10, 4]} intensity={0.5} />
         <RoleCart />
       </Canvas>
     </div>
@@ -89,13 +98,22 @@ function ScenePreview({ scene }: { scene: SceneDefinition }) {
 export default function Showcase() {
   const themes = listThemes()
   const scenes = listScenes()
-  const [themeId, setThemeId] = useState(themes[0]?.id ?? 'yardline')
-  const [sceneId, setSceneId] = useState(scenes[0]?.id ?? 'yardline')
+  const [themeId, setThemeId] = useState(themes.find((t) => t.id === 'yardline')?.id ?? themes[0]?.id ?? 'yardline')
+  const [sceneId, setSceneId] = useState(scenes.find((s) => s.id === 'yardline')?.id ?? scenes[0]?.id ?? 'yardline')
   const scene = useMemo(() => getScene(sceneId), [sceneId])
 
   function pickTheme(theme: ThemeDefinition) {
     setThemeId(theme.id)
     applyTheme(theme)
+    const m = theme.materials
+    applyLook({
+      wall: m.base,
+      accent: m.accent1,
+      yellow: m.accent2 ?? m.accent1,
+      roof: m.accent3 ?? m.accent1,
+      tire: m.detail.dark,
+      ground: m.ground,
+    })
   }
 
   function pickScene(next: SceneDefinition) {
@@ -182,7 +200,7 @@ export default function Showcase() {
                 <CardTitle>Live scene</CardTitle>
                 <CardDescription>Same World the playground mounts. Blank proves a second scene can drop in.</CardDescription>
               </CardHeader>
-              <CardContent>{scene ? <ScenePreview scene={scene} /> : null}</CardContent>
+              <CardContent>{scene ? <ScenePreview key={`${scene.id}-${themeId}`} scene={scene} /> : null}</CardContent>
             </Card>
           </section>
 
