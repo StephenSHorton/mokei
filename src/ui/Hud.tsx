@@ -122,7 +122,9 @@ function TopBar() {
         </Kbd>
       </label>
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="hud" size="hud-site" className="ml-[115px]" />}>
+        <DropdownMenuTrigger
+          render={<Button variant="hud" size="hud-site" className="ml-[115px]" data-site-switcher="" />}
+        >
           <span className="grid h-[34px] w-12 place-items-center rounded-lg bg-[linear-gradient(160deg,#4c86fa_0%,#2357e6_100%)] text-[length:calc(14px*var(--fs))] font-bold tracking-tight text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
             {SITE.code}
           </span>
@@ -635,6 +637,7 @@ function UnitBoard() {
               type="button"
               variant="hud-row"
               size="hud-row"
+              className="my-[3px]"
               data-selected={row.id && row.id === selectedId ? true : undefined}
               onClick={() => row.id && select(row.id)}
             >
