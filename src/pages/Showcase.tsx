@@ -1,8 +1,7 @@
 import { OrthographicCamera } from '@react-three/drei'
-import { Canvas, useThree } from '@react-three/fiber'
+import { useThree } from '@react-three/fiber'
 import { ChevronDown, LocateFixed, Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { NoToneMapping, PCFShadowMap, SRGBColorSpace } from 'three'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -24,7 +23,7 @@ import { Separator } from '@/components/ui/separator'
 import { Stepper } from '@/components/ui/stepper'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Lights, RoleCart, applyLook, useLook } from '@/kit/clay'
+import { Lights, RoleCart, SceneCanvas, applyLook, useLook } from '@/kit/clay'
 import { REGISTRY_BASE, registryAddCommand, registryCatalog } from '@/kit/registry-catalog'
 import { activateScene, getScene, listScenes, type SceneDefinition } from '@/kit/scene'
 import '@/kit/scene/yardline'
@@ -61,18 +60,13 @@ function RoleCartPreview() {
   const base = useMaterialColor('base')
   return (
     <div className="h-[240px] overflow-hidden rounded-xl ring-1 ring-foreground/10" style={{ background: base }}>
-      <Canvas
-        flat
-        shadows={{ type: PCFShadowMap }}
-        dpr={[1, 1.5]}
-        gl={{ antialias: true, toneMapping: NoToneMapping, outputColorSpace: SRGBColorSpace }}
-      >
+      <SceneCanvas quality="high">
         <color attach="background" args={[base]} />
         <OrthographicCamera makeDefault position={[3.6, 2.6, 3.6]} zoom={92} near={-40} far={80} />
         <AimOrigin />
         <Lights />
         <RoleCart />
-      </Canvas>
+      </SceneCanvas>
     </div>
   )
 }
@@ -81,15 +75,10 @@ function ScenePreview({ scene }: { scene: SceneDefinition }) {
   const ground = useLook((s) => s.ground)
   return (
     <div className="h-[280px] overflow-hidden rounded-xl ring-1 ring-foreground/10" style={{ background: ground }}>
-      <Canvas
-        flat
-        shadows={{ type: PCFShadowMap }}
-        dpr={[1, 1.5]}
-        gl={{ antialias: true, toneMapping: NoToneMapping, outputColorSpace: SRGBColorSpace }}
-      >
+      <SceneCanvas quality="high">
         <color attach="background" args={[ground]} />
         <scene.World />
-      </Canvas>
+      </SceneCanvas>
     </div>
   )
 }

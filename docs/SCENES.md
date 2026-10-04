@@ -16,12 +16,44 @@ import { quarryTheme } from 'mokei/theme/quarry'
 
 registerScene(hostScene)
 const scene = activateScene('quarry') // or getScene('quarry')
-// <Canvas><scene.World /></Canvas>
+// <SceneCanvas quality="high"><scene.World /></SceneCanvas>
 // {scene?.Hud ? <scene.Hud /> : null}
 scene?.dispatch?.({ type: 'task-started', id: 'agent', label: 'Does this comment match the test?' })
 ```
 
 `getScene` / `getTheme` return `undefined` for unknown ids and `console.warn`. They never throw. `activateScene` / `resolveScene` fall back to the default registered scene when they can.
+
+Mount the world on **`SceneCanvas`** (not a raw R3F `<Canvas>`). That is how every consumer — including Rock — gets the library AA defaults.
+
+```ts
+import { SceneCanvas } from 'mokei/clay'
+
+<SceneCanvas quality="high">
+  <scene.World />
+</SceneCanvas>
+```
+
+`World` also accepts `quality` so a host that still uses a raw `<Canvas>` can write `<scene.World quality="high" />`. `ApplyCanvasQuality` inside the world then sets DPR and the PCF shadow map. **`antialias` is a WebGL context flag** and only applies when the host uses `SceneCanvas` (or passes `gl={{ antialias: true }}` itself).
+
+## Quality
+
+`quality?: 'high' | 'medium' | 'low' | 'auto'` on `SceneCanvas` and `World`. Default **`high`**.
+
+| | high (default) | medium | low |
+| --- | --- | --- | --- |
+| Canvas | `gl.antialias: true`, `dpr={[1, 2]}` | `dpr={[1, 1.5]}` | `dpr={1}` |
+| Composer (when `PostFX` / N8AO is on) | `multisampling={4}` + SMAA | `multisampling={2}` + SMAA | no MSAA, FXAA only |
+| MSAA unsupported (no WebGL2) | FXAA fallback | FXAA fallback | FXAA |
+| Shadows | PCF soft (Three r186: `PCFShadowMap`, the successor to `PCFSoftShadowMap`), map **2048**, bias `-0.00028` / normalBias `0.022` | map **1024** | map **1024**, slightly looser bias |
+| Shadow camera | Fitted ortho frustum `±42`, near `1`, far `140` (covers the yard without wasting texels) | same frustum | same frustum |
+
+`auto` picks a tier from `devicePixelRatio`, `navigator.hardwareConcurrency`, a `WEBGL_debug_renderer_info` GPU string (SwiftShader / Intel UHD / Mali / old Adreno → low), and a mobile UA. Playground and Rock should keep the default `high` unless they opt into `auto` or `low`.
+
+EffectComposer replaces the canvas MSAA buffer. That is why `PostFX` sets composer `multisampling` (or FXAA when samples are unavailable). `?noao` skips the composer and keeps the canvas MSAA path.
+
+Route / outline strokes use drei `Line` (Line2) with **screen-space** `lineWidth` (`worldUnits={false}`).
+
+`SOFT_EDGE_SCALE` is `0.8`. Do not change it for new art; call `scaleSoft()` so every scene stays on the same toy edge.
 
 `SceneDefinition` fields:
 
@@ -29,13 +61,11 @@ scene?.dispatch?.({ type: 'task-started', id: 'agent', label: 'Does this comment
 | --- | --- | --- |
 | `id` / `name` / `description` | yes | Registry identity |
 | `themeId` | yes | Passed to `applyTheme` |
-| `World` | yes | R3F tree. Reuse `Lights`, `ClayCameraRig`, `ClayGround`, `SoftBox`, `RoundCyl` from `mokei/clay` |
+| `World` | yes | R3F tree (`quality?: 'high' \| 'medium' \| 'low' \| 'auto'`). Reuse `Lights`, `ClayCameraRig`, `ClayGround`, `SoftBox`, `RoundCyl`, `SceneCanvas` from `mokei/clay` |
 | `Hud` | no | DOM overlay. Yardline ships one; blank does not |
 | `camera` | no | `{ zoom, azimuth, elevation, target?, zoomMin?, zoomMax?, zoomReferenceWidth? }` written into the shared look store. Zoom scales with window width / `zoomReferenceWidth` (default 1728). `resetView` restores this framing. |
 | `look` | no | Clay palette / lighting overrides (`ground`, `road`, `skyColor`, …) |
 | `dispatch` | no | `(event: SceneEvent) => void` — host data → motion |
-
-`SOFT_EDGE_SCALE` is `0.8`. Do not change it for new art; call `scaleSoft()` so every scene stays on the same toy edge.
 
 ## SceneEvent
 

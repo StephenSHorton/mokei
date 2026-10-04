@@ -1,8 +1,6 @@
-import { Canvas } from '@react-three/fiber'
 import { useEffect, useMemo, useState } from 'react'
-import { NoToneMapping, PCFShadowMap, SRGBColorSpace } from 'three'
 import { activateScene, resolveScene, sceneIdFromSearch } from './kit/scene'
-import { useLook } from './kit/clay'
+import { SceneCanvas, useLook } from './kit/clay'
 import { LevaLook } from './look/LevaLook'
 
 export default function App() {
@@ -38,21 +36,13 @@ export default function App() {
 
   return (
     <div className="relative h-full w-full overflow-hidden" style={{ background: ground }}>
-      <Canvas
-        flat
-        shadows={{ type: PCFShadowMap }}
-        dpr={[1, 2]}
-        gl={{
-          antialias: true,
-          toneMapping: NoToneMapping,
-          outputColorSpace: SRGBColorSpace,
-          powerPreference: 'high-performance',
-        }}
+      <SceneCanvas
+        quality="high"
         onPointerMissed={() => scene.dispatch?.({ type: 'select', id: null })}
       >
         <color attach="background" args={[ground]} />
         <scene.World />
-      </Canvas>
+      </SceneCanvas>
       {scene.Hud ? <scene.Hud /> : null}
       <LevaLook hidden={!showLook} />
     </div>

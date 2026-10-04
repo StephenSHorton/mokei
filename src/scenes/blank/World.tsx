@@ -1,9 +1,20 @@
-import { ClayCameraRig, ClayGround, Lights, PostFX, RoundCyl, SoftBox, useLook } from '../../kit/clay'
+import {
+  ApplyCanvasQuality,
+  ClayCameraRig,
+  ClayGround,
+  Lights,
+  PostFX,
+  QualityProvider,
+  RoundCyl,
+  SoftBox,
+  useLook,
+} from '../../kit/clay'
+import type { WorldProps } from '../../kit/scene'
 import { useBlank } from './state'
 
 const NO_AO = typeof location !== 'undefined' && location.search.includes('noao')
 
-export function World() {
+export function World({ quality }: WorldProps = {}) {
   const grass = useLook((s) => s.grass)
   const cardboard = useLook((s) => s.cardboard)
   const tree = useLook((s) => s.tree)
@@ -12,7 +23,8 @@ export function World() {
   const dispatch = useBlank((s) => s.dispatch)
 
   return (
-    <>
+    <QualityProvider quality={quality}>
+      <ApplyCanvasQuality />
       <ClayCameraRig home={{ x: 0, z: 0.4 }} />
       <Lights />
       <ClayGround onMiss={() => dispatch({ type: 'select', id: null })} />
@@ -28,6 +40,6 @@ export function World() {
       <SoftBox size={[1.7, 0.28, 1.7]} r={0.08} material="accent1" position={[2.1, 1.94, -0.8]} />
       <RoundCyl radius={0.55} height={1.4} fillet={0.12} unsafeColor={tree} position={[0.1, 0.7, 2.2]} />
       {NO_AO ? null : <PostFX />}
-    </>
+    </QualityProvider>
   )
 }

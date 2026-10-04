@@ -1,5 +1,13 @@
 import type { ComponentType } from 'react';
 import type { LookPatch } from '../clay/look';
+import type { SceneQuality } from '../clay/quality';
+/**
+ * Optional props every registered `World` accepts.
+ * `quality` defaults to `high` via `SceneCanvas` / the quality context.
+ */
+export type WorldProps = {
+    quality?: SceneQuality;
+};
 /**
  * Camera framing written into the shared look store when a scene activates.
  * Zoom is defined for `zoomReferenceWidth` (default 1728px, the Yardline frames)
@@ -79,7 +87,7 @@ export type SceneDefinition = {
     name: string;
     description: string;
     themeId: string;
-    World: ComponentType;
+    World: ComponentType<WorldProps>;
     Hud?: ComponentType;
     camera?: SceneCameraDefaults;
     look?: LookPatch;
