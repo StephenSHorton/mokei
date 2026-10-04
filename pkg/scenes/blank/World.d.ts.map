@@ -1,1 +1,1 @@
-{"version":3,"file":"World.d.ts","sourceRoot":"","sources":["../../../src/scenes/blank/World.tsx"],"names":[],"mappings":"AAKA,wBAAgB,KAAK,gCA2BpB"}
+{"version":3,"file":"World.d.ts","sourceRoot":"","sources":["../../../src/scenes/blank/World.tsx"],"names":[],"mappings":"AAWA,OAAO,KAAK,EAAE,UAAU,EAAE,MAAM,iBAAiB,CAAA;AAKjD,wBAAgB,KAAK,CAAC,EAAE,OAAO,EAAE,GAAE,UAAe,+BA4BjD"}

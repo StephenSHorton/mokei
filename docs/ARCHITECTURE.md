@@ -20,7 +20,7 @@ import 'mokei/scene/yardline' // opt-in; mokei/scene does not ship worlds
 
 activateScene('yardline')
 const scene = getScene('yardline')
-// <Canvas><scene?.World /></Canvas>
+// <SceneCanvas quality="high"><scene?.World /></SceneCanvas>
 scene?.dispatch?.({ type: 'task-started', id: 'fl-10' })
 ```
 
@@ -30,7 +30,7 @@ Themes live in `src/kit/themes/<id>.css` plus `src/kit/theme/<id>.ts` (`material
 
 ## Playground
 
-`App` reads `?scene=` (playground sets the default to `yardline`), calls `activateScene`, and mounts `scene.World` plus optional `scene.Hud`. `/` with no query is the measured Yardline HUD + yard — do not change its look. The kit itself has no implicit Yardline default.
+`App` reads `?scene=` (playground sets the default to `yardline`), calls `activateScene`, and mounts `scene.World` on `SceneCanvas` plus optional `scene.Hud`. `/` with no query is the measured Yardline HUD + yard — do not change its look (AA/quality defaults live in the kit, not the playground). The kit itself has no implicit Yardline default.
 
 `SOFT_EDGE_SCALE` stays `0.8`.
 

@@ -10,7 +10,8 @@ import { tick, useYard } from './sim/yard'
 import { CameraRig } from './CameraRig'
 import { ContactBlobs } from './ContactBlobs'
 import { Ground } from './Ground'
-import { Lights, PostFX } from '../../kit/clay'
+import { ApplyCanvasQuality, Lights, PostFX, QualityProvider } from '../../kit/clay'
+import type { WorldProps } from '../../kit/scene'
 import { Units } from './Units'
 import { YardMarkings } from './YardMarkings'
 
@@ -18,7 +19,7 @@ const NO_AO = typeof location !== 'undefined' && location.search.includes('noao'
 
 const FROZEN = typeof location !== 'undefined' && freezeAt() != null
 
-export function World() {
+export function World({ quality }: WorldProps = {}) {
   const publish = useYard((s) => s.publish)
   const hudAcc = useRef(0)
 
@@ -33,7 +34,8 @@ export function World() {
   })
 
   return (
-    <>
+    <QualityProvider quality={quality}>
+      <ApplyCanvasQuality />
       <CameraRig />
       <Lights />
       <Ground />
@@ -46,7 +48,7 @@ export function World() {
       <RoadTraffic z={22.6} speed={3.2} offset={10} accent="teal" />
       <RoadTraffic z={25.8} speed={-2.6} offset={70} accent="blue" />
       {NO_AO ? null : <PostFX />}
-    </>
+    </QualityProvider>
   )
 }
 

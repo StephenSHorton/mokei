@@ -176,5 +176,17 @@ function RouteLine({ selectedId, color }: { selectedId: string | null; color: st
 
   if (!selectedId || selectedId === 'wh-northpoint' || points.length < 2) return null
 
-  return <Line points={points} color={color} dashed dashSize={0.5} gapSize={0.32} lineWidth={2.2} transparent opacity={0.85} />
+  return (
+    <Line
+      points={points}
+      color={color}
+      dashed
+      dashSize={0.5}
+      gapSize={0.32}
+      lineWidth={2.2}
+      worldUnits={false}
+      transparent
+      opacity={0.85}
+    />
+  )
 }

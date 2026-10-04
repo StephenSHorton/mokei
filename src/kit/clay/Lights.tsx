@@ -1,15 +1,19 @@
 import { useLook } from './look'
+import { qualitySettings, useResolvedQuality } from './quality'
 
 const PI = Math.PI
 
 export function Lights() {
   const look = useLook()
+  const settings = qualitySettings(useResolvedQuality())
   const az = (look.sunAzimuth * PI) / 180
   const el = (look.sunElevation * PI) / 180
   const dist = 60
   const x = dist * Math.cos(el) * Math.sin(az)
   const y = dist * Math.sin(el)
   const z = dist * Math.cos(el) * Math.cos(az)
+  const extent = settings.shadowFrustum
+  const map = settings.shadowMapSize
 
   return (
     <>
@@ -21,17 +25,17 @@ export function Lights() {
         intensity={look.sunIntensity * PI}
         position={[x, y, z]}
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[map, map]}
         shadow-radius={look.shadowSoftness}
-        shadow-blurSamples={16}
-        shadow-bias={-0.0004}
-        shadow-normalBias={0.03}
-        shadow-camera-near={1}
-        shadow-camera-far={140}
-        shadow-camera-left={-42}
-        shadow-camera-right={42}
-        shadow-camera-top={42}
-        shadow-camera-bottom={-42}
+        shadow-blurSamples={settings.shadowBlurSamples}
+        shadow-bias={settings.shadowBias}
+        shadow-normalBias={settings.shadowNormalBias}
+        shadow-camera-near={settings.shadowNear}
+        shadow-camera-far={settings.shadowFar}
+        shadow-camera-left={-extent}
+        shadow-camera-right={extent}
+        shadow-camera-top={extent}
+        shadow-camera-bottom={-extent}
       />
       {/* faint fill from the camera side so shaded faces stay readable */}
       <directionalLight color="#eef2ff" intensity={0.12 * PI} position={[30, 20, 40]} />

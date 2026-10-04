@@ -58,7 +58,7 @@ Scenes are opt-in. `mokei` and `mokei/scene` do not import Yardline.
 
 ```ts
 import { activateScene, registerScene, getScene, setDefaultSceneId } from 'mokei'
-import { SoftBox, SOFT_EDGE_SCALE } from 'mokei/clay'
+import { SceneCanvas, SoftBox, SOFT_EDGE_SCALE } from 'mokei/clay'
 import type { SceneEvent } from 'mokei/scene'
 import 'mokei/theme/preset.css'
 import 'mokei/themes/quarry.css'
@@ -69,6 +69,7 @@ setDefaultSceneId(hostScene.id)
 registerScene(hostScene)
 const scene = getScene('quarry') // undefined + warn if not registered
 activateScene(hostScene)
+// <SceneCanvas quality="high"><scene.World /></SceneCanvas>
 scene?.dispatch?.({ type: 'tool-station', station: 'read' })
 ```
 
