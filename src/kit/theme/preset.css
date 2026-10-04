@@ -84,8 +84,9 @@
   box-shadow: var(--glass-shadow);
 }
 
+/* Showcase only — do not paint shadcn border/outline onto the measured HUD. */
 @layer base {
-  * {
+  html[data-app='showcase'] * {
     @apply border-border outline-ring/50;
   }
 }

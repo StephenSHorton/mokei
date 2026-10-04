@@ -47,8 +47,13 @@ input {
   color: inherit;
 }
 
-/* Scoped so shadcn buttons on the showcase keep their own chrome. */
-.hud button {
+/*
+ * Element-level reset only. Specificity must stay (0, 0, 1) so HUD classes
+ * (.site, .tab, .shipcard, .icon-btn) keep their chrome. A previous
+ * `.hud button` rule beat those classes and stripped backgrounds/padding.
+ * shadcn buttons still win via their utility classes.
+ */
+button {
   cursor: pointer;
   background: none;
   border: 0;
