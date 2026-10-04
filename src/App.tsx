@@ -1,11 +1,13 @@
 import { Canvas } from '@react-three/fiber'
 import { useEffect, useState } from 'react'
 import { NoToneMapping, PCFShadowMap, SRGBColorSpace } from 'three'
+import { DEFAULT_SCENE_ID, getScene } from './kit/scene'
 import { LevaLook } from './look/LevaLook'
 import { useLook } from './look'
-import { World } from './scene/World'
 import { useYard } from './sim/yard'
 import { Hud } from './ui/Hud'
+
+const scene = getScene(DEFAULT_SCENE_ID)
 
 export default function App() {
   const ground = useLook((s) => s.ground)
@@ -37,7 +39,7 @@ export default function App() {
         onPointerMissed={() => select(null)}
       >
         <color attach="background" args={[ground]} />
-        <World />
+        <scene.World />
       </Canvas>
       <Hud />
       <LevaLook hidden={!showLook} />

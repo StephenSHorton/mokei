@@ -1,8 +1,21 @@
-# Yardline
+# Mokei
 
-A small playable web prototype of a clay-diorama warehouse yard. It is a look-alike of the isometric “manage the warehouse like a strategy game” promo aesthetic — rebuilt from primitives, not from original assets.
+Stephen's private design system and aesthetic playground. The visual language is **glass panels on a clay diorama** — first realized as the Yardline warehouse-yard prototype.
 
-Click a forklift, truck, or the building. The camera eases to follow the selected unit. Forklifts shuttle pallets; trucks loop in, back into dock bays, wait, and leave.
+The npm package is `mokei` (the repo). It is **not** published to npm. Later slices will let other apps import the kit as `github:StephenSHorton/mokei` and `npx shadcn add` from the Pages registry.
+
+## Yardline playground
+
+The root of the site is still the playable clay-diorama warehouse yard. The in-app product name is **Yardline**. Click a forklift, truck, or the building. The camera eases to follow the selected unit. Forklifts shuttle pallets; trucks loop in, back into dock bays, wait, and leave.
+
+The HUD look is intentional and should stay put. Slice 1 extracts its tokens and adds shadcn underneath; a later slice rebuilds the HUD on those components.
+
+## UI showcase
+
+Component gallery (same theme, no 3D):
+
+- Local: [http://127.0.0.1:43123/#/ui](http://127.0.0.1:43123/#/ui)
+- Pages: [https://stephenshorton.github.io/mokei/#/ui](https://stephenshorton.github.io/mokei/#/ui)
 
 ## Run locally
 
@@ -15,9 +28,9 @@ Then open [http://127.0.0.1:43123](http://127.0.0.1:43123).
 
 ## GitHub Pages
 
-Live site: [https://stephenshorton.github.io/yardline/](https://stephenshorton.github.io/yardline/)
+Live site: [https://stephenshorton.github.io/mokei/](https://stephenshorton.github.io/mokei/)
 
-Pushes to `main` build with `npm ci && npm run build` and deploy `dist/` via GitHub Actions. Vite uses `base: './'`, so JS, CSS, and the favicon stay relative and load under the `/yardline/` subpath. Fonts come from Google Fonts. Models are built in the client from primitives, so there are no extra asset files to resolve.
+Pushes to `main` build with `npm ci && npm run build` and deploy `dist/` via GitHub Actions. Vite uses `base: './'`, so JS, CSS, and the favicon stay relative and load under the `/mokei/` subpath. Hash routes (`#/ui`) work on that subpath. Fonts come from Google Fonts. Models are built in the client from primitives, so there are no extra asset files to resolve.
 
 In the repo settings, set Pages source to **GitHub Actions** if it is not already.
 
@@ -59,4 +72,8 @@ The HUD is laid out at the 1728×995 reference size of the promo frames and scal
 
 ## Stack
 
-Vite + React + TypeScript, react-three-fiber, drei, N8AO + SMAA, Tailwind, leva, zustand, lucide-react. Models are rounded boxes, filleted lathe cylinders and beveled extrusions — no hard edges, one matte (Lambert) color per part.
+Vite + React 19 + TypeScript, Tailwind v4, shadcn/ui (Base UI / nova), react-three-fiber, drei, N8AO + SMAA, leva, zustand, lucide-react. Models are rounded boxes, filleted lathe cylinders and beveled extrusions — no hard edges, one matte (Lambert) color per part. `SOFT_EDGE_SCALE` is `0.8`.
+
+## Architecture
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for themes, scenes, tokens, and how a future quarry scene plugs in.
