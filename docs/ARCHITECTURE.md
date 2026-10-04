@@ -58,6 +58,8 @@ The warehouse yard stays the default playground. Do not rescale it; `SOFT_EDGE_S
 
 Each UI item lists `@mokei/theme` as a registry dependency. The build rewrites that to an absolute `…/r/theme.json` URL so `npx shadcn add <button url>` pulls the theme without extra config. Set `MOKEI_REGISTRY_BASE` when generating JSON for a local preview host.
 
+`applyTheme('yardline')` sets `data-theme` on `<html>`. Token selectors include `html[data-theme='yardline']` so they win over a host `shadcn init` `:root` block.
+
 ## Git dependency
 
 `package.json` `exports` point at `src/kit` TypeScript and CSS. There is no `prepare` script. Playground-only packages (Vite, leva, Base UI, lucide, shadcn CLI) are `devDependencies` so `npm install github:StephenSHorton/mokei` does not install or build the Yardline app. Scene runtime bits that consumers should not have to think about (`zustand`, postprocessing) stay in `dependencies`. React / three / r3f / drei / Tailwind are `peerDependencies`.

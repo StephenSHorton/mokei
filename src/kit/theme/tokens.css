@@ -6,7 +6,12 @@
  * onto shadcn's semantic names, then add a [data-theme='quarry'] block later.
  */
 
+/*
+ * html[data-theme] is more specific than a host app's later :root block
+ * (shadcn init writes nova tokens after our import). applyTheme() sets it.
+ */
 :root,
+html[data-theme='yardline'],
 [data-theme='yardline'] {
   color-scheme: light;
 

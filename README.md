@@ -32,7 +32,7 @@ npx shadcn@latest registry add @mokei=https://stephenshorton.github.io/mokei/r/{
 npx shadcn@latest add @mokei/theme @mokei/card
 ```
 
-Items: `theme`, `button`, `card`, `badge`, `input`, `tabs`, `tooltip`, `progress`, `separator`, `avatar`, `kbd`, `label`, `dropdown-menu`. After adding `theme`, import the copied preset (or rely on the injected CSS variables):
+Items: `theme`, `button`, `card`, `badge`, `input`, `tabs`, `tooltip`, `progress`, `separator`, `avatar`, `kbd`, `label`, `dropdown-menu`. After adding `theme`, import the copied preset. `npx shadcn add` merges new CSS variables but does not overwrite nova `:root` keys, so call `applyTheme('yardline')` (or set `data-theme="yardline"` on `<html>`) — those selectors beat the host `:root`.
 
 ```css
 @import "tailwindcss";
@@ -62,11 +62,14 @@ const scene = getScene('yardline')
 
 Other exports: `mokei/theme`, `mokei/theme/tokens.css`, `mokei/theme/preset.css`, `mokei/scene`, `mokei/scene/yardline`.
 
-Vite should compile the package source:
+Vite should compile the package source. Prebundle drei/three so `stats.js` (a CJS drei dependency) interops:
 
 ```ts
 // vite.config.ts
-optimizeDeps: { exclude: ['mokei'] }
+optimizeDeps: {
+  exclude: ['mokei'],
+  include: ['stats.js', 'three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
+}
 ```
 
 ## Run locally
