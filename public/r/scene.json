@@ -1,0 +1,16 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "scene",
+  "title": "Scene contract",
+  "description": "SceneDefinition and SceneEvent types. Install the git package for World, clay primitives, and dispatch.",
+  "files": [
+    {
+      "path": "src/kit/scene/types.ts",
+      "content": "import type { ComponentType } from 'react'\nimport type { LookPatch } from '../clay'\n\n/**\n * Camera framing written into the shared look store when a scene activates.\n * Zoom is defined for a 1728px-wide window, same as the Yardline playground.\n */\nexport type SceneCameraDefaults = {\n  zoom: number\n  azimuth: number\n  elevation: number\n  target?: { x: number; z: number }\n}\n\n/**\n * Host-app events a scene may honor. Yardline maps these onto forklifts and\n * trucks; a quarry scene would map them onto drills, carts, and conveyors.\n */\nexport type SceneEvent =\n  | { type: 'task-started'; id?: string; label?: string }\n  | { type: 'task-progress'; id?: string; progress: number }\n  | { type: 'task-finished'; id?: string }\n  | { type: 'select'; id: string | null }\n  | { type: 'reset' }\n\nexport type SceneDispatch = (event: SceneEvent) => void\n\n/**\n * A swappable 3D world. Register one per diorama. The playground picks the\n * scene from `?scene=` (default `yardline`); consumers call `getScene(id)`.\n */\nexport type SceneDefinition = {\n  id: string\n  name: string\n  description: string\n  themeId: string\n  World: ComponentType\n  Hud?: ComponentType\n  camera?: SceneCameraDefaults\n  look?: LookPatch\n  dispatch?: SceneDispatch\n}\n",
+      "type": "registry:lib",
+      "target": "src/mokei/scene-types.ts"
+    }
+  ],
+  "docs": "Runnable scenes are not copied by shadcn — use `npm install github:StephenSHorton/mokei` and `import { getScene, SoftBox } from 'mokei'`. See docs/SCENES.md.",
+  "type": "registry:lib"
+}

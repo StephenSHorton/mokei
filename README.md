@@ -52,15 +52,20 @@ npm install github:StephenSHorton/mokei
 Peer deps (you provide): `react`, `react-dom`, `three`, `@react-three/fiber`, `@react-three/drei`. `tailwindcss` is optional (only if you import the CSS).
 
 ```ts
-import { applyTheme, getScene } from 'mokei'
+import { activateScene, getScene } from 'mokei'
+import { SoftBox, SOFT_EDGE_SCALE } from 'mokei/clay'
 import 'mokei/theme/preset.css'
 
-applyTheme('yardline')
-const scene = getScene('yardline')
+const scene = getScene('yardline') // or 'blank'
+activateScene(scene)
 // <Canvas><scene.World /></Canvas>
+// {scene.Hud ? <scene.Hud /> : null}
+scene.dispatch?.({ type: 'task-started', id: 'fl-10' })
 ```
 
-Other exports: `mokei/theme`, `mokei/theme/tokens.css`, `mokei/theme/preset.css`, `mokei/scene`, `mokei/scene/yardline`.
+Other exports: `mokei/theme`, `mokei/theme/tokens.css`, `mokei/theme/preset.css`, `mokei/scene`, `mokei/scene/yardline`, `mokei/scene/blank`, `mokei/clay`.
+
+Playground: `/?scene=yardline` (default) and `/?scene=blank`. Author a new diorama with [docs/SCENES.md](docs/SCENES.md).
 
 Vite should compile the package source. Prebundle drei/three so `stats.js` (a CJS drei dependency) interops:
 
@@ -131,4 +136,4 @@ Vite + React 19 + TypeScript, Tailwind v4, shadcn/ui (Base UI / nova), react-thr
 
 ## Architecture
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for themes, scenes, tokens, and how a future quarry scene plugs in.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/SCENES.md](docs/SCENES.md) for the scene contract and how a quarry (drills, carts, conveyors) would plug in.

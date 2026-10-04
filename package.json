@@ -15,19 +15,18 @@
     "./theme/tokens.css": "./src/kit/theme/tokens.css",
     "./theme/preset.css": "./src/kit/theme/mokei.css",
     "./scene": "./src/kit/scene/index.ts",
-    "./scene/yardline": "./src/kit/scene/yardline.ts"
+    "./scene/yardline": "./src/kit/scene/yardline.ts",
+    "./scene/blank": "./src/kit/scene/blank.ts",
+    "./clay": "./src/kit/clay/index.ts"
   },
   "main": "./src/kit/index.ts",
   "types": "./src/kit/index.ts",
   "files": [
     "src/kit",
-    "src/scene",
-    "src/models",
-    "src/sim",
-    "src/look.ts",
+    "src/scenes",
     "src/lib/math.ts",
-    "src/ui/labelBridge.ts",
-    "README.md"
+    "README.md",
+    "docs/SCENES.md"
   ],
   "scripts": {
     "dev": "vite",

@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { ExtrudeGeometry, Shape } from 'three'
-import { useLook } from '../look'
+import { useLook } from '../../../kit/clay'
 import { WAREHOUSE_ID, useYard } from '../sim/yard'
-import { Matte } from './Matte'
+import { Matte } from '../../../kit/clay'
 import { Pallet } from './Pallet'
-import { RoundCyl, SoftBox, scaleSoft } from './soft'
+import { RoundCyl, SoftBox, scaleSoft } from '../../../kit/clay'
 import { ribTexture, roofLogo, signTexture } from './textures'
 
 const DOOR_XS = [-10.5, -3.5, 3.5, 10.5]

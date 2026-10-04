@@ -1,5 +1,5 @@
 import { EffectComposer, N8AO, SMAA } from '@react-three/postprocessing'
-import { useLook } from '../look'
+import { useLook } from './look'
 
 export function PostFX() {
   const aoIntensity = useLook((s) => s.aoIntensity)

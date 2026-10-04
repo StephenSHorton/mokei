@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { useLook } from '../look'
+import { useLook } from '../../../kit/clay'
 import { brandDecal } from './textures'
-import { SoftBox, Wheel } from './soft'
+import { SoftBox, Wheel } from '../../../kit/clay'
 
 type TruckProps = {
   accent?: 'blue' | 'teal'

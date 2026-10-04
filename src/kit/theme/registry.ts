@@ -1,8 +1,10 @@
+import { blankTheme } from './blank'
 import type { ThemeDefinition } from './types'
 import { yardlineTheme } from './yardline'
 
 const themes = {
   [yardlineTheme.id]: yardlineTheme,
+  [blankTheme.id]: blankTheme,
 } as const satisfies Record<string, ThemeDefinition>
 
 export type ThemeId = keyof typeof themes

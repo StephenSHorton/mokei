@@ -134,3 +134,34 @@ html.is-apple {
   --fs: 1;
   --track: -0.003em;
 }
+
+/*
+ * Starter / blank-diorama theme. Same glass language, warmer stone clay.
+ * A quarry theme would be another [data-theme] block, not a fork of this file.
+ */
+html[data-theme='blank'],
+[data-theme='blank'] {
+  --background: #efe4d2;
+  --secondary: #f3eadc;
+  --secondary-foreground: #3f2f22;
+  --accent: #f3e0c4;
+  --accent-foreground: #9a3412;
+  --primary: #c2410c;
+  --ring: #c2410c;
+  --blue: #c2410c;
+  --blue-deep: #9a3412;
+  --clay-ground: #efe4d2;
+  --clay-road: #d4b896;
+  --clay-grass: #d7e3b8;
+  --clay-wall: #f6efe4;
+  --clay-roof: #c2410c;
+  --clay-accent: #c2410c;
+  --clay-yellow: #e2a334;
+  --clay-cardboard: #c4a07a;
+  --clay-tree: #7dae6a;
+  --clay-tire: #2a241f;
+  --clay-ao: #4a3728;
+  --clay-sky: #f3ead8;
+  --sidebar-primary: #c2410c;
+  --sidebar-accent: #f3eadc;
+}

@@ -1,73 +1,62 @@
 # Mokei architecture
 
-Mokei is the design system. Yardline is the first **theme + scene** that happens to also be the playground at `/`.
+Mokei is the design system. **Yardline** is the first theme + scene (playground at `/`). **Blank diorama** is the second scene, proof that another world can register without touching the warehouse.
 
-Nothing in the kit is warehouse-specific except the first registered implementations.
-
-## Two registries
+## Layout
 
 ```
 src/kit/
-  theme/          UI token sets
-    tokens.css    raw CSS variables (HUD + clay, mapped to shadcn)
-    preset.css    playground Tailwind v4 @theme (HUD-safe base layer)
-    mokei.css     consumer preset (git export + registry)
-    yardline.ts   first theme
-    registry.ts
-  scene/          3D worlds
-    yardline.ts   registers src/scene/World
-    registry.ts
+  theme/          token sets (yardline, blank, …)
+  scene/          registry + Scene contract + activateScene
+  clay/           SoftBox, RoundCyl, SOFT_EDGE_SCALE, Matte, look, Lights, PostFX, ClayGround, ClayCameraRig
+src/scenes/
+  yardline/       warehouse World, models, sim, HUD
+  blank/          starter pad
 ```
-
-A **theme** is a token set applied with `data-theme` on `<html>`. A **scene** is a `World` component plus the theme it wants.
 
 ```ts
-import { applyTheme, getTheme } from '@/kit/theme'
-import { getScene } from '@/kit/scene'
+import { activateScene, getScene } from 'mokei'
 
-applyTheme('yardline')
+activateScene('yardline')
 const scene = getScene('yardline')
-// <scene.World />
+// <Canvas><scene.World /></Canvas>
+// {scene.Hud ? <scene.Hud /> : null}
+scene.dispatch?.({ type: 'task-started', id: 'fl-10' })
 ```
 
-The playground HUD is composed from kit components (`src/ui/Hud.tsx`) with HUD-sized variants so the measured look stays put. `src/index.css` keeps only playground resets and the 3D pin labels.
+See [SCENES.md](./SCENES.md) to author a quarry (or any) scene.
 
-## Adding a quarry theme + scene
+## Playground
 
-1. Add `[data-theme='quarry']` overrides in `src/kit/theme/tokens.css` (or a sibling imported from the preset). Same semantic names, different clay/glass values if Rock's site needs them.
-2. Add `src/kit/theme/quarry.ts` and register it in `src/kit/theme/registry.ts`.
-3. Put models + world under something like `src/scenes/quarry/` (do **not** fold them into the warehouse `src/scene` / `src/models` / `src/sim` tree).
-4. Add `src/kit/scene/quarry.ts` that exports `{ id: 'quarry', themeId: 'quarry', World }` and register it.
-5. A consumer selects `getScene('quarry')` and `applyTheme('quarry')`.
+`App` reads `?scene=` (default `yardline`), calls `activateScene`, and mounts `scene.World` plus optional `scene.Hud`. `/` with no query is the measured Yardline HUD + yard — do not change its look.
 
-The warehouse yard stays the default playground. Do not rescale it; `SOFT_EDGE_SCALE` stays `0.8`.
+`SOFT_EDGE_SCALE` stays `0.8`.
 
 ## shadcn
 
-- `components.json` — Vite + Tailwind v4, CSS file is the preset, style `base-nova`, Base UI primitives.
-- `src/lib/utils.ts` — `cn` from the `cn` package.
-- `src/components/ui/*` — generated components, then lightly themed (glass cards, HUD pill badge tones, HUD size variants, stepper).
+- `components.json` — Vite + Tailwind v4, style `base-nova`, Base UI.
+- HUD variants live on the kit components; playground chrome is composed in `src/scenes/yardline/hud`.
 
 ## shadcn registry (Pages)
 
-`registry.json` at the repo root is the source catalog. `npm run build:registry` (`shadcn build` + URL rewrite) writes `public/r/<name>.json`. The site `build` script runs that first so GitHub Pages serves:
-
-- `https://stephenshorton.github.io/mokei/r/registry.json`
-- `https://stephenshorton.github.io/mokei/r/theme.json`
-- `https://stephenshorton.github.io/mokei/r/button.json` (etc.)
-
-Each UI item lists `@mokei/theme` as a registry dependency. The build rewrites that to an absolute `…/r/theme.json` URL so `npx shadcn add <button url>` pulls the theme without extra config. Set `MOKEI_REGISTRY_BASE` when generating JSON for a local preview host.
-
-`applyTheme('yardline')` sets `data-theme` on `<html>`. Token selectors include `html[data-theme='yardline']` so they win over a host `shadcn init` `:root` block.
+`registry.json` → `npm run build:registry` → `public/r/*.json`. Theme + UI items as before. `scene` is a `registry:lib` copy of the contract types; the runnable worlds ship through the git package.
 
 ## Git dependency
 
-`package.json` `exports` point at `src/kit` TypeScript and CSS. There is no `prepare` script. Playground-only packages (Vite, leva, Base UI, lucide, shadcn CLI) are `devDependencies` so `npm install github:StephenSHorton/mokei` does not install or build the Yardline app. Scene runtime bits that consumers should not have to think about (`zustand`, postprocessing) stay in `dependencies`. React / three / r3f / drei / Tailwind are `peerDependencies`.
+`package.json` `exports` point at `src/kit` and the scene packages. No `prepare` script.
+
+```ts
+import { SoftBox, SOFT_EDGE_SCALE } from 'mokei/clay'
+import { getScene } from 'mokei/scene'
+import { yardlineScene } from 'mokei/scene/yardline'
+import { blankScene } from 'mokei/scene/blank'
+```
 
 ## Routes
 
 | URL | What |
 | --- | --- |
-| `/` or `#/` | Yardline playground (unchanged HUD + 3D) |
-| `?freeze` / `?freeze=8` | Pause the yard sim at a fixed clock (default 8s) and pin the top-bar time at `09:41` (`?clock=HH:MM` to override). Used for chrome diffs. |
-| `#/ui` | Component showcase in the Mokei theme |
+| `/` or `/?scene=yardline` | Yardline playground |
+| `/?scene=blank` | Starter diorama |
+| `?freeze` / `?freeze=8` | Pause the yard sim (default 8s), pin clock `09:41` |
+| `#/ui` | Component showcase + theme/scene switcher |

@@ -4,4 +4,5 @@
  */
 export * from './theme'
 export * from './scene'
+export * from './clay'
 export { REGISTRY_BASE, registryAddCommand, registryCatalog, registryItemUrl, type RegistryCatalogItem } from './registry-catalog'

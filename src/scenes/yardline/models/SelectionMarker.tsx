@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import type { Group } from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
-import { useLook } from '../look'
+import { useLook } from '../../../kit/clay'
 
 /**
  * 3D corner brackets around the selected unit, like the frames: soft blue

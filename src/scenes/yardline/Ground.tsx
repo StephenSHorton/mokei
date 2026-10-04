@@ -1,7 +1,7 @@
 import { useRef } from 'react'
-import { useLook } from '../look'
-import { SoftBox } from '../models/soft'
-import { useYard } from '../sim/yard'
+import { useLook } from '../../kit/clay'
+import { SoftBox } from '../../kit/clay'
+import { useYard } from './sim/yard'
 
 export function Ground() {
   const ground = useLook((s) => s.ground)

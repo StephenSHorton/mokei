@@ -5,7 +5,7 @@ export type RegistryCatalogItem = {
   name: string
   title: string
   description: string
-  type: 'registry:theme' | 'registry:ui'
+  type: 'registry:theme' | 'registry:ui' | 'registry:lib'
 }
 
 export const registryCatalog = [
@@ -28,6 +28,12 @@ export const registryCatalog = [
   { name: 'label', title: 'Label', description: 'Form label.', type: 'registry:ui' },
   { name: 'dropdown-menu', title: 'Dropdown menu', description: 'Site and user menus.', type: 'registry:ui' },
   { name: 'stepper', title: 'Stepper', description: 'Shipment tracking steps.', type: 'registry:ui' },
+  {
+    name: 'scene',
+    title: 'Scene contract',
+    description: 'SceneDefinition + SceneEvent types. Worlds ship via the git package (mokei/scene, mokei/clay).',
+    type: 'registry:lib',
+  },
 ] as const satisfies readonly RegistryCatalogItem[]
 
 export function registryItemUrl(name: string) {

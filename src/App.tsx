@@ -1,21 +1,28 @@
 import { Canvas } from '@react-three/fiber'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { NoToneMapping, PCFShadowMap, SRGBColorSpace } from 'three'
-import { DEFAULT_SCENE_ID, getScene } from './kit/scene'
+import { activateScene, resolveScene, sceneIdFromSearch } from './kit/scene'
+import { useLook } from './kit/clay'
 import { LevaLook } from './look/LevaLook'
-import { useLook } from './look'
-import { useYard } from './sim/yard'
-import { Hud } from './ui/Hud'
-
-const scene = getScene(DEFAULT_SCENE_ID)
 
 export default function App() {
+  const [sceneId, setSceneId] = useState(() => sceneIdFromSearch())
+  const scene = useMemo(() => resolveScene(sceneId), [sceneId])
   const ground = useLook((s) => s.ground)
-  const select = useYard((s) => s.select)
   const [showLook, setShowLook] = useState(() => location.search.includes('look'))
 
   useEffect(() => {
-    // The tuning panel stays out of the composition; press L to toggle it.
+    const sync = () => setSceneId(sceneIdFromSearch())
+    window.addEventListener('popstate', sync)
+    return () => window.removeEventListener('popstate', sync)
+  }, [])
+
+  useEffect(() => {
+    activateScene(scene)
+    document.title = `${scene.name} — clay-diorama`
+  }, [scene])
+
+  useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement) return
       if (event.key === 'l' || event.key === 'L') setShowLook((v) => !v)
@@ -36,12 +43,12 @@ export default function App() {
           outputColorSpace: SRGBColorSpace,
           powerPreference: 'high-performance',
         }}
-        onPointerMissed={() => select(null)}
+        onPointerMissed={() => scene.dispatch?.({ type: 'select', id: null })}
       >
         <color attach="background" args={[ground]} />
         <scene.World />
       </Canvas>
-      <Hud />
+      {scene.Hud ? <scene.Hud /> : null}
       <LevaLook hidden={!showLook} />
     </div>
   )

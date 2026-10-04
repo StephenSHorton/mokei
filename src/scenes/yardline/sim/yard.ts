@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { damp, dampAngle, easeInOutCubic, length2, lerp } from '../lib/math'
+import { damp, dampAngle, easeInOutCubic, length2, lerp } from '../../../lib/math'
 
 export type UnitKind = 'forklift' | 'truck' | 'warehouse'
 
