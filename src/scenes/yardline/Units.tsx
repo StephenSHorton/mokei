@@ -76,7 +76,7 @@ function UnitMesh({
       {unit.kind === 'truck' ? (
         <Truck accent={unit.accent === 'teal' ? 'teal' : 'blue'} />
       ) : (
-        <Forklift />
+        <AnimatedForklift id={id} />
       )}
       {selected ? (
         <group position={[0, 0, unit.kind === 'truck' ? 0.2 : 0.55]}>
@@ -85,6 +85,23 @@ function UnitMesh({
       ) : null}
     </group>
   )
+}
+
+function AnimatedForklift({ id }: { id: string }) {
+  const last = useRef({ lift: 0, insert: 0 })
+  const [pose, setPose] = useState(() => ({
+    lift: runtime.units[id]?.lift ?? 0,
+    insert: runtime.units[id]?.insert ?? 0,
+  }))
+  useFrame(() => {
+    const live = runtime.units[id]
+    if (!live) return
+    if (Math.abs(live.lift - last.current.lift) > 0.012 || Math.abs(live.insert - last.current.insert) > 0.012) {
+      last.current = { lift: live.lift, insert: live.insert }
+      setPose(last.current)
+    }
+  })
+  return <Forklift lift={pose.lift} insert={pose.insert} />
 }
 
 function LabelTracker({ selectedId }: { selectedId: string | null }) {
@@ -105,11 +122,11 @@ function LabelTracker({ selectedId }: { selectedId: string | null }) {
     }
 
     const pallet = runtime.pallets[FOCUS_PALLET]
-    if (!pallet || pallet.carriedBy || pallet.hiddenUntil > runtime.clock) {
+    if (!pallet || pallet.carriedBy || pallet.site !== 'yard') {
       writeLabel('pallet', 0, 0, '', false)
       return
     }
-    scratch.set(pallet.x, (0.3 + pallet.stacks * 0.58) * 1.14 + 0.35, pallet.z)
+    scratch.set(pallet.x, pallet.y + (0.3 + pallet.stacks * 0.58) * 1.14 + 0.35, pallet.z)
     scratch.project(camera)
     const x = (scratch.x * 0.5 + 0.5) * size.width
     const y = (-scratch.y * 0.5 + 0.5) * size.height
@@ -130,11 +147,11 @@ function PalletActor({ id }: { id: string }) {
   useFrame(() => {
     const live = runtime.pallets[id]
     if (!group.current || !live) return
-    const hidden = live.hiddenUntil > runtime.clock && !live.carriedBy
-    group.current.visible = !hidden
-    group.current.position.set(live.x, live.carriedBy ? 0.42 : 0, live.z)
+    const visible = live.site === 'yard' || live.site === 'forklift'
+    group.current.visible = visible
+    group.current.position.set(live.x, live.y, live.z)
     group.current.rotation.y = live.heading
-    if (pin.current) pin.current.visible = !live.carriedBy
+    if (pin.current) pin.current.visible = live.site === 'yard' && !live.carriedBy
   })
 
   return (
