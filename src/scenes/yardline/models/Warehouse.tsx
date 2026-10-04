@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { ExtrudeGeometry, Shape } from 'three'
-import { useMaterialColor } from '../../../kit/theme'
+import { useFillRole, useMaterialColor, useThemedHex, useWhiteFills } from '../../../kit/theme'
 import { WAREHOUSE_ID, useYard } from '../sim/yard'
 import { Matte } from '../../../kit/clay'
 import { Pallet } from './Pallet'
@@ -38,10 +38,14 @@ export function Warehouse() {
 function Hall({ W, D, H, RISE, doors, logo: showLogo = false, units = [] }: HallProps) {
   const PITCH = Math.atan(RISE / (D / 2))
   const wall = useMaterialColor('base')
-  const roof = useMaterialColor('accent3')
-  const front = useMemo(() => ribTexture(wall, 'rgba(120,138,178,0.16)', W / 0.5, `front${W}`), [wall, W])
-  const side = useMemo(() => ribTexture(wall, 'rgba(120,138,178,0.16)', D / 0.5, `side${D}`), [wall, D])
-  const roofTex = useMemo(() => ribTexture(roof, 'rgba(12,30,110,0.28)', (W + OVER * 2) / 0.42, `roof${W}`), [roof, W])
+  const roofRole = useFillRole('accent3')
+  const roof = useMaterialColor(roofRole)
+  const whiteFills = useWhiteFills()
+  const wallRib = whiteFills ? 'rgba(80,70,55,0.10)' : 'rgba(120,138,178,0.16)'
+  const roofRib = whiteFills ? 'rgba(80,70,55,0.10)' : 'rgba(12,30,110,0.28)'
+  const front = useMemo(() => ribTexture(wall, wallRib, W / 0.5, `front${W}`), [wall, wallRib, W])
+  const side = useMemo(() => ribTexture(wall, wallRib, D / 0.5, `side${D}`), [wall, wallRib, D])
+  const roofTex = useMemo(() => ribTexture(roof, roofRib, (W + OVER * 2) / 0.42, `roof${W}`), [roof, roofRib, W])
   const gable = useMemo(() => {
     const shape = new Shape()
     shape.moveTo(-D / 2 + 0.05, 0)
@@ -102,14 +106,20 @@ function Hall({ W, D, H, RISE, doors, logo: showLogo = false, units = [] }: Hall
           position={[0, H + RISE - (D / 4 + OVER / 2) * Math.tan(PITCH) + 0.2, (dir * (D / 2 + OVER)) / 2]}
           rotation={[dir * PITCH, 0, 0]}
         >
-          <SoftBox size={[W + OVER * 2, 0.36, slabLen]} r={0.16} material="accent3" />
+          <SoftBox size={[W + OVER * 2, 0.36, slabLen]} r={0.16} material={roofRole} />
           <mesh position={[0, 0.181, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
             <planeGeometry args={[W + OVER * 2 - 0.32, slabLen - 0.32]} />
             <meshLambertMaterial map={roofTex} />
           </mesh>
         </group>
       ))}
-      <SoftBox size={[W + OVER * 2 + 0.1, 0.34, 0.9]} r={0.16} color="#2556d6" position={[0, H + RISE + 0.24, 0]} />
+      <SoftBox
+        size={[W + OVER * 2 + 0.1, 0.34, 0.9]}
+        r={0.16}
+        material={whiteFills ? 'accent1' : undefined}
+        unsafeColor={whiteFills ? undefined : '#2556d6'}
+        position={[0, H + RISE + 0.24, 0]}
+      />
       {/* roof roundel */}
       {showLogo ? (
       <group position={[2, H + RISE - 2.6 * Math.tan(PITCH) + 0.42, 2.6]} rotation={[PITCH, 0, 0]}>
@@ -164,15 +174,20 @@ function Dock({ x, index, z }: { x: number; index: number; z: number }) {
 }
 
 function Annex() {
-  const accent = useMaterialColor('accent1')
+  const bodyRole = useFillRole('accent1')
+  const roofRole = useFillRole('accent3')
+  const accent = useMaterialColor(bodyRole)
+  const whiteFills = useWhiteFills()
+  const cap = useThemedHex('#4a7cf0', 'accent1')
   const w = 9
   const d = 9
   const h = 3.8
-  const ribs = useMemo(() => ribTexture(accent, 'rgba(10,25,90,0.3)', w / 0.45, 'annex'), [accent])
-  const ribsSide = useMemo(() => ribTexture(accent, 'rgba(10,25,90,0.3)', d / 0.45, 'annex-side'), [accent])
+  const ribInk = whiteFills ? 'rgba(80,70,55,0.10)' : 'rgba(10,25,90,0.3)'
+  const ribs = useMemo(() => ribTexture(accent, ribInk, w / 0.45, 'annex'), [accent, ribInk])
+  const ribsSide = useMemo(() => ribTexture(accent, ribInk, d / 0.45, 'annex-side'), [accent, ribInk])
   return (
     <group>
-      <SoftBox size={[w, h, d]} r={0.2} material="accent1" position={[0, h / 2, 0]} />
+      <SoftBox size={[w, h, d]} r={0.2} material={bodyRole} position={[0, h / 2, 0]} />
       <mesh position={[0, h / 2 + 0.1, d / 2 + 0.006]}>
         <planeGeometry args={[w - 0.5, h - 0.5]} />
         <meshLambertMaterial map={ribs} />
@@ -185,8 +200,8 @@ function Annex() {
         <planeGeometry args={[d - 0.5, h - 0.5]} />
         <meshLambertMaterial map={ribsSide} />
       </mesh>
-      <SoftBox size={[w + 0.6, 0.42, d + 0.6]} r={0.18} material="accent3" position={[0, h + 0.18, 0]} />
-      <SoftBox size={[w - 1.2, 0.2, d - 1.2]} r={0.08} color="#4a7cf0" position={[0, h + 0.46, 0]} />
+      <SoftBox size={[w + 0.6, 0.42, d + 0.6]} r={0.18} material={roofRole} position={[0, h + 0.18, 0]} />
+      <SoftBox size={[w - 1.2, 0.2, d - 1.2]} r={0.08} color={cap} position={[0, h + 0.46, 0]} />
       {/* white roll-up door */}
       <SoftBox size={[2.4, 2.6, 0.16]} r={0.06} color="#f1f5f9" position={[1.6, 1.3, d / 2 + 0.06]} />
       <SoftBox size={[2.8, 0.3, 0.3]} r={0.1} color="#f8fafc" position={[1.6, 2.72, d / 2 + 0.1]} />

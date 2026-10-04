@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useFillRole, useThemedHex, useWhiteFills } from '../../../kit/theme'
 import { brandDecal } from './textures'
 import { SoftBox, Wheel } from '../../../kit/clay'
 
@@ -11,16 +12,21 @@ export function Truck({ accent = 'blue' }: TruckProps) {
   const teal = accent === 'teal'
   const decal = useMemo(() => brandDecal(accent), [accent])
   const glass = '#1b2236'
+  const whiteFills = useWhiteFills()
+  const cabRole = useFillRole('accent3')
+  const bumper = useThemedHex(teal ? '#e2e8f0' : '#1f45bf', 'accent1')
+  const stripeRole = teal && !whiteFills ? undefined : 'accent3'
+  const stripeHex = teal && !whiteFills ? '#14b8a6' : undefined
 
   return (
     <group scale={1.06}>
       {/* cab */}
-      {teal ? (
+      {teal && !whiteFills ? (
         <SoftBox size={[2.12, 1.86, 1.6]} r={0.34} unsafeColor="#f8fafc" position={[0, 1.36, 2.3]} />
       ) : (
-        <SoftBox size={[2.12, 1.86, 1.6]} r={0.34} material="accent3" position={[0, 1.36, 2.3]} />
+        <SoftBox size={[2.12, 1.86, 1.6]} r={0.34} material={cabRole} position={[0, 1.36, 2.3]} />
       )}
-      <SoftBox size={[2.16, 0.5, 1.7]} r={0.2} unsafeColor={teal ? '#e2e8f0' : '#1f45bf'} position={[0, 0.6, 2.32]} />
+      <SoftBox size={[2.16, 0.5, 1.7]} r={0.2} unsafeColor={bumper} position={[0, 0.6, 2.32]} />
       {/* windshield + side windows */}
       <SoftBox size={[1.78, 0.68, 0.1]} r={0.045} color={glass} position={[0, 1.78, 3.08]} cast={false} />
       <SoftBox size={[2.15, 0.56, 0.62]} r={0.05} color={glass} position={[0, 1.8, 2.5]} cast={false} />
@@ -36,11 +42,13 @@ export function Truck({ accent = 'blue' }: TruckProps) {
       <SoftBox size={[1.7, 0.36, 5.6]} r={0.14} color="#2a3247" position={[0, 0.56, 0.1]} />
       {/* box trailer */}
       <SoftBox size={[2.36, 2.36, 4.3]} r={0.2} material="base" position={[0, 1.96, -0.56]} />
-      {teal ? (
-        <SoftBox size={[2.4, 0.34, 4.18]} r={0.15} unsafeColor="#14b8a6" position={[0, 0.92, -0.56]} />
-      ) : (
-        <SoftBox size={[2.4, 0.34, 4.18]} r={0.15} material="accent3" position={[0, 0.92, -0.56]} />
-      )}
+      <SoftBox
+        size={[2.4, 0.34, 4.18]}
+        r={0.15}
+        material={stripeRole}
+        unsafeColor={stripeHex}
+        position={[0, 0.92, -0.56]}
+      />
       <SoftBox size={[2.2, 2.1, 0.08]} r={0.035} color="#e8edf6" position={[0, 1.98, -2.72]} cast={false} />
       {/* side decals */}
       <mesh position={[1.192, 2.08, -0.5]} rotation={[0, Math.PI / 2, 0]}>

@@ -1,6 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import type { Group } from 'three'
+import { useThemedHex, useWhiteFills } from '../../../kit/theme'
 import { Pallet } from './Pallet'
 import { RoundCyl, SoftBox } from '../../../kit/clay'
 import { containerText, ribTexture } from './textures'
@@ -8,6 +9,7 @@ import { Truck } from './Truck'
 
 /** Blue pallet rack with soft uprights and cardboard on each shelf. */
 export function Rack({ bays = 2, levels = 3 }: { bays?: number; levels?: number }) {
+  const beam = useThemedHex('#1e4fd6', 'accent1')
   const bayW = 1.7
   const depth = 1.5
   const levelH = 1.25
@@ -28,8 +30,8 @@ export function Rack({ bays = 2, levels = 3 }: { bays?: number; levels?: number 
         const y = 0.18 + l * levelH
         return (
           <group key={l}>
-            <SoftBox size={[total + 0.1, 0.12, 0.12]} r={0.05} color="#1e4fd6" position={[0, y, -depth / 2]} />
-            <SoftBox size={[total + 0.1, 0.12, 0.12]} r={0.05} color="#1e4fd6" position={[0, y, depth / 2]} />
+            <SoftBox size={[total + 0.1, 0.12, 0.12]} r={0.05} color={beam} position={[0, y, -depth / 2]} />
+            <SoftBox size={[total + 0.1, 0.12, 0.12]} r={0.05} color={beam} position={[0, y, depth / 2]} />
             {Array.from({ length: bays }, (_, b) => (
               <group key={b} position={[-total / 2 + bayW * (b + 0.5), y + 0.02, 0]} scale={0.78}>
                 <Pallet stacks={(l + b) % 3 === 2 ? 1 : 2} seed={l + b} />
@@ -44,14 +46,18 @@ export function Rack({ bays = 2, levels = 3 }: { bays?: number; levels?: number 
 
 /** Shipping container with corrugated sides and lettering. */
 export function Container({ color = '#2bb3b1', text = 'MAERSK LINE' }: { color?: string; text?: string }) {
-  const ribs = useMemo(() => ribTexture(color, 'rgba(0,40,50,0.22)', 6.2 / 0.3, `ctr-${color}`), [color])
+  const whiteFills = useWhiteFills()
+  const fill = useThemedHex(color, 'base')
+  const lid = useThemedHex('#1f8f8d', 'accent3')
+  const ribInk = whiteFills ? 'rgba(80,70,55,0.10)' : 'rgba(0,40,50,0.22)'
+  const ribs = useMemo(() => ribTexture(fill, ribInk, 6.2 / 0.3, `ctr-${fill}`), [fill, ribInk])
   const label = useMemo(() => containerText(text), [text])
   const w = 2.5
   const h = 2.6
   const d = 6.2
   return (
     <group>
-      <SoftBox size={[w, h, d]} r={0.14} color={color} position={[0, h / 2, 0]} />
+      <SoftBox size={[w, h, d]} r={0.14} color={fill} position={[0, h / 2, 0]} />
       {[1, -1].map((s) => (
         <group key={s} position={[(s * w) / 2 + s * 0.006, h / 2, 0]} rotation={[0, (s * Math.PI) / 2, 0]}>
           <mesh receiveShadow>
@@ -64,17 +70,19 @@ export function Container({ color = '#2bb3b1', text = 'MAERSK LINE' }: { color?:
           </mesh>
         </group>
       ))}
-      <SoftBox size={[w + 0.06, 0.14, d + 0.06]} r={0.06} color="#1f8f8d" position={[0, h - 0.04, 0]} />
+      <SoftBox size={[w + 0.06, 0.14, d + 0.06]} r={0.06} color={lid} position={[0, h - 0.04, 0]} />
     </group>
   )
 }
 
 /** Forklift charger: white soft cabinet with a mint status strip. */
 export function Charger() {
+  const cabinet = useThemedHex('#f4f7fb', 'base')
+  const lamp = useThemedHex('#22c55e', 'accent2')
   return (
     <group>
-      <SoftBox size={[1.0, 1.5, 0.75]} r={0.18} color="#f4f7fb" position={[0, 0.75, 0]} />
-      <SoftBox size={[0.5, 0.08, 0.04]} r={0.02} color="#22c55e" position={[0, 1.15, 0.38]} cast={false} emissive="#16a34a" />
+      <SoftBox size={[1.0, 1.5, 0.75]} r={0.18} color={cabinet} position={[0, 0.75, 0]} />
+      <SoftBox size={[0.5, 0.08, 0.04]} r={0.02} color={lamp} position={[0, 1.15, 0.38]} cast={false} emissive={lamp} />
       <RoundCyl radius={0.06} height={0.5} fillet={0.03} color="#334155" position={[0.36, 0.7, 0.4]} />
     </group>
   )

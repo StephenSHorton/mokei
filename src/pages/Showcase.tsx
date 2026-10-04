@@ -24,7 +24,7 @@ import { Separator } from '@/components/ui/separator'
 import { Stepper } from '@/components/ui/stepper'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { RoleCart, applyLook, useLook } from '@/kit/clay'
+import { Lights, RoleCart, applyLook, useLook } from '@/kit/clay'
 import { REGISTRY_BASE, registryAddCommand, registryCatalog } from '@/kit/registry-catalog'
 import { activateScene, getScene, listScenes, type SceneDefinition } from '@/kit/scene'
 import '@/kit/scene/yardline'
@@ -70,8 +70,7 @@ function RoleCartPreview() {
         <color attach="background" args={[base]} />
         <OrthographicCamera makeDefault position={[3.6, 2.6, 3.6]} zoom={92} near={-40} far={80} />
         <AimOrigin />
-        <ambientLight intensity={0.95} />
-        <directionalLight position={[6, 10, 4]} intensity={0.5} />
+        <Lights />
         <RoleCart />
       </Canvas>
     </div>
@@ -110,7 +109,7 @@ export default function Showcase() {
       wall: m.base,
       accent: m.accent1,
       yellow: m.accent2 ?? m.accent1,
-      roof: m.accent3 ?? m.accent1,
+      roof: theme.whiteFills ? m.base : (m.accent3 ?? m.accent1),
       tire: m.detail.dark,
       ground: m.ground,
     })

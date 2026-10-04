@@ -117,13 +117,30 @@ function readRole(palette: MaterialPalette, role: MaterialRole): string {
   }
 }
 
-type MaterialsState = MaterialPalette & {
-  setPalette: (palette: MaterialPalette) => void
+export type MaterialsExtras = {
+  themeId?: string
+  /**
+   * Large scene fills stay on `base`. Accents only land on trim, edges,
+   * doors, signals, and stripes. Yardline leaves this off.
+   */
+  whiteFills?: boolean
 }
+
+type MaterialsState = MaterialPalette &
+  Required<MaterialsExtras> & {
+    setPalette: (palette: MaterialPalette, extras?: MaterialsExtras) => void
+  }
 
 export const useMaterials = create<MaterialsState>((set) => ({
   ...FALLBACK_PALETTE,
-  setPalette: (palette) => set(palette),
+  themeId: 'yardline',
+  whiteFills: false,
+  setPalette: (palette, extras) =>
+    set({
+      ...palette,
+      ...(extras?.themeId != null ? { themeId: extras.themeId } : {}),
+      ...(extras?.whiteFills != null ? { whiteFills: extras.whiteFills } : {}),
+    }),
 }))
 
 export function resolveMaterial(role: MaterialRole, palette?: MaterialPalette): string {
@@ -132,6 +149,24 @@ export function resolveMaterial(role: MaterialRole, palette?: MaterialPalette): 
 
 export function useMaterialColor(role: MaterialRole): string {
   return useMaterials((s) => readRole(s, role))
+}
+
+/** True when the active theme forbids full-surface accents (quarry). */
+export function useWhiteFills(): boolean {
+  return useMaterials((s) => s.whiteFills)
+}
+
+/**
+ * Role for a large clay fill (roof, cab, cart body, annex). Under a
+ * white-fills theme this is always `base`; Yardline keeps the authored role.
+ */
+export function useFillRole(authored: MaterialRole): MaterialRole {
+  return useMaterials((s) => (s.whiteFills ? 'base' : authored))
+}
+
+/** Leftover hex on Yardline; a role swatch when white-fills is on. */
+export function useThemedHex(yardlineHex: string, quarryRole: MaterialRole): string {
+  return useMaterials((s) => (s.whiteFills ? readRole(s, quarryRole) : yardlineHex))
 }
 
 const CSS_VARS: Record<MaterialRole, string> = {
@@ -145,8 +180,8 @@ const CSS_VARS: Record<MaterialRole, string> = {
   ground: '--mokei-ground',
 }
 
-export function applyMaterials(palette: MaterialPalette) {
-  useMaterials.getState().setPalette(palette)
+export function applyMaterials(palette: MaterialPalette, extras?: MaterialsExtras) {
+  useMaterials.getState().setPalette(palette, extras)
   if (typeof document === 'undefined') return
   const root = document.documentElement
   for (const role of Object.keys(CSS_VARS) as MaterialRole[]) {

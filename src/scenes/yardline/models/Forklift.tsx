@@ -1,22 +1,28 @@
-import { useMaterialColor } from '../../../kit/theme'
+import { useFillRole, useMaterialColor, useThemedHex, useWhiteFills } from '../../../kit/theme'
 import { RoundCyl, SoftBox, Wheel } from '../../../kit/clay'
 
 /** Chunky toy forklift: blue chassis, yellow body, black mast and cage. Forks face +Z. */
 export function Forklift() {
   const yellow = useMaterialColor('accent2')
+  const chassisRole = useFillRole('accent1')
+  const bodyRole = useFillRole('accent2')
+  const whiteFills = useWhiteFills()
+  const beacon = useThemedHex('#f97316', 'accent2')
+  const lamp = useThemedHex('#fb923c', 'accent2')
   const black = '#232838'
 
   return (
     <group scale={1.22}>
       {/* chassis */}
-      <SoftBox size={[1.22, 0.46, 1.62]} r={0.16} material="accent1" position={[0, 0.44, -0.02]} />
-      {/* yellow body + rounded counterweight */}
-      <SoftBox size={[1.16, 0.62, 0.86]} r={0.22} material="accent2" position={[0, 0.94, -0.36]} />
-      <SoftBox size={[1.2, 0.78, 0.46]} r={0.22} material="accent2" position={[0, 0.9, -0.7]} />
-      <SoftBox size={[1.06, 0.26, 0.5]} r={0.11} material="accent2" position={[0, 0.78, 0.4]} />
+      <SoftBox size={[1.22, 0.46, 1.62]} r={0.16} material={chassisRole} position={[0, 0.44, -0.02]} />
+      {/* body + rounded counterweight — yellow is a fill on Yardline, a signal stripe on quarry */}
+      <SoftBox size={[1.16, 0.62, 0.86]} r={0.22} material={bodyRole} position={[0, 0.94, -0.36]} />
+      <SoftBox size={[1.2, 0.78, 0.46]} r={0.22} material={bodyRole} position={[0, 0.9, -0.7]} />
+      <SoftBox size={[1.06, 0.26, 0.5]} r={0.11} material={bodyRole} position={[0, 0.78, 0.4]} />
+      {whiteFills ? <SoftBox size={[0.22, 0.08, 0.42]} r={0.03} material="accent2" position={[0, 1.28, -0.7]} /> : null}
       {/* seat + driver */}
       <SoftBox size={[0.5, 0.36, 0.14]} r={0.06} color={black} position={[0, 1.28, -0.38]} />
-      <RoundCyl radius={0.17} height={0.42} fillet={0.12} color="#f97316" position={[0, 1.33, -0.14]} />
+      <RoundCyl radius={0.17} height={0.42} fillet={0.12} color={beacon} position={[0, 1.33, -0.14]} />
       <mesh position={[0, 1.68, -0.14]} castShadow>
         <sphereGeometry args={[0.15, 20, 14]} />
         <meshLambertMaterial color="#f2c19b" />
@@ -48,7 +54,7 @@ export function Forklift() {
       <SoftBox size={[0.12, 0.07, 1.12]} r={0.03} color="#3b4256" position={[-0.24, 0.24, 1.42]} />
       <SoftBox size={[0.12, 0.07, 1.12]} r={0.03} color="#3b4256" position={[0.24, 0.24, 1.42]} />
       {/* lamp */}
-      <SoftBox size={[0.12, 0.08, 0.12]} r={0.04} color="#fb923c" position={[0, 2.3, -0.56]} cast={false} />
+      <SoftBox size={[0.12, 0.08, 0.12]} r={0.04} color={lamp} position={[0, 2.3, -0.56]} cast={false} />
       <Wheel position={[-0.6, 0.3, 0.42]} radius={0.3} width={0.26} />
       <Wheel position={[0.6, 0.3, 0.42]} radius={0.3} width={0.26} />
       <Wheel position={[-0.6, 0.27, -0.56]} radius={0.27} width={0.26} />

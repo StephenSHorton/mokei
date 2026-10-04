@@ -21,6 +21,7 @@ export const quarryTheme = {
     description: 'Warm white, azurite, signal yellow (warning only), slate trim. Sandstone is ground, not a UI fill.',
     dataTheme: 'quarry',
     materials: quarryMaterials,
+    whiteFills: true,
 };
 registerTheme(quarryTheme);
 //# sourceMappingURL=quarry.js.map

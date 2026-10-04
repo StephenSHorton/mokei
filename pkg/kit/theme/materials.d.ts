@@ -25,13 +25,30 @@ export declare function isNearWhite(hex: string): boolean;
 export declare function deriveDetailRamp(dark: string, base?: string): DetailRamp;
 export declare function listAccents(palette: MaterialPalette): string[];
 export declare function assertMaterialPalette(palette: MaterialPalette, themeId: string): void;
-type MaterialsState = MaterialPalette & {
-    setPalette: (palette: MaterialPalette) => void;
+export type MaterialsExtras = {
+    themeId?: string;
+    /**
+     * Large scene fills stay on `base`. Accents only land on trim, edges,
+     * doors, signals, and stripes. Yardline leaves this off.
+     */
+    whiteFills?: boolean;
+};
+type MaterialsState = MaterialPalette & Required<MaterialsExtras> & {
+    setPalette: (palette: MaterialPalette, extras?: MaterialsExtras) => void;
 };
 export declare const useMaterials: import("zustand").UseBoundStore<import("zustand").StoreApi<MaterialsState>>;
 export declare function resolveMaterial(role: MaterialRole, palette?: MaterialPalette): string;
 export declare function useMaterialColor(role: MaterialRole): string;
-export declare function applyMaterials(palette: MaterialPalette): void;
+/** True when the active theme forbids full-surface accents (quarry). */
+export declare function useWhiteFills(): boolean;
+/**
+ * Role for a large clay fill (roof, cab, cart body, annex). Under a
+ * white-fills theme this is always `base`; Yardline keeps the authored role.
+ */
+export declare function useFillRole(authored: MaterialRole): MaterialRole;
+/** Leftover hex on Yardline; a role swatch when white-fills is on. */
+export declare function useThemedHex(yardlineHex: string, quarryRole: MaterialRole): string;
+export declare function applyMaterials(palette: MaterialPalette, extras?: MaterialsExtras): void;
 export type ClayColorProps = {
     material?: MaterialRole;
     /** One-off hex. Discouraged — see docs/PRINCIPLES.md. */
