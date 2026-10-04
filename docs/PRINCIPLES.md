@@ -29,9 +29,10 @@ Clay primitives take a role, not a free hex:
 
 ## Do
 
-- Paint walls, carts, cabinets, and most boxes `base`.
-- Spend `accent1` on the thing the eye should find first (Yardline roofs/racks, quarry azurite drills and links).
-- Keep `accent2` for signals. On quarry that is **signal yellow** — a surface, never ink on white.
+- Paint walls, carts, cabinets, roofs, cabs, and most boxes `base`.
+- Spend `accent1` on trim, edges, doors, and the one thing the eye should find first (Yardline roofs/racks, quarry azurite drills and links). A whole roof or annex is not an accent.
+- Keep `accent2` for signals. On quarry that is **signal yellow** — a lamp or stripe, never a full cab or body, and never ink on white.
+- Keep `accent3` and `detail.*` on small parts: bumpers, stripes, wheels, windows, ironwork.
 - Derive `detail.mid` and `detail.light` from the dark end (`deriveDetailRamp`).
 - Put sandstone, dirt, and rock faces on `ground`.
 
@@ -40,6 +41,7 @@ Clay primitives take a role, not a free hex:
 - Invent a fourth accent because a mesh “needs a bit of color.”
 - Use a saturated fill as the page or HUD background. UI surfaces stay on `base`.
 - Use signal yellow (`accent2` on quarry) as text on white. Tokens pair it with a dark foreground (`--warning-foreground: #1C1F24`).
+- Drench a whole object in an accent or detail colour. Under quarry (`whiteFills`), large fills remap to `base` so Yardline’s authored roof/cab roles do not become slate blocks.
 - Paint the whole diorama in ground/sandstone. Ground is the floor, not the brand.
 - Reach for `unsafeColor` to sneak in orange, teal, or a new hero hue.
 
@@ -64,7 +66,7 @@ Orange and teal are gone.
 
 | Role | Name | Hex | Use |
 | --- | --- | --- | --- |
-| `base` | warm white | `#F7F5F0` | UI surfaces, carts, walls |
+| `base` | warm white | `#F7F5F0` | UI surfaces, carts, walls, roofs, cabs |
 | `accent1` | azurite | `#2B59E8` | Features, links, brand, `--primary` |
 | `accent2` | signal yellow | `#F2B705` | Permission / warning / active only |
 | `accent3` | slate | `#3B4552` | Secondary trim |

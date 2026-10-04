@@ -51,6 +51,16 @@ if (!quarryTs.includes("deriveDetailRamp(QUARRY_DETAIL_DARK, QUARRY_BASE)")) {
   process.exit(1)
 }
 
+if (!quarryTs.includes('whiteFills: true')) {
+  console.error('quarry must set whiteFills so large surfaces stay on base')
+  process.exit(1)
+}
+
+if (!materialsTs.includes('useFillRole') || !materialsTs.includes('whiteFills')) {
+  console.error('materials API must expose whiteFills / useFillRole')
+  process.exit(1)
+}
+
 if (!materialsTs.includes("luminance(hex) >= 0.85")) {
   console.error('isNearWhite must treat luminance >= 0.85 as near-white')
   process.exit(1)

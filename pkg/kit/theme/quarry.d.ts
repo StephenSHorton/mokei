@@ -26,5 +26,6 @@ export declare const quarryTheme: {
         detail: import("./materials").DetailRamp;
         ground: string;
     };
+    whiteFills: true;
 };
 //# sourceMappingURL=quarry.d.ts.map

@@ -57,7 +57,7 @@ Keep the original five. Add Rock-session events so a host can delete its shims.
 
 ## Add a scene (checklist)
 
-1. **Theme** — reuse `yardline`, `blank`, or `quarry` (`mokei/themes/<id>.css` + `mokei/theme/<id>`), or add `src/kit/themes/your.css` and `registerTheme` with a `materials` palette. Host apps can also `registerTheme` without a kit PR. White is the primary material; at most three accents.
+1. **Theme** — reuse `yardline`, `blank`, or `quarry` (`mokei/themes/<id>.css` + `mokei/theme/<id>`), or add `src/kit/themes/your.css` and `registerTheme` with a `materials` palette. Host apps can also `registerTheme` without a kit PR. White is the primary material; at most three accents. Quarry sets `whiteFills` so large scene surfaces stay on `base` (use `useFillRole` for roofs, cabs, annexes).
 2. **Folder** — host-side (`site/src/quarry/` in Rock) or `src/scenes/your/` here. Do **not** put quarry art inside this repo.
 3. **World** — compose shared clay (`ClayCameraRig`, `Lights`, `ClayGround`, `SoftBox`, `RoundCyl`, `PostFX`). Keep `SOFT_EDGE_SCALE` at 0.8.
 4. **Events** — export `dispatch` and map `SceneEvent` onto your sim/store.

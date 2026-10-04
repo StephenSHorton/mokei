@@ -26,6 +26,7 @@ export const quarryTheme = {
     'Warm white, azurite, signal yellow (warning only), slate trim. Sandstone is ground, not a UI fill.',
   dataTheme: 'quarry',
   materials: quarryMaterials,
+  whiteFills: true,
 } satisfies ThemeDefinition
 
 registerTheme(quarryTheme)

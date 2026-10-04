@@ -79,13 +79,34 @@ function readRole(palette, role) {
 }
 export const useMaterials = create((set) => ({
     ...FALLBACK_PALETTE,
-    setPalette: (palette) => set(palette),
+    themeId: 'yardline',
+    whiteFills: false,
+    setPalette: (palette, extras) => set({
+        ...palette,
+        ...(extras?.themeId != null ? { themeId: extras.themeId } : {}),
+        ...(extras?.whiteFills != null ? { whiteFills: extras.whiteFills } : {}),
+    }),
 }));
 export function resolveMaterial(role, palette) {
     return readRole(palette ?? useMaterials.getState(), role);
 }
 export function useMaterialColor(role) {
     return useMaterials((s) => readRole(s, role));
+}
+/** True when the active theme forbids full-surface accents (quarry). */
+export function useWhiteFills() {
+    return useMaterials((s) => s.whiteFills);
+}
+/**
+ * Role for a large clay fill (roof, cab, cart body, annex). Under a
+ * white-fills theme this is always `base`; Yardline keeps the authored role.
+ */
+export function useFillRole(authored) {
+    return useMaterials((s) => (s.whiteFills ? 'base' : authored));
+}
+/** Leftover hex on Yardline; a role swatch when white-fills is on. */
+export function useThemedHex(yardlineHex, quarryRole) {
+    return useMaterials((s) => (s.whiteFills ? readRole(s, quarryRole) : yardlineHex));
 }
 const CSS_VARS = {
     base: '--mokei-base',
@@ -97,8 +118,8 @@ const CSS_VARS = {
     'detail.light': '--mokei-detail-light',
     ground: '--mokei-ground',
 };
-export function applyMaterials(palette) {
-    useMaterials.getState().setPalette(palette);
+export function applyMaterials(palette, extras) {
+    useMaterials.getState().setPalette(palette, extras);
     if (typeof document === 'undefined')
         return;
     const root = document.documentElement;

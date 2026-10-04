@@ -12,6 +12,11 @@ export type ThemeDefinition = {
   dataTheme: string
   /** At most three accents. `base` must be white or near-white. */
   materials: MaterialPalette
+  /**
+   * Large clay fills stay on `base`. Accents are trim, edges, doors, and
+   * stripes only. Unset on Yardline so roofs and cabs keep their look.
+   */
+  whiteFills?: boolean
 }
 
 export function applyTheme(theme: ThemeDefinition | string) {
@@ -22,6 +27,6 @@ export function applyTheme(theme: ThemeDefinition | string) {
   }
   if (resolved?.materials) {
     assertMaterialPalette(resolved.materials, resolved.id)
-    applyMaterials(resolved.materials)
+    applyMaterials(resolved.materials, { themeId: resolved.id, whiteFills: Boolean(resolved.whiteFills) })
   }
 }

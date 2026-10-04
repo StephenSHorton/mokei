@@ -8,7 +8,7 @@ export function applyTheme(theme) {
     }
     if (resolved?.materials) {
         assertMaterialPalette(resolved.materials, resolved.id);
-        applyMaterials(resolved.materials);
+        applyMaterials(resolved.materials, { themeId: resolved.id, whiteFills: Boolean(resolved.whiteFills) });
     }
 }
 //# sourceMappingURL=types.js.map
