@@ -612,7 +612,7 @@ function UnitBoard() {
 
   return (
     <Card size="hud" className="pointer-events-auto absolute right-7 bottom-[27px] w-[522px] overflow-visible rounded-[16px] pt-[11px] pr-[18px] pb-2.5 pl-[21px]">
-      <Tabs value={tab} onValueChange={(value) => setTab(value as Tab)} className="gap-0">
+      <Tabs value={tab} onValueChange={(value) => setTab(value as Tab)} className="contents">
         <div className="flex items-center">
           <span className="grid w-[22px] place-items-center">
             <DockBoard />
