@@ -46,14 +46,17 @@ input {
 }
 
 /*
- * Element-level reset only. Specificity must stay (0, 0, 1) so kit
- * Button/Input utilities keep their chrome.
+ * Layered so Tailwind utilities (tab padding, ship-card fill, site chrome)
+ * win. An unlayered button reset beat @layer utilities and stripped HUD
+ * buttons the same way the old `.hud button` rule did.
  */
-button {
-  cursor: pointer;
-  background: none;
-  border: 0;
-  padding: 0;
+@layer base {
+  button {
+    cursor: pointer;
+    background: none;
+    border: 0;
+    padding: 0;
+  }
 }
 
 /* ───────── pinned scene labels ───────── */
