@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @import 'shadcn/tailwind.css';
 @import './kit/theme/preset.css';
+@import './kit/themes/yardline.css';
+@import './kit/themes/blank.css';
+@import './kit/themes/quarry.css';
 
 /*
  * Playground chrome. HUD panel look now lives on the kit components

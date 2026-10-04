@@ -3,6 +3,6 @@ export { Lights } from './Lights';
 export { PostFX } from './PostFX';
 export { ClayGround } from './ClayGround';
 export { ClayCameraRig } from './CameraRig';
-export { RoundCyl, SOFT_EDGE_SCALE, SoftBox, Wheel, scaleSoft, useRoundCylinder } from './soft';
-export { applyLook, lookDefaults, useLook, } from './look';
+export { RoleCart, RoundCyl, SOFT_EDGE_SCALE, SoftBox, Wheel, scaleSoft, useRoundCylinder } from './soft';
+export { applyLook, getViewHome, lookDefaults, setViewHome, useLook, } from './look';
 //# sourceMappingURL=index.js.map

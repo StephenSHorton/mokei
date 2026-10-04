@@ -1,6 +1,8 @@
 import type { SceneDefinition } from './types';
 export type SceneId = string;
-export declare const DEFAULT_SCENE_ID = "yardline";
+/** Host-configurable. Unset means “first registered scene”. */
+export declare function setDefaultSceneId(id: string): void;
+export declare function getDefaultSceneId(): string | undefined;
 export declare function registerScene(def: SceneDefinition): SceneDefinition;
 /** Returns the scene, or `undefined` if nothing is registered under `id`. */
 export declare function getScene(id: string): SceneDefinition | undefined;

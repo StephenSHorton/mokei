@@ -17,6 +17,9 @@ export type LookState = {
   cameraElevation: number
   panX: number
   panZ: number
+  zoomMin: number
+  zoomMax: number
+  zoomReferenceWidth: number
   ground: string
   road: string
   grass: string
@@ -53,6 +56,9 @@ export const lookDefaults = {
   cameraElevation: 37,
   panX: 0,
   panZ: 0,
+  zoomMin: 12,
+  zoomMax: 60,
+  zoomReferenceWidth: 1728,
   ground: '#e9eef8',
   road: '#c4d0f2',
   grass: '#dcf4e6',
@@ -68,6 +74,27 @@ export const lookDefaults = {
 
 export type LookPatch = Partial<Omit<LookState, 'setLook' | 'zoomBy' | 'rotateBy' | 'resetView'>>
 
+export type ViewHome = {
+  cameraZoom: number
+  cameraAzimuth: number
+  cameraElevation: number
+}
+
+let viewHome: ViewHome = {
+  cameraZoom: lookDefaults.cameraZoom,
+  cameraAzimuth: lookDefaults.cameraAzimuth,
+  cameraElevation: lookDefaults.cameraElevation,
+}
+
+/** Remember the framing `resetView` should restore (last `activateScene`). */
+export function setViewHome(home: Partial<ViewHome>) {
+  viewHome = { ...viewHome, ...home }
+}
+
+export function getViewHome(): ViewHome {
+  return viewHome
+}
+
 export function applyLook(patch: LookPatch) {
   useLook.getState().setLook(patch)
 }
@@ -75,18 +102,18 @@ export function applyLook(patch: LookPatch) {
 export const useLook = create<LookState>((set, get) => ({
   ...lookDefaults,
   setLook: (patch) => set(patch),
-  zoomBy: (delta) => set({ cameraZoom: clampZoom(get().cameraZoom + delta) }),
+  zoomBy: (delta) => set({ cameraZoom: clampZoom(get().cameraZoom + delta, get()) }),
   rotateBy: (deg) => set({ cameraAzimuth: get().cameraAzimuth + deg }),
   resetView: () =>
     set({
-      cameraZoom: lookDefaults.cameraZoom,
-      cameraAzimuth: lookDefaults.cameraAzimuth,
-      cameraElevation: lookDefaults.cameraElevation,
+      cameraZoom: viewHome.cameraZoom,
+      cameraAzimuth: viewHome.cameraAzimuth,
+      cameraElevation: viewHome.cameraElevation,
       panX: 0,
       panZ: 0,
     }),
 }))
 
-function clampZoom(value: number) {
-  return Math.max(12, Math.min(60, value))
+function clampZoom(value: number, look: Pick<LookState, 'zoomMin' | 'zoomMax'> = lookDefaults) {
+  return Math.max(look.zoomMin, Math.min(look.zoomMax, value))
 }

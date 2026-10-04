@@ -1,12 +1,9 @@
-/*
- * Mokei design tokens.
- *
- * Values are measured from the Yardline HUD (src/index.css) and the clay
- * diorama palette (src/look.ts). Do not invent a new look here — remap these
- * onto shadcn's semantic names. Quarry tokens live in [data-theme='quarry'].
- */
+/* Aggregator for the shadcn registry. Source of truth: src/kit/themes/*.css */
 
 /*
+ * Yardline tokens. Measured from the playground HUD and clay palette.
+ * Do not invent a new look here — remap these onto shadcn's semantic names.
+ *
  * html[data-theme] is more specific than a host app's later :root block
  * (shadcn init writes nova tokens after our import). applyTheme() sets it.
  */
@@ -15,11 +12,9 @@ html[data-theme='yardline'],
 [data-theme='yardline'] {
   color-scheme: light;
 
-  /* Typography — SF Pro on Apple, Inter elsewhere (see html.is-apple). */
   --fs: 0.92;
   --track: -0.012em;
 
-  /* Ink + chrome from the existing HUD */
   --ink: #0f172a;
   --ink-2: #1e293b;
   --muted: #64748b;
@@ -37,7 +32,6 @@ html[data-theme='yardline'],
   --topbar-border: rgba(214, 222, 238, 0.7);
   --topbar-shadow: 0 6px 20px rgba(30, 41, 90, 0.04);
 
-  /* shadcn semantic tokens, mapped onto the HUD — not a new palette */
   --background: #e9eef8;
   --foreground: #0f172a;
   --card: rgba(255, 255, 255, 0.9);
@@ -57,7 +51,6 @@ html[data-theme='yardline'],
   --input: #dde3ee;
   --ring: #2563eb;
 
-  /* 12px is the HUD control radius (search, site, KPI tiles). */
   --radius: 0.75rem;
 
   --success: #15803d;
@@ -82,7 +75,6 @@ html[data-theme='yardline'],
   --sidebar-border: rgba(214, 222, 238, 0.7);
   --sidebar-ring: #2563eb;
 
-  /* Clay diorama materials from lookDefaults */
   --clay-ground: #e9eef8;
   --clay-road: #c4d0f2;
   --clay-grass: #dcf4e6;
@@ -95,12 +87,17 @@ html[data-theme='yardline'],
   --clay-tire: #1f2533;
   --clay-ao: #25335a;
   --clay-sky: #e9efff;
+
+  --mokei-base: #f7f9fd;
+  --mokei-accent-1: #2563eb;
+  --mokei-accent-2: #f2c14e;
+  --mokei-accent-3: #2f63e6;
+  --mokei-detail-dark: #1f2533;
+  --mokei-detail-mid: #2a3247;
+  --mokei-detail-light: #cbd5e1;
+  --mokei-ground: #e9eef8;
 }
 
-/*
- * Dark is the same glass + clay language for now. A future dusk or quarry
- * theme should override [data-theme] rather than invent values here.
- */
 .dark {
   --background: #e9eef8;
   --foreground: #0f172a;
@@ -130,26 +127,27 @@ html[data-theme='yardline'],
   --sidebar-ring: #2563eb;
 }
 
-html.is-apple {
-  --fs: 1;
-  --track: -0.003em;
-}
-
 /*
- * Starter / blank-diorama theme. Same glass language, warmer stone clay.
- * A quarry theme would be another [data-theme] block, not a fork of this file.
+ * Blank-diorama theme. Same glass language, warmer near-white clay.
+ * White is still the primary material; sandstone is the muted ground role.
  */
 html[data-theme='blank'],
 [data-theme='blank'] {
-  --background: #efe4d2;
+  --background: #f6efe4;
+  --foreground: #2a241f;
   --secondary: #f3eadc;
   --secondary-foreground: #3f2f22;
   --accent: #f3e0c4;
   --accent-foreground: #9a3412;
   --primary: #c2410c;
+  --primary-foreground: #fff7ed;
   --ring: #c2410c;
   --blue: #c2410c;
   --blue-deep: #9a3412;
+  --muted-surface: #efe4d2;
+  --muted-foreground: #6b5b4e;
+  --sidebar-primary: #c2410c;
+  --sidebar-accent: #f3eadc;
   --clay-ground: #efe4d2;
   --clay-road: #d4b896;
   --clay-grass: #d7e3b8;
@@ -162,86 +160,124 @@ html[data-theme='blank'],
   --clay-tire: #2a241f;
   --clay-ao: #4a3728;
   --clay-sky: #f3ead8;
-  --sidebar-primary: #c2410c;
-  --sidebar-accent: #f3eadc;
+
+  --mokei-base: #f6efe4;
+  --mokei-accent-1: #c2410c;
+  --mokei-accent-2: #e2a334;
+  --mokei-accent-3: #c2410c;
+  --mokei-detail-dark: #2a241f;
+  --mokei-detail-mid: #716b64;
+  --mokei-detail-light: #bdb6ad;
+  --mokei-ground: #efe4d2;
 }
 
 /*
- * Quarry theme — sandstone, slate, hard-hat orange, a little teal.
- * Values match Rock's host override so the kit can own the tokens.
- * The quarry World stays in the host repo.
+ * Quarry theme — Rock-locked palette. Orange and teal are gone.
+ *
+ *   base        warm white     #F7F5F0   primary material / UI surfaces
+ *   accent1     azurite        #2B59E8   features, links, brand, UI primary
+ *   accent2     signal yellow  #F2B705   permission / warning / active only
+ *   accent3     slate          #3B4552   secondary trim
+ *   detail.dark near-black     #1C1F24   dark end of the detail ramp
+ *   ground      sandstone      #E6D5B8   ground and rock faces only
+ *
+ * Signal yellow is a surface, never ink on white. --warning-foreground is
+ * near-black so yellow badges and chips stay readable.
  */
 html[data-theme='quarry'],
 [data-theme='quarry'] {
   color-scheme: light;
-  --ink: #1c1915;
-  --ink-2: #2a241f;
-  --muted: #6b6258;
-  --muted-2: #8a8074;
-  --hair: rgba(90, 78, 64, 0.28);
-  --blue: #2a9d8f;
-  --blue-deep: #1d7a70;
 
-  --glass-bg: rgba(255, 250, 242, 0.88);
-  --glass-border: rgba(255, 255, 255, 0.92);
-  --glass-shadow: 0 1px 2px rgba(62, 44, 28, 0.05), 0 10px 28px rgba(62, 44, 28, 0.1);
+  --fs: 0.92;
+  --track: -0.012em;
+
+  --ink: #1c1f24;
+  --ink-2: #3b4552;
+  --muted: #6b7280;
+  --muted-2: #8b919a;
+  --hair: rgba(28, 31, 36, 0.14);
+  --blue: #2b59e8;
+  --blue-deep: #1e48c7;
+
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 1px 2px rgba(28, 31, 36, 0.04), 0 8px 24px rgba(28, 31, 36, 0.08);
   --glass-blur: 20px;
   --glass-saturate: 1.25;
-  --topbar-bg: rgba(250, 243, 232, 0.78);
-  --topbar-border: rgba(196, 165, 116, 0.45);
-  --topbar-shadow: 0 6px 20px rgba(62, 44, 28, 0.05);
+  --topbar-bg: rgba(247, 245, 240, 0.82);
+  --topbar-border: rgba(59, 69, 82, 0.16);
+  --topbar-shadow: 0 6px 20px rgba(28, 31, 36, 0.04);
 
-  --background: #e6d5b8;
-  --foreground: #1c1915;
-  --card: rgba(255, 250, 242, 0.9);
-  --card-foreground: #1c1915;
-  --popover: rgba(255, 250, 242, 0.96);
-  --popover-foreground: #1c1915;
-  --primary: #e85d04;
-  --primary-foreground: #fff7ed;
-  --secondary: #efe4d2;
-  --secondary-foreground: #3f2f22;
-  --muted-surface: #eadcc6;
-  --muted-foreground: #6b6258;
-  --accent: #d5efe9;
-  --accent-foreground: #1d7a70;
+  --background: #f7f5f0;
+  --foreground: #1c1f24;
+  --card: rgba(255, 255, 255, 0.92);
+  --card-foreground: #1c1f24;
+  --popover: rgba(255, 255, 255, 0.96);
+  --popover-foreground: #1c1f24;
+  --primary: #2b59e8;
+  --primary-foreground: #ffffff;
+  --secondary: #e8e4dc;
+  --secondary-foreground: #3b4552;
+  --muted-surface: #efebe3;
+  --muted-foreground: #5c6570;
+  --accent: #d6e0fb;
+  --accent-foreground: #2b59e8;
   --destructive: #b42318;
-  --border: rgba(90, 78, 64, 0.28);
-  --input: #ddd0b8;
-  --ring: #e85d04;
+  --border: rgba(28, 31, 36, 0.14);
+  --input: #e4e0d8;
+  --ring: #2b59e8;
 
-  --success: #1d7a70;
-  --success-foreground: #d5efe9;
-  --warning: #c2410c;
-  --warning-foreground: #ffedd5;
-  --info: #1d7a70;
-  --info-foreground: #d5efe9;
+  --radius: 0.75rem;
 
-  --chart-1: #e85d04;
-  --chart-2: #2a9d8f;
-  --chart-3: #5c6670;
-  --chart-4: #c4a574;
-  --chart-5: #3d4650;
+  --success: #15803d;
+  --success-foreground: #dcf5e3;
+  /* Yellow surface + dark ink. Never yellow text on white. */
+  --warning: #f2b705;
+  --warning-foreground: #1c1f24;
+  --info: #2b59e8;
+  --info-foreground: #d6e0fb;
 
-  --sidebar: rgba(250, 243, 232, 0.78);
-  --sidebar-foreground: #1c1915;
-  --sidebar-primary: #e85d04;
-  --sidebar-primary-foreground: #fff7ed;
-  --sidebar-accent: #efe4d2;
-  --sidebar-accent-foreground: #3f2f22;
-  --sidebar-border: rgba(196, 165, 116, 0.45);
-  --sidebar-ring: #e85d04;
+  --chart-1: #2b59e8;
+  --chart-2: #3b4552;
+  --chart-3: #f2b705;
+  --chart-4: #e6d5b8;
+  --chart-5: #1c1f24;
+
+  --sidebar: rgba(247, 245, 240, 0.82);
+  --sidebar-foreground: #1c1f24;
+  --sidebar-primary: #2b59e8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e8e4dc;
+  --sidebar-accent-foreground: #3b4552;
+  --sidebar-border: rgba(59, 69, 82, 0.16);
+  --sidebar-ring: #2b59e8;
 
   --clay-ground: #e6d5b8;
   --clay-road: #c4a574;
-  --clay-grass: #c9d4b0;
-  --clay-wall: #f3eadc;
-  --clay-roof: #5c6670;
-  --clay-accent: #e85d04;
-  --clay-yellow: #f07a2a;
+  --clay-grass: #d5cfc2;
+  --clay-wall: #f7f5f0;
+  --clay-roof: #3b4552;
+  --clay-accent: #2b59e8;
+  --clay-yellow: #f2b705;
   --clay-cardboard: #c4a07a;
-  --clay-tree: #2a9d8f;
-  --clay-tire: #2a241f;
-  --clay-ao: #4a3728;
-  --clay-sky: #d8e4ea;
+  --clay-tree: #7a8474;
+  --clay-tire: #1c1f24;
+  --clay-ao: #3b4552;
+  --clay-sky: #eef1f6;
+
+  --mokei-base: #f7f5f0;
+  --mokei-accent-1: #2b59e8;
+  --mokei-accent-2: #f2b705;
+  --mokei-accent-3: #3b4552;
+  --mokei-detail-dark: #1c1f24;
+  --mokei-detail-mid: #696a6b;
+  --mokei-detail-light: #bab9b7;
+  --mokei-ground: #e6d5b8;
+}
+
+/* Warning chips are yellow surfaces with near-black ink, not yellow ink on white. */
+html[data-theme='quarry'] [data-slot='badge'][data-variant='warning'],
+[data-theme='quarry'] [data-slot='badge'][data-variant='warning'] {
+  background-color: var(--warning);
+  color: var(--warning-foreground);
 }

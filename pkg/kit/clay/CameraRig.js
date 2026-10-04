@@ -32,7 +32,7 @@ export function ClayCameraRig({ home = { x: 0, z: 0 } }) {
         const cam = camera;
         cam.position.set(target.current.x + dist * Math.cos(el) * Math.sin(az.current), dist * Math.sin(el), target.current.z + dist * Math.cos(el) * Math.cos(az.current));
         cam.lookAt(target.current);
-        const goalZoom = look.cameraZoom * (size.width / 1728);
+        const goalZoom = look.cameraZoom * (size.width / look.zoomReferenceWidth);
         cam.zoom = damp(cam.zoom || goalZoom, goalZoom, 7, dt);
         cam.near = -200;
         cam.far = 400;

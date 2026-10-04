@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from 'react'
 import { Vector3 } from 'three'
 import type { Group } from 'three'
 import { writeLabel } from './hud/labelBridge'
-import { useLook } from '../../kit/clay'
+import { useMaterialColor } from '../../kit/theme'
 import { Forklift } from './models/Forklift'
 import { MapPin } from './models/MapPin'
 import { Pallet } from './models/Pallet'
@@ -21,7 +21,7 @@ import {
 export function Units() {
   const selectedId = useYard((s) => s.selectedId)
   const select = useYard((s) => s.select)
-  const accent = useLook((s) => s.accent)
+  const accent = useMaterialColor('accent1')
 
   return (
     <group>

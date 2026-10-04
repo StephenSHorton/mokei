@@ -1,9 +1,11 @@
-type MatteProps = {
-  color: string
+import { useClayColor, type ClayColorProps } from '../theme/materials'
+
+type MatteProps = ClayColorProps & {
   emissive?: string
 }
 
 // Fully matte, no specular: Lambert keeps the clay look flat and soft.
-export function Matte({ color, emissive }: MatteProps) {
-  return <meshLambertMaterial color={color} emissive={emissive ?? '#000000'} />
+export function Matte({ color, material, unsafeColor, emissive }: MatteProps) {
+  const resolved = useClayColor({ color, material, unsafeColor })
+  return <meshLambertMaterial color={resolved} emissive={emissive ?? '#000000'} />
 }

@@ -18,8 +18,23 @@
       "types": "./pkg/kit/theme/index.d.ts",
       "default": "./pkg/kit/theme/index.js"
     },
+    "./theme/yardline": {
+      "types": "./pkg/kit/theme/yardline.d.ts",
+      "default": "./pkg/kit/theme/yardline.js"
+    },
+    "./theme/blank": {
+      "types": "./pkg/kit/theme/blank.d.ts",
+      "default": "./pkg/kit/theme/blank.js"
+    },
+    "./theme/quarry": {
+      "types": "./pkg/kit/theme/quarry.d.ts",
+      "default": "./pkg/kit/theme/quarry.js"
+    },
     "./theme/tokens.css": "./pkg/kit/theme/tokens.css",
     "./theme/preset.css": "./pkg/kit/theme/preset.css",
+    "./themes/yardline.css": "./pkg/kit/themes/yardline.css",
+    "./themes/blank.css": "./pkg/kit/themes/blank.css",
+    "./themes/quarry.css": "./pkg/kit/themes/quarry.css",
     "./scene": {
       "types": "./pkg/kit/scene/index.d.ts",
       "default": "./pkg/kit/scene/index.js"
@@ -43,19 +58,28 @@
     "src/lib/math.ts",
     "LICENSE",
     "README.md",
-    "docs/SCENES.md"
+    "docs/SCENES.md",
+    "docs/PRINCIPLES.md"
   ],
   "sideEffects": [
     "**/*.css",
     "./pkg/kit/scene/blank.js",
     "./src/kit/scene/blank.ts",
-    "./src/kit/scene/yardline.ts"
+    "./src/kit/scene/yardline.ts",
+    "./pkg/kit/theme/yardline.js",
+    "./pkg/kit/theme/blank.js",
+    "./pkg/kit/theme/quarry.js",
+    "./src/kit/theme/yardline.ts",
+    "./src/kit/theme/blank.ts",
+    "./src/kit/theme/quarry.ts"
   ],
   "scripts": {
     "dev": "vite",
     "build:registry": "node scripts/build-registry.mjs",
     "build:kit": "node scripts/build-kit.mjs",
-    "build": "npm run build:registry && npm run build:kit && tsc -b && vite build",
+    "check:roles": "node scripts/check-theme-roles.mjs",
+    "check:scene-bundle": "node scripts/check-scene-bundle.mjs",
+    "build": "npm run build:registry && npm run build:kit && npm run check:roles && npm run check:scene-bundle && tsc -b && vite build",
     "preview": "vite preview",
     "lint": "oxlint"
   },

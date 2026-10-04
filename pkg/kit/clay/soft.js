@@ -2,6 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { RoundedBox } from '@react-three/drei';
 import { useMemo } from 'react';
 import { LatheGeometry, Vector2 } from 'three';
+import { useClayColor } from '../theme/materials';
 import { Matte } from './Matte';
 /**
  * Shared scale for toy-edge rounding and bevels.
@@ -13,10 +14,10 @@ export function scaleSoft(value) {
     return value * SOFT_EDGE_SCALE;
 }
 /** Rounded box with toy-like soft corners. Radius is clamped so it never collapses. */
-export function SoftBox({ size, color, position, rotation, r, smooth = 4, cast = true, receive = true, emissive, }) {
+export function SoftBox({ size, color, material, unsafeColor, position, rotation, r, smooth = 4, cast = true, receive = true, emissive, }) {
     const min = Math.min(size[0], size[1], size[2]);
     const radius = Math.max(0.004, Math.min(scaleSoft(r ?? min * 0.24), min / 2 - 0.002));
-    return (_jsx(RoundedBox, { args: size, radius: radius, smoothness: smooth, position: position, rotation: rotation, castShadow: cast, receiveShadow: receive, children: _jsx(Matte, { color: color, emissive: emissive }) }));
+    return (_jsx(RoundedBox, { args: size, radius: radius, smoothness: smooth, position: position, rotation: rotation, castShadow: cast, receiveShadow: receive, children: _jsx(Matte, { color: color, material: material, unsafeColor: unsafeColor, emissive: emissive }) }));
 }
 /** Lathe profile for a cylinder whose top and bottom rims are filleted. */
 export function useRoundCylinder(radius, height, fillet, segments = 28) {
@@ -36,13 +37,18 @@ export function useRoundCylinder(radius, height, fillet, segments = 28) {
         return new LatheGeometry(pts, segments);
     }, [radius, height, fillet, segments]);
 }
-export function RoundCyl({ radius, height, fillet, color, position, rotation, cast = true, segments, }) {
+export function RoundCyl({ radius, height, fillet, color, material, unsafeColor, position, rotation, cast = true, segments, }) {
     const geo = useRoundCylinder(radius, height, scaleSoft(fillet ?? Math.min(radius, height) * 0.35), segments);
-    return (_jsx("mesh", { geometry: geo, position: position, rotation: rotation, castShadow: cast, receiveShadow: true, children: _jsx(Matte, { color: color }) }));
+    return (_jsx("mesh", { geometry: geo, position: position, rotation: rotation, castShadow: cast, receiveShadow: true, children: _jsx(Matte, { color: color, material: material, unsafeColor: unsafeColor }) }));
 }
 /** Chunky toy wheel: rounded tire plus a lighter hub, axis along X. */
-export function Wheel({ position, radius = 0.36, width = 0.3, tire = '#1f2533', hub = '#cbd5e1', }) {
+export function Wheel({ position, radius = 0.36, width = 0.3, tire = 'detail.dark', hub = 'detail.light', unsafeTire, unsafeHub, }) {
     const side = position[0] >= 0 ? 1 : -1;
-    return (_jsxs("group", { position: position, rotation: [0, 0, Math.PI / 2], children: [_jsx(RoundCyl, { radius: radius, height: width, fillet: width * 0.42, color: tire }), _jsx(RoundCyl, { radius: radius * 0.46, height: 0.05, fillet: 0.02, color: hub, position: [0, (-side * width) / 2, 0], cast: false })] }));
+    return (_jsxs("group", { position: position, rotation: [0, 0, Math.PI / 2], children: [_jsx(RoundCyl, { radius: radius, height: width, fillet: width * 0.42, material: tire, unsafeColor: unsafeTire }), _jsx(RoundCyl, { radius: radius * 0.46, height: 0.05, fillet: 0.02, material: hub, unsafeColor: unsafeHub, position: [0, (-side * width) / 2, 0], cast: false })] }));
+}
+/** Gallery cart: white body, accent trim, slate bumper, signal lamp, dark wheels. */
+export function RoleCart({ position = [0, 0, 0] }) {
+    const lamp = useClayColor({ material: 'accent2' });
+    return (_jsxs("group", { position: position, children: [_jsx(SoftBox, { size: [1.9, 0.58, 1.15], r: 0.16, material: "base", position: [0, 0.46, 0] }), _jsx(SoftBox, { size: [1.96, 0.1, 1.2], r: 0.05, material: "accent1", position: [0, 0.22, 0] }), _jsx(SoftBox, { size: [0.18, 0.36, 1.18], r: 0.06, material: "accent3", position: [0.96, 0.44, 0] }), _jsx(SoftBox, { size: [0.16, 0.16, 0.16], r: 0.05, material: "accent2", position: [-0.72, 0.84, 0], emissive: lamp }), _jsx(Wheel, { position: [-0.62, 0.22, 0.52], radius: 0.22, width: 0.2 }), _jsx(Wheel, { position: [0.55, 0.22, 0.52], radius: 0.22, width: 0.2 }), _jsx(Wheel, { position: [-0.62, 0.22, -0.52], radius: 0.22, width: 0.2 }), _jsx(Wheel, { position: [0.55, 0.22, -0.52], radius: 0.22, width: 0.2 })] }));
 }
 //# sourceMappingURL=soft.js.map

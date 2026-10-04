@@ -1,4 +1,5 @@
-import { Canvas } from '@react-three/fiber'
+import { OrthographicCamera } from '@react-three/drei'
+import { Canvas, useThree } from '@react-three/fiber'
 import { ChevronDown, LocateFixed, Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { NoToneMapping, PCFShadowMap, SRGBColorSpace } from 'three'
@@ -23,27 +24,59 @@ import { Separator } from '@/components/ui/separator'
 import { Stepper } from '@/components/ui/stepper'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { useLook } from '@/kit/clay'
+import { RoleCart, applyLook, useLook } from '@/kit/clay'
 import { REGISTRY_BASE, registryAddCommand, registryCatalog } from '@/kit/registry-catalog'
 import { activateScene, getScene, listScenes, type SceneDefinition } from '@/kit/scene'
-import '@/kit/scene/blank'
 import '@/kit/scene/yardline'
-import { applyTheme, listThemes, type ThemeDefinition } from '@/kit/theme'
+import '@/kit/scene/blank'
+import { applyTheme, listThemes, useMaterialColor, type ThemeDefinition } from '@/kit/theme'
+import '@/kit/theme/yardline'
+import '@/kit/theme/blank'
+import '@/kit/theme/quarry'
 
-const SWATCHES: { name: string; value: string; varName: string }[] = [
-  { name: 'Background', value: '#e9eef8', varName: '--background' },
-  { name: 'Ink', value: '#0f172a', varName: '--ink' },
-  { name: 'Muted', value: '#64748b', varName: '--muted' },
-  { name: 'Primary', value: '#2563eb', varName: '--primary' },
-  { name: 'Deep blue', value: '#1d4ed8', varName: '--blue-deep' },
-  { name: 'Glass', value: 'rgba(255,255,255,0.9)', varName: '--glass-bg' },
-  { name: 'Success', value: '#15803d', varName: '--success' },
-  { name: 'Warning', value: '#c2620a', varName: '--warning' },
-  { name: 'Clay road', value: '#c4d0f2', varName: '--clay-road' },
-  { name: 'Clay yellow', value: '#f2c14e', varName: '--clay-yellow' },
-  { name: 'Cardboard', value: '#e0b17a', varName: '--clay-cardboard' },
-  { name: 'Tree', value: '#72d39c', varName: '--clay-tree' },
+const SWATCHES: { name: string; varName: string }[] = [
+  { name: 'Background', varName: '--background' },
+  { name: 'Ink', varName: '--ink' },
+  { name: 'Primary', varName: '--primary' },
+  { name: 'Warning', varName: '--warning' },
+  { name: 'Warning ink', varName: '--warning-foreground' },
+  { name: 'Base', varName: '--mokei-base' },
+  { name: 'Accent 1', varName: '--mokei-accent-1' },
+  { name: 'Accent 2', varName: '--mokei-accent-2' },
+  { name: 'Accent 3', varName: '--mokei-accent-3' },
+  { name: 'Detail dark', varName: '--mokei-detail-dark' },
+  { name: 'Detail light', varName: '--mokei-detail-light' },
+  { name: 'Ground', varName: '--mokei-ground' },
 ]
+
+function AimOrigin() {
+  const camera = useThree((s) => s.camera)
+  camera.position.set(3.6, 2.6, 3.6)
+  camera.lookAt(0, 0.4, 0)
+  camera.updateProjectionMatrix()
+  return null
+}
+
+function RoleCartPreview() {
+  const base = useMaterialColor('base')
+  return (
+    <div className="h-[240px] overflow-hidden rounded-xl ring-1 ring-foreground/10" style={{ background: base }}>
+      <Canvas
+        flat
+        shadows={{ type: PCFShadowMap }}
+        dpr={[1, 1.5]}
+        gl={{ antialias: true, toneMapping: NoToneMapping, outputColorSpace: SRGBColorSpace }}
+      >
+        <color attach="background" args={[base]} />
+        <OrthographicCamera makeDefault position={[3.6, 2.6, 3.6]} zoom={92} near={-40} far={80} />
+        <AimOrigin />
+        <ambientLight intensity={0.95} />
+        <directionalLight position={[6, 10, 4]} intensity={0.5} />
+        <RoleCart />
+      </Canvas>
+    </div>
+  )
+}
 
 function ScenePreview({ scene }: { scene: SceneDefinition }) {
   const ground = useLook((s) => s.ground)
@@ -65,13 +98,22 @@ function ScenePreview({ scene }: { scene: SceneDefinition }) {
 export default function Showcase() {
   const themes = listThemes()
   const scenes = listScenes()
-  const [themeId, setThemeId] = useState(themes[0]?.id ?? 'yardline')
-  const [sceneId, setSceneId] = useState(scenes[0]?.id ?? 'yardline')
+  const [themeId, setThemeId] = useState(themes.find((t) => t.id === 'yardline')?.id ?? themes[0]?.id ?? 'yardline')
+  const [sceneId, setSceneId] = useState(scenes.find((s) => s.id === 'yardline')?.id ?? scenes[0]?.id ?? 'yardline')
   const scene = useMemo(() => getScene(sceneId), [sceneId])
 
   function pickTheme(theme: ThemeDefinition) {
     setThemeId(theme.id)
     applyTheme(theme)
+    const m = theme.materials
+    applyLook({
+      wall: m.base,
+      accent: m.accent1,
+      yellow: m.accent2 ?? m.accent1,
+      roof: m.accent3 ?? m.accent1,
+      tire: m.detail.dark,
+      ground: m.ground,
+    })
   }
 
   function pickScene(next: SceneDefinition) {
@@ -158,7 +200,7 @@ export default function Showcase() {
                 <CardTitle>Live scene</CardTitle>
                 <CardDescription>Same World the playground mounts. Blank proves a second scene can drop in.</CardDescription>
               </CardHeader>
-              <CardContent>{scene ? <ScenePreview scene={scene} /> : null}</CardContent>
+              <CardContent>{scene ? <ScenePreview key={`${scene.id}-${themeId}`} scene={scene} /> : null}</CardContent>
             </Card>
           </section>
 
@@ -191,15 +233,33 @@ export default function Showcase() {
           </section>
 
           <section>
-            <h2 className="mb-3 text-sm font-semibold tracking-tight">Tokens</h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-              {SWATCHES.map((swatch) => (
-                <div key={swatch.varName} className="glass-panel rounded-xl p-3">
-                  <span className="mb-2 block h-10 rounded-lg ring-1 ring-foreground/10" style={{ background: swatch.value }} />
-                  <p className="text-xs font-semibold">{swatch.name}</p>
-                  <p className="truncate font-mono text-[10px] text-muted-foreground">{swatch.varName}</p>
-                </div>
-              ))}
+            <h2 className="mb-3 text-sm font-semibold tracking-tight">Material roles</h2>
+            <p className="mb-3 text-sm text-muted-foreground">
+              White is the primary material. Accents are named and capped at three. Switch to Quarry to see Rock’s locked palette — azurite, signal yellow (warning only), slate — on a white cart. Sandstone stays on the ground role.
+            </p>
+            <div className="grid gap-4 lg:grid-cols-[1fr_1.1fr]">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {SWATCHES.map((swatch) => (
+                  <div key={swatch.varName} className="glass-panel rounded-xl p-3">
+                    <span className="mb-2 block h-10 rounded-lg ring-1 ring-foreground/10" style={{ background: `var(${swatch.varName})` }} />
+                    <p className="text-xs font-semibold">{swatch.name}</p>
+                    <p className="truncate font-mono text-[10px] text-muted-foreground">{swatch.varName}</p>
+                  </div>
+                ))}
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Role cart</CardTitle>
+                  <CardDescription>
+                    {themeId === 'quarry'
+                      ? 'Warm white body, azurite trim, slate bumper, signal lamp, near-black wheels.'
+                      : 'Same roles as SoftBox / Wheel. The cart recolors with the active theme.'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RoleCartPreview />
+                </CardContent>
+              </Card>
             </div>
           </section>
 

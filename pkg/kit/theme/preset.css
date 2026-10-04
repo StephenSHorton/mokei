@@ -1,14 +1,20 @@
 /*
- * Consumer-facing Tailwind v4 preset. Self-contained: no shadcn/tailwind.css.
- * Import after `@import 'tailwindcss'` from the app stylesheet.
+ * Theme-agnostic Tailwind v4 preset. Maps semantic CSS variables onto
+ * Tailwind tokens. Import a theme stylesheet separately:
+ *
+ *   @import 'mokei/theme/preset.css';
+ *   @import 'mokei/themes/yardline.css';
  *
  * The playground adds `shadcn/tailwind.css` from src/index.css so HUD
  * components keep their data-* variants.
  */
 
-@import './tokens.css';
-
 @custom-variant dark (&:is(.dark *));
+
+html.is-apple {
+  --fs: 1;
+  --track: -0.003em;
+}
 
 @theme inline {
   --color-background: var(--background);

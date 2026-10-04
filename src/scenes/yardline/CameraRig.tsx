@@ -49,7 +49,7 @@ export function CameraRig() {
     cam.lookAt(target.current)
     // Zoom is defined for a 1728px-wide viewport (the reference frames) and
     // scales with the window so the framing holds at any size.
-    const goalZoom = look.cameraZoom * (size.width / 1728)
+    const goalZoom = look.cameraZoom * (size.width / look.zoomReferenceWidth)
     cam.zoom = damp(cam.zoom || goalZoom, goalZoom, 7, dt)
     cam.near = -200
     cam.far = 400

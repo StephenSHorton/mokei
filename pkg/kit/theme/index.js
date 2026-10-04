@@ -1,6 +1,4 @@
 export { applyTheme } from './types';
-export { yardlineTheme } from './yardline';
-export { blankTheme } from './blank';
-export { quarryTheme } from './quarry';
-export { DEFAULT_THEME_ID, getTheme, listThemes, registerTheme } from './registry';
+export { getDefaultThemeId, getTheme, listThemes, registerTheme, setDefaultThemeId, } from './registry';
+export { applyMaterials, assertMaterialPalette, deriveDetailRamp, isNearWhite, listAccents, luminance, resolveClayColor, resolveMaterial, useClayColor, useMaterialColor, useMaterials, } from './materials';
 //# sourceMappingURL=index.js.map

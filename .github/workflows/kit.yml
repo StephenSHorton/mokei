@@ -17,6 +17,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build:kit
+      - run: npm run check:roles
+      - run: npm run check:scene-bundle
       - name: pkg/ matches sources
         run: git diff --exit-code -- pkg
       - run: npm run build

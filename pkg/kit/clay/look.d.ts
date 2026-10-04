@@ -15,6 +15,9 @@ export type LookState = {
     cameraElevation: number;
     panX: number;
     panZ: number;
+    zoomMin: number;
+    zoomMax: number;
+    zoomReferenceWidth: number;
     ground: string;
     road: string;
     grass: string;
@@ -48,6 +51,9 @@ export declare const lookDefaults: {
     cameraElevation: number;
     panX: number;
     panZ: number;
+    zoomMin: number;
+    zoomMax: number;
+    zoomReferenceWidth: number;
     ground: string;
     road: string;
     grass: string;
@@ -61,6 +67,14 @@ export declare const lookDefaults: {
     aoColor: string;
 };
 export type LookPatch = Partial<Omit<LookState, 'setLook' | 'zoomBy' | 'rotateBy' | 'resetView'>>;
+export type ViewHome = {
+    cameraZoom: number;
+    cameraAzimuth: number;
+    cameraElevation: number;
+};
+/** Remember the framing `resetView` should restore (last `activateScene`). */
+export declare function setViewHome(home: Partial<ViewHome>): void;
+export declare function getViewHome(): ViewHome;
 export declare function applyLook(patch: LookPatch): void;
 export declare const useLook: import("zustand").UseBoundStore<import("zustand").StoreApi<LookState>>;
 //# sourceMappingURL=look.d.ts.map

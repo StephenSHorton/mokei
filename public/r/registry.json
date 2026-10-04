@@ -18,9 +18,24 @@
           "target": "src/mokei/tokens.css"
         },
         {
-          "path": "src/kit/theme/mokei.css",
+          "path": "src/kit/theme/preset.css",
           "type": "registry:file",
           "target": "src/mokei/preset.css"
+        },
+        {
+          "path": "src/kit/themes/yardline.css",
+          "type": "registry:file",
+          "target": "src/mokei/themes/yardline.css"
+        },
+        {
+          "path": "src/kit/themes/blank.css",
+          "type": "registry:file",
+          "target": "src/mokei/themes/blank.css"
+        },
+        {
+          "path": "src/kit/themes/quarry.css",
+          "type": "registry:file",
+          "target": "src/mokei/themes/quarry.css"
         }
       ],
       "cssVars": {

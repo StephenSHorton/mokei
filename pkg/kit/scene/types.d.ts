@@ -1,8 +1,9 @@
 import type { ComponentType } from 'react';
-import type { LookPatch } from '../clay';
+import type { LookPatch } from '../clay/look';
 /**
  * Camera framing written into the shared look store when a scene activates.
- * Zoom is defined for a 1728px-wide window, same as the Yardline playground.
+ * Zoom is defined for `zoomReferenceWidth` (default 1728px, the Yardline frames)
+ * and scales with the window. Clamp is per scene.
  */
 export type SceneCameraDefaults = {
     zoom: number;
@@ -12,6 +13,9 @@ export type SceneCameraDefaults = {
         x: number;
         z: number;
     };
+    zoomMin?: number;
+    zoomMax?: number;
+    zoomReferenceWidth?: number;
 };
 /**
  * Host-app events a scene may honor.

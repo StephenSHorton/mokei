@@ -1,5 +1,6 @@
 /*
- * Alias of the self-contained preset. Registry copies this file as
- * src/mokei/preset.css. Prefer `mokei/theme/preset.css` from the git package.
+ * Convenience entry for the git package: mappings + every built-in theme.
+ * Registry copies `preset.css` and `tokens.css` separately.
  */
 @import './preset.css';
+@import './tokens.css';

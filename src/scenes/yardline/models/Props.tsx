@@ -1,7 +1,6 @@
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import type { Group } from 'three'
-import { useLook } from '../../../kit/clay'
 import { Pallet } from './Pallet'
 import { RoundCyl, SoftBox } from '../../../kit/clay'
 import { containerText, ribTexture } from './textures'
@@ -9,7 +8,6 @@ import { Truck } from './Truck'
 
 /** Blue pallet rack with soft uprights and cardboard on each shelf. */
 export function Rack({ bays = 2, levels = 3 }: { bays?: number; levels?: number }) {
-  const accent = useLook((s) => s.accent)
   const bayW = 1.7
   const depth = 1.5
   const levelH = 1.25
@@ -21,8 +19,8 @@ export function Rack({ bays = 2, levels = 3 }: { bays?: number; levels?: number 
         const x = -total / 2 + i * bayW
         return (
           <group key={i}>
-            <SoftBox size={[0.13, height, 0.13]} r={0.05} color={accent} position={[x, height / 2, -depth / 2]} />
-            <SoftBox size={[0.13, height, 0.13]} r={0.05} color={accent} position={[x, height / 2, depth / 2]} />
+            <SoftBox size={[0.13, height, 0.13]} r={0.05} material="accent1" position={[x, height / 2, -depth / 2]} />
+            <SoftBox size={[0.13, height, 0.13]} r={0.05} material="accent1" position={[x, height / 2, depth / 2]} />
           </group>
         )
       })}
