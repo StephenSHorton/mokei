@@ -1,4 +1,4 @@
-import { runtime, tick, useYard } from './yard'
+import { resetRuntime, runtime, tick, useYard } from './yard'
 
 const DEFAULT_FREEZE_AT = 8
 const DEFAULT_CLOCK = '09:41'
@@ -44,4 +44,11 @@ function applySelectFromUrl() {
 if (typeof location !== 'undefined') {
   applyFreeze()
   applySelectFromUrl()
+  if (location.search.includes('capture')) {
+    ;(window as unknown as { __yardSeek?: (t: number) => void }).__yardSeek = (t: number) => {
+      resetRuntime()
+      seekSim(t)
+      useYard.getState().publish()
+    }
+  }
 }
