@@ -8,7 +8,7 @@ The package is `mokei` (the repo). It is **not** published to npm. Other apps in
 
 The root of the site is still the playable clay-diorama warehouse yard. The in-app product name is **Yardline**. Click a forklift, truck, or the building. The camera eases to follow the selected unit. Forklifts shuttle pallets; trucks loop in, back into dock bays, wait, and leave.
 
-The HUD look is intentional and should stay put. A later slice rebuilds the HUD on the registry components.
+The HUD look is intentional and should stay put. The playground HUD is composed from the registry components (button, card, badge, tabs, and the rest) with HUD-sized variants.
 
 ## UI showcase
 
@@ -32,7 +32,7 @@ npx shadcn@latest registry add @mokei=https://stephenshorton.github.io/mokei/r/{
 npx shadcn@latest add @mokei/theme @mokei/card
 ```
 
-Items: `theme`, `button`, `card`, `badge`, `input`, `tabs`, `tooltip`, `progress`, `separator`, `avatar`, `kbd`, `label`, `dropdown-menu`. After adding `theme`, import the copied preset. `npx shadcn add` merges new CSS variables but does not overwrite nova `:root` keys, so call `applyTheme('yardline')` (or set `data-theme="yardline"` on `<html>`) — those selectors beat the host `:root`.
+Items: `theme`, `button`, `card`, `badge`, `input`, `tabs`, `tooltip`, `progress`, `separator`, `avatar`, `kbd`, `label`, `dropdown-menu`, `stepper`. After adding `theme`, import the copied preset. `npx shadcn add` merges new CSS variables but does not overwrite nova `:root` keys, so call `applyTheme('yardline')` (or set `data-theme="yardline"` on `<html>`) — those selectors beat the host `:root`.
 
 ```css
 @import "tailwindcss";

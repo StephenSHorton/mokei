@@ -75,10 +75,12 @@
   --blur-glass: var(--glass-blur);
 }
 
-/* New surfaces. The playground HUD keeps its existing `.glass` class as-is. */
+/* Glass surface used by HUD cards and registry consumers. */
 @utility glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  /* Standard backdrop-filter is omitted on purpose: LightningCSS drops it
+   * from main's .glass, so this Chrome paints no frost and the 3D shows
+   * through. -webkit-backdrop-filter keeps the authored blur on Safari. */
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);

@@ -30,7 +30,7 @@ const scene = getScene('yardline')
 // <scene.World />
 ```
 
-The playground HUD still uses the original measured CSS in `src/index.css`. Those rules now read the shared variables from `tokens.css` so the look does not change.
+The playground HUD is composed from kit components (`src/ui/Hud.tsx`) with HUD-sized variants so the measured look stays put. `src/index.css` keeps only playground resets and the 3D pin labels.
 
 ## Adding a quarry theme + scene
 
@@ -46,7 +46,7 @@ The warehouse yard stays the default playground. Do not rescale it; `SOFT_EDGE_S
 
 - `components.json` — Vite + Tailwind v4, CSS file is the preset, style `base-nova`, Base UI primitives.
 - `src/lib/utils.ts` — `cn` from the `cn` package.
-- `src/components/ui/*` — generated components, then lightly themed (glass cards, HUD pill badge tones).
+- `src/components/ui/*` — generated components, then lightly themed (glass cards, HUD pill badge tones, HUD size variants, stepper).
 
 ## shadcn registry (Pages)
 
@@ -69,4 +69,5 @@ Each UI item lists `@mokei/theme` as a registry dependency. The build rewrites t
 | URL | What |
 | --- | --- |
 | `/` or `#/` | Yardline playground (unchanged HUD + 3D) |
+| `?freeze` / `?freeze=8` | Pause the yard sim at a fixed clock (default 8s) and pin the top-bar time at `09:41` (`?clock=HH:MM` to override). Used for chrome diffs. |
 | `#/ui` | Component showcase in the Mokei theme |

@@ -5,19 +5,47 @@ function Progress({
   className,
   children,
   value,
+  tone = "primary",
+  size = "default",
   ...props
-}: ProgressPrimitive.Root.Props) {
+}: ProgressPrimitive.Root.Props & {
+  tone?: "primary" | "blue" | "green"
+  size?: "default" | "hud" | "hud-battery" | "hud-mini"
+}) {
+  const hud = size !== "default"
   return (
     <ProgressPrimitive.Root
       value={value}
       data-slot="progress"
-      className={cn("flex flex-wrap gap-3", className)}
+      data-tone={tone}
+      data-size={size}
+      className={cn(hud ? "contents" : "flex flex-wrap gap-3", !hud && className)}
       {...props}
     >
       {children}
-      <ProgressTrack>
-        <ProgressIndicator />
-      </ProgressTrack>
+      <ProgressPrimitive.Track
+        data-slot="progress-track"
+        className={cn(
+          hud
+            ? "relative block overflow-hidden rounded-full bg-[#dee5f0]"
+            : "relative flex h-1 w-full items-center overflow-x-hidden rounded-full bg-muted",
+          size === "hud" && "h-[7px] w-full",
+          size === "hud-battery" && "h-2 min-w-0 flex-1",
+          size === "hud-mini" && "h-[5px] w-[58px]",
+          hud && className,
+        )}
+      >
+        <ProgressPrimitive.Indicator
+          data-slot="progress-indicator"
+          className={cn(
+            hud
+              ? "absolute inset-y-0 left-0 rounded-full transition-[width] duration-400 ease-in-out"
+              : "h-full bg-primary transition-all",
+            tone === "green" && "bg-[linear-gradient(90deg,#46d86d,#1ca542)]",
+            tone === "blue" && "bg-[linear-gradient(90deg,#3f7bf0,#2a55e3)]",
+          )}
+        />
+      </ProgressPrimitive.Track>
     </ProgressPrimitive.Root>
   )
 }

@@ -118,7 +118,6 @@
       "css": {
         "@utility glass-panel": {
           "background": "var(--glass-bg)",
-          "backdrop-filter": "blur(var(--glass-blur)) saturate(var(--glass-saturate))",
           "-webkit-backdrop-filter": "blur(var(--glass-blur)) saturate(var(--glass-saturate))",
           "border": "1px solid var(--glass-border)",
           "box-shadow": "var(--glass-shadow)"
@@ -233,6 +232,15 @@
       "dependencies": ["@base-ui/react", "cn", "lucide-react"],
       "registryDependencies": ["@mokei/theme"],
       "files": [{ "path": "src/components/ui/dropdown-menu.tsx", "type": "registry:ui" }]
+    },
+    {
+      "name": "stepper",
+      "type": "registry:ui",
+      "title": "Stepper",
+      "description": "Shipment tracking steps.",
+      "dependencies": ["cn"],
+      "registryDependencies": ["@mokei/theme"],
+      "files": [{ "path": "src/components/ui/stepper.tsx", "type": "registry:ui" }]
     }
   ]
 }
