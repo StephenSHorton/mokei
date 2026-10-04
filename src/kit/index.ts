@@ -1,7 +1,7 @@
 /**
- * Public kit surface for later `github:StephenSHorton/mokei` imports.
- * Slice 1 ships TypeScript source (same as the playground). A built `dist`
- * is a later-slice decision.
+ * Public kit surface for `github:StephenSHorton/mokei`.
+ * Source-first TypeScript — consumers compile these files. No prepare/build.
  */
 export * from './theme'
 export * from './scene'
+export { REGISTRY_BASE, registryAddCommand, registryCatalog, registryItemUrl, type RegistryCatalogItem } from './registry-catalog'

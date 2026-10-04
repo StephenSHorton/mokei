@@ -2,13 +2,13 @@
 
 Stephen's private design system and aesthetic playground. The visual language is **glass panels on a clay diorama** — first realized as the Yardline warehouse-yard prototype.
 
-The npm package is `mokei` (the repo). It is **not** published to npm. Later slices will let other apps import the kit as `github:StephenSHorton/mokei` and `npx shadcn add` from the Pages registry.
+The package is `mokei` (the repo). It is **not** published to npm. Other apps install the kit as a git dependency or pull UI pieces from the Pages shadcn registry.
 
 ## Yardline playground
 
 The root of the site is still the playable clay-diorama warehouse yard. The in-app product name is **Yardline**. Click a forklift, truck, or the building. The camera eases to follow the selected unit. Forklifts shuttle pallets; trucks loop in, back into dock bays, wait, and leave.
 
-The HUD look is intentional and should stay put. Slice 1 extracts its tokens and adds shadcn underneath; a later slice rebuilds the HUD on those components.
+The HUD look is intentional and should stay put. A later slice rebuilds the HUD on the registry components.
 
 ## UI showcase
 
@@ -16,6 +16,61 @@ Component gallery (same theme, no 3D):
 
 - Local: [http://127.0.0.1:43123/#/ui](http://127.0.0.1:43123/#/ui)
 - Pages: [https://stephenshorton.github.io/mokei/#/ui](https://stephenshorton.github.io/mokei/#/ui)
+
+## Use in another project
+
+### shadcn registry (components + theme)
+
+Catalog: [https://stephenshorton.github.io/mokei/r/registry.json](https://stephenshorton.github.io/mokei/r/registry.json)
+
+```bash
+# one-off URL (button also installs the Mokei theme)
+npx shadcn@latest add https://stephenshorton.github.io/mokei/r/button.json
+
+# or register the namespace once
+npx shadcn@latest registry add @mokei=https://stephenshorton.github.io/mokei/r/{name}.json
+npx shadcn@latest add @mokei/theme @mokei/card
+```
+
+Items: `theme`, `button`, `card`, `badge`, `input`, `tabs`, `tooltip`, `progress`, `separator`, `avatar`, `kbd`, `label`, `dropdown-menu`. After adding `theme`, import the copied preset. `npx shadcn add` merges new CSS variables but does not overwrite nova `:root` keys, so call `applyTheme('yardline')` (or set `data-theme="yardline"` on `<html>`) — those selectors beat the host `:root`.
+
+```css
+@import "tailwindcss";
+@import "./mokei/preset.css";
+```
+
+The consumer project needs a Vite + Tailwind v4 + shadcn (`base-nova` / Base UI) setup first (`npx shadcn@latest init`).
+
+### Git dependency (theme + scene kit)
+
+Source-first TypeScript. No `prepare` script — installing from git does not build the playground.
+
+```bash
+npm install github:StephenSHorton/mokei
+```
+
+Peer deps (you provide): `react`, `react-dom`, `three`, `@react-three/fiber`, `@react-three/drei`. `tailwindcss` is optional (only if you import the CSS).
+
+```ts
+import { applyTheme, getScene } from 'mokei'
+import 'mokei/theme/preset.css'
+
+applyTheme('yardline')
+const scene = getScene('yardline')
+// <Canvas><scene.World /></Canvas>
+```
+
+Other exports: `mokei/theme`, `mokei/theme/tokens.css`, `mokei/theme/preset.css`, `mokei/scene`, `mokei/scene/yardline`.
+
+Vite should compile the package source. Prebundle drei/three so `stats.js` (a CJS drei dependency) interops:
+
+```ts
+// vite.config.ts
+optimizeDeps: {
+  exclude: ['mokei'],
+  include: ['stats.js', 'three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
+}
+```
 
 ## Run locally
 
