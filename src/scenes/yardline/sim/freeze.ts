@@ -35,4 +35,13 @@ export function applyFreeze() {
   return true
 }
 
-if (typeof location !== 'undefined') applyFreeze()
+function applySelectFromUrl() {
+  if (typeof location === 'undefined') return
+  const id = new URLSearchParams(location.search).get('select')
+  if (id) useYard.getState().select(id)
+}
+
+if (typeof location !== 'undefined') {
+  applyFreeze()
+  applySelectFromUrl()
+}
