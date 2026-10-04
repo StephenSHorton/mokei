@@ -23,7 +23,11 @@ function Stepper({
       {steps.map((step, i) => {
         const state = done || i < current ? 'done' : i === current ? 'current' : 'todo'
         return (
-          <li key={step.label} className="relative flex flex-1 flex-col items-center leading-[1.25]" data-state={state}>
+          <li
+            key={step.label}
+            className="relative flex flex-1 flex-col items-center leading-[1.25]"
+            data-state={state}
+          >
             {i > 0 ? (
               <span
                 className={cn(
@@ -46,7 +50,9 @@ function Stepper({
               {step.label}
             </span>
             {step.time ? (
-              <span className="text-[length:calc(12.6px*var(--fs))] text-muted tabular-nums">{step.time}</span>
+              <span className="text-[length:calc(12.6px*var(--fs))] text-muted-foreground tabular-nums">
+                {step.time}
+              </span>
             ) : null}
           </li>
         )

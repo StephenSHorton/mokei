@@ -5,6 +5,7 @@ import { Pallet } from '../models/Pallet'
 import { Charger, Container, Rack, RoadTraffic, WrappedPallet } from '../models/Props'
 import { Tree } from '../models/Tree'
 import { Warehouse } from '../models/Warehouse'
+import { freezeAt } from '../sim/freeze'
 import { tick, useYard } from '../sim/yard'
 import { CameraRig } from './CameraRig'
 import { ContactBlobs } from './ContactBlobs'
@@ -16,11 +17,14 @@ import { YardMarkings } from './YardMarkings'
 
 const NO_AO = typeof location !== 'undefined' && location.search.includes('noao')
 
+const FROZEN = typeof location !== 'undefined' && freezeAt() != null
+
 export function World() {
   const publish = useYard((s) => s.publish)
   const hudAcc = useRef(0)
 
   useFrame((_, dt) => {
+    if (FROZEN) return
     tick(Math.min(dt, 0.05))
     hudAcc.current += dt
     if (hudAcc.current > 0.14) {

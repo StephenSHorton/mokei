@@ -27,7 +27,7 @@ const buttonVariants = cva(
         "hud-row":
           "justify-start border-transparent bg-transparent text-left text-ink shadow-none hover:bg-[rgba(219,234,254,0.55)] aria-expanded:bg-transparent data-[selected=true]:bg-[rgba(219,234,254,0.55)] active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0",
         "hud-ship":
-          "justify-start border-transparent bg-[rgba(226,233,245,0.75)] text-left text-ink shadow-none hover:bg-[rgba(226,233,245,0.75)] active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0",
+          "justify-start border-0 bg-[rgba(226,233,245,0.75)] bg-clip-border text-left text-ink shadow-none hover:bg-[rgba(226,233,245,0.75)] active:translate-y-0 focus-visible:border-0 focus-visible:ring-0",
       },
       size: {
         default:

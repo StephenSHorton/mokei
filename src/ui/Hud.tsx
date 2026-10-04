@@ -19,7 +19,7 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -56,6 +56,7 @@ import {
   WarehouseArt,
 } from './icons'
 import { setLabelScale } from './labelBridge'
+import { freezeClockLabel } from '../sim/freeze'
 
 const SITE = { code: 'WH-01', name: 'Northpoint Hub', address: '7 Harbor Way, Elizabeth NJ', capacity: 1400 }
 
@@ -96,13 +97,15 @@ export function Hud() {
 /* ───────────────────────────── top bar ───────────────────────────── */
 
 function TopBar() {
-  const [now, setNow] = useState(() => formatClock(new Date()))
+  const frozen = freezeClockLabel()
+  const [now, setNow] = useState(() => frozen ?? formatClock(new Date()))
   const docked = useYard((s) => Object.values(s.units).filter((u) => u.kind === 'truck' && u.z < 1.2).length)
   const stock = useYard((s) => s.stockOnHand)
   useEffect(() => {
+    if (frozen) return
     const id = window.setInterval(() => setNow(formatClock(new Date())), 1000)
     return () => window.clearInterval(id)
-  }, [])
+  }, [frozen])
 
   return (
     <header
@@ -166,8 +169,13 @@ function TopBar() {
       <Separator orientation="vertical" className="mx-[18px] ml-5 h-[38px] w-px self-auto bg-[#dfe5ef]" />
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button variant="hud-ghost" className="h-auto flex-1 justify-start gap-0 rounded-none px-0 font-normal" />}>
-          <Avatar className="size-[50px] after:border-0">
-            <AvatarFallback className="bg-white shadow-[0_2px_8px_rgba(30,41,90,0.16)]">
+          <Avatar className="size-[50px] overflow-hidden bg-white shadow-[0_2px_8px_rgba(30,41,90,0.16)] after:border-0">
+            <AvatarImage
+              src={`${import.meta.env.BASE_URL}jordan-hale.svg`}
+              alt="Jordan Hale"
+              className="m-auto size-[44px]"
+            />
+            <AvatarFallback className="bg-white">
               <UserMark />
             </AvatarFallback>
           </Avatar>
@@ -285,7 +293,7 @@ function Inspector() {
       : { eyebrow: unit!.accent === 'teal' ? 'Nordline Freight' : 'Yardline Freight', title: unit!.code, sub: truckMeta(unit!.id), art: <TruckArt width={46} /> }
 
   return (
-    <Card size="hud" className="pointer-events-auto absolute top-[94px] right-8 w-[403px] rounded-2xl px-[19px] pt-4 pb-3">
+    <Card size="hud" className="pointer-events-auto absolute top-[94px] right-8 w-[403px] overflow-visible rounded-[16px] px-[19px] pt-4 pb-3">
       <div className="relative flex items-start gap-[13px]">
         <span className="grid size-[52px] shrink-0 place-items-center rounded-[12px] bg-[#e8edf9]">{head.art}</span>
         <div className="min-w-0 flex-1 leading-[1.2]">
@@ -532,7 +540,7 @@ function BottomTrack() {
   const pill = done ? 'Delivered' : current === 4 ? 'Unloading' : 'In transit'
 
   return (
-    <Card size="hud" className="pointer-events-auto absolute bottom-[42px] left-[37px] flex h-[138px] w-[985px] flex-row items-center rounded-2xl pr-[15px] pl-[22px]">
+    <Card size="hud" className="pointer-events-auto absolute bottom-[42px] left-[37px] flex h-[138px] w-[985px] flex-row items-center overflow-visible rounded-[16px] pr-[15px] pl-[22px]">
       <div className="min-w-0 flex-1 self-stretch pt-5">
         <div className="flex items-center justify-between pr-[22px]">
           <span className="flex items-center gap-[15px] text-[length:calc(17.5px*var(--fs))] font-bold tracking-tight">
@@ -610,20 +618,20 @@ function UnitBoard() {
   }
 
   return (
-    <Card size="hud" className="pointer-events-auto absolute right-7 bottom-[27px] w-[522px] rounded-2xl pt-[11px] pr-[18px] pb-2.5 pl-[21px]">
+    <Card size="hud" className="pointer-events-auto absolute right-7 bottom-[27px] w-[522px] overflow-visible rounded-[16px] pt-[11px] pr-[18px] pb-2.5 pl-[21px]">
       <Tabs value={tab} onValueChange={(value) => setTab(value as Tab)} className="gap-0">
         <div className="flex items-center">
           <span className="grid w-[22px] place-items-center">
             <DockBoard />
           </span>
           <TabsList variant="hud" className="ml-[14px]">
-            <TabsTrigger value="docks">
+            <TabsTrigger variant="hud" value="docks">
               Docks <span className="ml-[3px] font-medium text-[#94a3b8] group-data-active/tabs-trigger:font-semibold group-data-active/tabs-trigger:text-blue-deep">{`${docked.length}/4`}</span>
             </TabsTrigger>
-            <TabsTrigger value="forklifts">
+            <TabsTrigger variant="hud" value="forklifts">
               Forklifts <span className="ml-[3px] font-medium text-[#94a3b8] group-data-active/tabs-trigger:font-semibold group-data-active/tabs-trigger:text-blue-deep">{`${forklifts.filter((f) => f.speed > 0.1).length}/${forklifts.length}`}</span>
             </TabsTrigger>
-            <TabsTrigger value="trucks">
+            <TabsTrigger variant="hud" value="trucks">
               Trucks <span className="ml-[3px] font-medium text-[#94a3b8] group-data-active/tabs-trigger:font-semibold group-data-active/tabs-trigger:text-blue-deep">{String(trucksOnSite(units))}</span>
             </TabsTrigger>
           </TabsList>

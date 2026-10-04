@@ -1,5 +1,5 @@
 import { ChevronDown, LocateFixed, Plus, Search } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -260,6 +260,7 @@ export default function Showcase() {
             <Card>
               <CardContent className="flex flex-wrap items-center gap-4 pt-1">
                 <Avatar size="lg">
+                  <AvatarImage src={`${import.meta.env.BASE_URL}jordan-hale.svg`} alt="Jordan Hale" />
                   <AvatarFallback>JH</AvatarFallback>
                 </Avatar>
                 <div>

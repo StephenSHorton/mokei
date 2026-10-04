@@ -69,4 +69,5 @@ Each UI item lists `@mokei/theme` as a registry dependency. The build rewrites t
 | URL | What |
 | --- | --- |
 | `/` or `#/` | Yardline playground (unchanged HUD + 3D) |
+| `?freeze` / `?freeze=8` | Pause the yard sim at a fixed clock (default 8s) and pin the top-bar time at `09:41` (`?clock=HH:MM` to override). Used for chrome diffs. |
 | `#/ui` | Component showcase in the Mokei theme |
