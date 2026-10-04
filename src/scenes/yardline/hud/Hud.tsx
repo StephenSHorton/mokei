@@ -39,7 +39,7 @@ import { Separator } from '@/components/ui/separator'
 import { Stepper } from '@/components/ui/stepper'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { useLook } from '../look'
+import { useLook } from '../../../kit/clay'
 import { DOCKS, trucksOnSite, useYard, WAREHOUSE_ID, type Unit } from '../sim/yard'
 import { FloatingLabels } from './FloatingLabel'
 import {

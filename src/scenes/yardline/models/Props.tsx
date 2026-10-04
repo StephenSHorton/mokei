@@ -1,9 +1,9 @@
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import type { Group } from 'three'
-import { useLook } from '../look'
+import { useLook } from '../../../kit/clay'
 import { Pallet } from './Pallet'
-import { RoundCyl, SoftBox } from './soft'
+import { RoundCyl, SoftBox } from '../../../kit/clay'
 import { containerText, ribTexture } from './textures'
 import { Truck } from './Truck'
 

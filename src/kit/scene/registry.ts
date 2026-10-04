@@ -1,8 +1,10 @@
+import { blankScene } from '../../scenes/blank'
+import { yardlineScene } from '../../scenes/yardline'
 import type { SceneDefinition } from './types'
-import { yardlineScene } from './yardline'
 
 const scenes = {
   [yardlineScene.id]: yardlineScene,
+  [blankScene.id]: blankScene,
 } as const satisfies Record<string, SceneDefinition>
 
 export type SceneId = keyof typeof scenes

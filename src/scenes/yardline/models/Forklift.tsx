@@ -1,5 +1,5 @@
-import { useLook } from '../look'
-import { RoundCyl, SoftBox, Wheel } from './soft'
+import { useLook } from '../../../kit/clay'
+import { RoundCyl, SoftBox, Wheel } from '../../../kit/clay'
 
 /** Chunky toy forklift: blue chassis, yellow body, black mast and cage. Forks face +Z. */
 export function Forklift() {

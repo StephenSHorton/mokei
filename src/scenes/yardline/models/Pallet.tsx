@@ -1,5 +1,5 @@
-import { useLook } from '../look'
-import { SoftBox } from './soft'
+import { useLook } from '../../../kit/clay'
+import { SoftBox } from '../../../kit/clay'
 
 type PalletProps = {
   stacks?: number

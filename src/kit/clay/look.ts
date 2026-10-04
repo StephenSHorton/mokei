@@ -66,6 +66,12 @@ export const lookDefaults = {
   aoColor: '#25335a',
 } satisfies Omit<LookState, 'setLook' | 'zoomBy' | 'rotateBy' | 'resetView'>
 
+export type LookPatch = Partial<Omit<LookState, 'setLook' | 'zoomBy' | 'rotateBy' | 'resetView'>>
+
+export function applyLook(patch: LookPatch) {
+  useLook.getState().setLook(patch)
+}
+
 export const useLook = create<LookState>((set, get) => ({
   ...lookDefaults,
   setLook: (patch) => set(patch),

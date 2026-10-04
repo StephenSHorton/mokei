@@ -1,5 +1,5 @@
-import { useLook } from '../look'
-import { SoftBox } from '../models/soft'
+import { useLook } from '../../kit/clay'
+import { SoftBox } from '../../kit/clay'
 
 /** Thin safety-yellow bay outlines and dashed lane lines painted on the lot. */
 export function YardMarkings() {

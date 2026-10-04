@@ -2,11 +2,11 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import { HashRouter } from './app/router.tsx'
-import { applyTheme, DEFAULT_THEME_ID } from './kit/theme'
+import { activateScene, sceneIdFromSearch } from './kit/scene'
 import Showcase from './pages/Showcase.tsx'
 import './index.css'
 
-applyTheme(DEFAULT_THEME_ID)
+activateScene(sceneIdFromSearch())
 
 // SF Pro is the reference typeface; only Apple platforms ship it.
 if (/Mac|iPhone|iPad/.test(navigator.platform) || /Mac OS X/.test(navigator.userAgent)) {

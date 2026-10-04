@@ -3,9 +3,9 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import { Vector3 } from 'three'
 import type { OrthographicCamera as OrthographicCameraImpl } from 'three'
-import { damp, dampAngle } from '../lib/math'
-import { useLook } from '../look'
-import { WAREHOUSE_ID, runtime, useYard } from '../sim/yard'
+import { damp, dampAngle } from '../../lib/math'
+import { useLook } from '../../kit/clay'
+import { WAREHOUSE_ID, runtime, useYard } from './sim/yard'
 
 const HOME_TARGET = { x: -1.5, z: -5.5 }
 

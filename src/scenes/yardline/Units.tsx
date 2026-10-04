@@ -3,20 +3,20 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useMemo, useRef, useState } from 'react'
 import { Vector3 } from 'three'
 import type { Group } from 'three'
-import { writeLabel } from '../ui/labelBridge'
-import { useLook } from '../look'
-import { Forklift } from '../models/Forklift'
-import { MapPin } from '../models/MapPin'
-import { Pallet } from '../models/Pallet'
-import { SelectionMarker } from '../models/SelectionMarker'
-import { Truck } from '../models/Truck'
+import { writeLabel } from './hud/labelBridge'
+import { useLook } from '../../kit/clay'
+import { Forklift } from './models/Forklift'
+import { MapPin } from './models/MapPin'
+import { Pallet } from './models/Pallet'
+import { SelectionMarker } from './models/SelectionMarker'
+import { Truck } from './models/Truck'
 import {
   PALLET_IDS,
   UNIT_IDS,
   runtime,
   sampleRemainingPath,
   useYard,
-} from '../sim/yard'
+} from './sim/yard'
 
 export function Units() {
   const selectedId = useYard((s) => s.selectedId)

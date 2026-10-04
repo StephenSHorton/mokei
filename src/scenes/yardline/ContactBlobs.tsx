@@ -1,8 +1,8 @@
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import type { Group, Texture } from 'three'
-import { softShadowTexture } from '../models/textures'
-import { UNIT_IDS, runtime } from '../sim/yard'
+import { softShadowTexture } from './models/textures'
+import { UNIT_IDS, runtime } from './sim/yard'
 
 /** Soft contact blobs under moving units so they always feel grounded. */
 export function ContactBlobs() {

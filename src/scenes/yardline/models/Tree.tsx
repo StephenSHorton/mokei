@@ -1,5 +1,5 @@
-import { useLook } from '../look'
-import { RoundCyl } from './soft'
+import { useLook } from '../../../kit/clay'
+import { RoundCyl } from '../../../kit/clay'
 
 /** Lollipop tree: soft ellipsoid canopy on a slim rounded trunk. */
 export function Tree({ scale = 1, bush = false }: { scale?: number; bush?: boolean }) {

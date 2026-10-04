@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { DoubleSide } from 'three'
 import { fenceTexture } from './textures'
-import { RoundCyl, SoftBox } from './soft'
+import { RoundCyl, SoftBox } from '../../../kit/clay'
 
 /** Light chain-link fence run between two points along X or Z. */
 export function FenceRun({

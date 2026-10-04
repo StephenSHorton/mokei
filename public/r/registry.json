@@ -373,6 +373,20 @@
           "type": "registry:ui"
         }
       ]
+    },
+    {
+      "name": "scene",
+      "type": "registry:lib",
+      "title": "Scene contract",
+      "description": "SceneDefinition and SceneEvent types. Install the git package for World, clay primitives, and dispatch.",
+      "files": [
+        {
+          "path": "src/kit/scene/types.ts",
+          "type": "registry:lib",
+          "target": "src/mokei/scene-types.ts"
+        }
+      ],
+      "docs": "Runnable scenes are not copied by shadcn — use `npm install github:StephenSHorton/mokei` and `import { getScene, SoftBox } from 'mokei'`. See docs/SCENES.md."
     }
   ]
 }

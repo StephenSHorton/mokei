@@ -1,4 +1,7 @@
+import { Canvas } from '@react-three/fiber'
 import { ChevronDown, LocateFixed, Plus, Search } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { NoToneMapping, PCFShadowMap, SRGBColorSpace } from 'three'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,9 +23,10 @@ import { Separator } from '@/components/ui/separator'
 import { Stepper } from '@/components/ui/stepper'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { useLook } from '@/kit/clay'
 import { REGISTRY_BASE, registryAddCommand, registryCatalog } from '@/kit/registry-catalog'
-import { listScenes } from '@/kit/scene'
-import { listThemes } from '@/kit/theme'
+import { activateScene, getScene, listScenes, type SceneDefinition } from '@/kit/scene'
+import { applyTheme, listThemes, type ThemeDefinition } from '@/kit/theme'
 
 const SWATCHES: { name: string; value: string; varName: string }[] = [
   { name: 'Background', value: '#e9eef8', varName: '--background' },
@@ -39,9 +43,40 @@ const SWATCHES: { name: string; value: string; varName: string }[] = [
   { name: 'Tree', value: '#72d39c', varName: '--clay-tree' },
 ]
 
+function ScenePreview({ scene }: { scene: SceneDefinition }) {
+  const ground = useLook((s) => s.ground)
+  return (
+    <div className="h-[280px] overflow-hidden rounded-xl ring-1 ring-foreground/10" style={{ background: ground }}>
+      <Canvas
+        flat
+        shadows={{ type: PCFShadowMap }}
+        dpr={[1, 1.5]}
+        gl={{ antialias: true, toneMapping: NoToneMapping, outputColorSpace: SRGBColorSpace }}
+      >
+        <color attach="background" args={[ground]} />
+        <scene.World />
+      </Canvas>
+    </div>
+  )
+}
+
 export default function Showcase() {
   const themes = listThemes()
   const scenes = listScenes()
+  const [themeId, setThemeId] = useState(themes[0]?.id ?? 'yardline')
+  const [sceneId, setSceneId] = useState(scenes[0]?.id ?? 'yardline')
+  const scene = useMemo(() => getScene(sceneId), [sceneId])
+
+  function pickTheme(theme: ThemeDefinition) {
+    setThemeId(theme.id)
+    applyTheme(theme)
+  }
+
+  function pickScene(next: SceneDefinition) {
+    setSceneId(next.id)
+    activateScene(next)
+    setThemeId(next.themeId)
+  }
 
   return (
     <TooltipProvider>
@@ -60,43 +95,68 @@ export default function Showcase() {
             <h1 className="text-xl font-bold tracking-tight">UI kit</h1>
           </div>
           <p className="hidden max-w-md text-sm text-muted-foreground sm:block">
-            Glass + clay tokens on shadcn. The Yardline playground is unchanged at the root.
+            Glass + clay tokens on shadcn. Switch the scene below, or open it on the playground with ?scene=.
           </p>
           <a
-            href="#/"
+            href={sceneId === 'yardline' ? '#/' : `?scene=${sceneId}#/`}
             className="ml-auto inline-flex h-8 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/80"
           >
-            Open Yardline
+            Open {scene?.name ?? 'playground'}
           </a>
         </header>
 
         <main className="mx-auto flex max-w-5xl flex-col gap-8 px-6 py-8">
-          <section className="grid gap-4 md:grid-cols-2">
+          <section className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
             <Card>
               <CardHeader>
-                <CardTitle>Themes</CardTitle>
-                <CardDescription>Token sets applied via data-theme. Quarry plugs in as another file.</CardDescription>
+                <CardTitle>Theme + scene switcher</CardTitle>
+                <CardDescription>
+                  Themes set <code>data-theme</code>. Scenes swap the World, camera defaults, and optional HUD.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                {themes.map((theme) => (
-                  <Badge key={theme.id} variant="info">
-                    {theme.name}
-                  </Badge>
-                ))}
+              <CardContent className="flex flex-col gap-4">
+                <div>
+                  <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Theme</p>
+                  <div className="flex flex-wrap gap-2">
+                    {themes.map((theme) => (
+                      <Button
+                        key={theme.id}
+                        size="sm"
+                        variant={themeId === theme.id ? 'default' : 'outline'}
+                        onClick={() => pickTheme(theme)}
+                      >
+                        {theme.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Scene</p>
+                  <div className="flex flex-wrap gap-2">
+                    {scenes.map((item) => (
+                      <Button
+                        key={item.id}
+                        size="sm"
+                        variant={sceneId === item.id ? 'secondary' : 'outline'}
+                        onClick={() => pickScene(item)}
+                      >
+                        {item.name}
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">{scene?.description}</p>
+                  <a className="mt-1 inline-block text-sm text-primary underline-offset-4 hover:underline" href={`?scene=${sceneId}#/`}>
+                    Playground ?scene={sceneId}
+                  </a>
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Scenes</CardTitle>
-                <CardDescription>3D worlds registered beside the theme. Warehouse is first.</CardDescription>
+                <CardTitle>Live scene</CardTitle>
+                <CardDescription>Same World the playground mounts. Blank proves a second scene can drop in.</CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                {scenes.map((scene) => (
-                  <Badge key={scene.id} variant="secondary">
-                    {scene.name}
-                  </Badge>
-                ))}
-              </CardContent>
+              <CardContent>{scene ? <ScenePreview scene={scene} /> : null}</CardContent>
             </Card>
           </section>
 

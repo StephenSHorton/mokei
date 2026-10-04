@@ -1,4 +1,4 @@
-import { useLook } from '../look'
+import { useLook } from './look'
 
 const PI = Math.PI
 

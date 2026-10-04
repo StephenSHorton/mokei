@@ -1,6 +1,6 @@
 import { Leva, button, useControls } from 'leva'
 import { useEffect } from 'react'
-import { lookDefaults, useLook } from '../look'
+import { lookDefaults, useLook } from '@/kit/clay'
 
 export function LevaLook({ hidden = false }: { hidden?: boolean }) {
   const lighting = useControls('Lighting', {
