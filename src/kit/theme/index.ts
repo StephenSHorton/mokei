@@ -1,5 +1,26 @@
 export { applyTheme, type ThemeDefinition } from './types'
-export { yardlineTheme } from './yardline'
-export { blankTheme } from './blank'
-export { quarryTheme } from './quarry'
-export { DEFAULT_THEME_ID, getTheme, listThemes, registerTheme, type ThemeId } from './registry'
+export {
+  getDefaultThemeId,
+  getTheme,
+  listThemes,
+  registerTheme,
+  setDefaultThemeId,
+  type ThemeId,
+} from './registry'
+export {
+  applyMaterials,
+  assertMaterialPalette,
+  deriveDetailRamp,
+  isNearWhite,
+  listAccents,
+  luminance,
+  resolveClayColor,
+  resolveMaterial,
+  useClayColor,
+  useMaterialColor,
+  useMaterials,
+  type ClayColorProps,
+  type DetailRamp,
+  type MaterialPalette,
+  type MaterialRole,
+} from './materials'

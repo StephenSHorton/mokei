@@ -24,11 +24,13 @@ const scene = getScene('yardline')
 scene?.dispatch?.({ type: 'task-started', id: 'fl-10' })
 ```
 
-See [SCENES.md](./SCENES.md) to author a quarry (or any) scene.
+See [PRINCIPLES.md](./PRINCIPLES.md) for the white-dominant material rule and [SCENES.md](./SCENES.md) to author a quarry (or any) scene.
+
+Themes live in `src/kit/themes/<id>.css` plus `src/kit/theme/<id>.ts` (`materials` palette). `preset.css` is mappings only. Importing `mokei/theme` does not register Yardline.
 
 ## Playground
 
-`App` reads `?scene=` (default `yardline`), calls `activateScene`, and mounts `scene.World` plus optional `scene.Hud`. `/` with no query is the measured Yardline HUD + yard — do not change its look.
+`App` reads `?scene=` (playground sets the default to `yardline`), calls `activateScene`, and mounts `scene.World` plus optional `scene.Hud`. `/` with no query is the measured Yardline HUD + yard — do not change its look. The kit itself has no implicit Yardline default.
 
 `SOFT_EDGE_SCALE` stays `0.8`.
 

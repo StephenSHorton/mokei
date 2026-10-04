@@ -2,12 +2,18 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import { HashRouter } from './app/router.tsx'
-import { activateScene, sceneIdFromSearch } from './kit/scene'
+import { activateScene, sceneIdFromSearch, setDefaultSceneId } from './kit/scene'
 import './kit/scene/blank'
 import './kit/scene/yardline'
+import { setDefaultThemeId } from './kit/theme'
+import './kit/theme/blank'
+import './kit/theme/quarry'
+import './kit/theme/yardline'
 import Showcase from './pages/Showcase.tsx'
 import './index.css'
 
+setDefaultThemeId('yardline')
+setDefaultSceneId('yardline')
 activateScene(sceneIdFromSearch())
 
 // SF Pro is the reference typeface; only Apple platforms ship it.

@@ -1,5 +1,12 @@
 const scenes = new Map();
-export const DEFAULT_SCENE_ID = 'yardline';
+let defaultSceneId;
+/** Host-configurable. Unset means “first registered scene”. */
+export function setDefaultSceneId(id) {
+    defaultSceneId = id;
+}
+export function getDefaultSceneId() {
+    return defaultSceneId ?? [...scenes.keys()][0];
+}
 export function registerScene(def) {
     scenes.set(def.id, def);
     return def;

@@ -18,6 +18,9 @@ export const lookDefaults = {
     cameraElevation: 37,
     panX: 0,
     panZ: 0,
+    zoomMin: 12,
+    zoomMax: 60,
+    zoomReferenceWidth: 1728,
     ground: '#e9eef8',
     road: '#c4d0f2',
     grass: '#dcf4e6',
@@ -30,23 +33,35 @@ export const lookDefaults = {
     tire: '#1f2533',
     aoColor: '#25335a',
 };
+let viewHome = {
+    cameraZoom: lookDefaults.cameraZoom,
+    cameraAzimuth: lookDefaults.cameraAzimuth,
+    cameraElevation: lookDefaults.cameraElevation,
+};
+/** Remember the framing `resetView` should restore (last `activateScene`). */
+export function setViewHome(home) {
+    viewHome = { ...viewHome, ...home };
+}
+export function getViewHome() {
+    return viewHome;
+}
 export function applyLook(patch) {
     useLook.getState().setLook(patch);
 }
 export const useLook = create((set, get) => ({
     ...lookDefaults,
     setLook: (patch) => set(patch),
-    zoomBy: (delta) => set({ cameraZoom: clampZoom(get().cameraZoom + delta) }),
+    zoomBy: (delta) => set({ cameraZoom: clampZoom(get().cameraZoom + delta, get()) }),
     rotateBy: (deg) => set({ cameraAzimuth: get().cameraAzimuth + deg }),
     resetView: () => set({
-        cameraZoom: lookDefaults.cameraZoom,
-        cameraAzimuth: lookDefaults.cameraAzimuth,
-        cameraElevation: lookDefaults.cameraElevation,
+        cameraZoom: viewHome.cameraZoom,
+        cameraAzimuth: viewHome.cameraAzimuth,
+        cameraElevation: viewHome.cameraElevation,
         panX: 0,
         panZ: 0,
     }),
 }));
-function clampZoom(value) {
-    return Math.max(12, Math.min(60, value));
+function clampZoom(value, look = lookDefaults) {
+    return Math.max(look.zoomMin, Math.min(look.zoomMax, value));
 }
 //# sourceMappingURL=look.js.map

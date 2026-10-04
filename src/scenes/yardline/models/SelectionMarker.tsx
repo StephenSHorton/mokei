@@ -2,14 +2,14 @@ import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import type { Group } from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
-import { useLook } from '../../../kit/clay'
+import { useMaterialColor } from '../../../kit/theme'
 
 /**
  * 3D corner brackets around the selected unit, like the frames: soft blue
  * L-shapes on the floor and at the top, joined by short vertical ticks.
  */
 export function SelectionMarker({ size = [2.2, 2.9, 3.0] }: { size?: [number, number, number] }) {
-  const accent = useLook((s) => s.accent)
+  const accent = useMaterialColor('accent1')
   const group = useRef<Group>(null)
   const [w, h, d] = size
   const t = 0.075

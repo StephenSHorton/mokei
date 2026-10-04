@@ -2,13 +2,15 @@
 
 A **scene** is a clay diorama: a `World` (R3F tree), the **theme** it wants, camera defaults, optional HUD, and optional **event hooks** so a host app can drive the toys.
 
-A **theme** is only tokens (`data-theme` on `<html>`). Scenes may share a theme or bring their own. Worlds are **opt-in** — importing `mokei` or `mokei/scene` does not load Yardline.
+A **theme** is tokens (`data-theme` on `<html>`) plus a **material palette** (see [PRINCIPLES.md](./PRINCIPLES.md)). Scenes may share a theme or bring their own. Worlds are **opt-in** — importing `mokei` or `mokei/scene` does not load Yardline. The kit does not hard-code a default scene or theme; call `setDefaultSceneId` / `setDefaultThemeId` or the first registered entry is used.
 
 ## Contract
 
 ```ts
-import { applyTheme, registerScene, activateScene, type SceneDefinition, type SceneEvent } from 'mokei'
+import { applyTheme, registerScene, activateScene, setDefaultSceneId, type SceneDefinition, type SceneEvent } from 'mokei'
 import 'mokei/theme/preset.css'
+import 'mokei/themes/quarry.css'
+import { quarryTheme } from 'mokei/theme/quarry'
 // Only if you want the warehouse:
 // import 'mokei/scene/yardline'
 
@@ -29,7 +31,7 @@ scene?.dispatch?.({ type: 'task-started', id: 'agent', label: 'Does this comment
 | `themeId` | yes | Passed to `applyTheme` |
 | `World` | yes | R3F tree. Reuse `Lights`, `ClayCameraRig`, `ClayGround`, `SoftBox`, `RoundCyl` from `mokei/clay` |
 | `Hud` | no | DOM overlay. Yardline ships one; blank does not |
-| `camera` | no | `{ zoom, azimuth, elevation, target? }` written into the shared look store |
+| `camera` | no | `{ zoom, azimuth, elevation, target?, zoomMin?, zoomMax?, zoomReferenceWidth? }` written into the shared look store. Zoom scales with window width / `zoomReferenceWidth` (default 1728). `resetView` restores this framing. |
 | `look` | no | Clay palette / lighting overrides (`ground`, `road`, `skyColor`, …) |
 | `dispatch` | no | `(event: SceneEvent) => void` — host data → motion |
 
@@ -55,7 +57,7 @@ Keep the original five. Add Rock-session events so a host can delete its shims.
 
 ## Add a scene (checklist)
 
-1. **Theme** — reuse `yardline`, `blank`, or `quarry`, or add `html[data-theme='your-id']` in `src/kit/theme/tokens.css` and `registerTheme`. Host apps can also `registerTheme` without a kit PR.
+1. **Theme** — reuse `yardline`, `blank`, or `quarry` (`mokei/themes/<id>.css` + `mokei/theme/<id>`), or add `src/kit/themes/your.css` and `registerTheme` with a `materials` palette. Host apps can also `registerTheme` without a kit PR. White is the primary material; at most three accents.
 2. **Folder** — host-side (`site/src/quarry/` in Rock) or `src/scenes/your/` here. Do **not** put quarry art inside this repo.
 3. **World** — compose shared clay (`ClayCameraRig`, `Lights`, `ClayGround`, `SoftBox`, `RoundCyl`, `PostFX`). Keep `SOFT_EDGE_SCALE` at 0.8.
 4. **Events** — export `dispatch` and map `SceneEvent` onto your sim/store.
@@ -66,7 +68,18 @@ The blank scene (`src/scenes/blank/`) is the smallest working example: a clay pa
 
 ## Worked sketch: quarry (lives in Rock)
 
-Rock’s site owns the quarry World. This kit ships the **quarry theme** and the event names. Map the contract; don’t fork the kit.
+Rock’s site owns the quarry World. This kit ships the **quarry theme** (Rock-locked palette) and the event names. Map the contract; don’t fork the kit.
+
+| Role | Swatch | Hex | Use |
+| --- | --- | --- | --- |
+| `base` | warm white | `#F7F5F0` | UI + cart/wall clay |
+| `accent1` | azurite | `#2B59E8` | Features, links, brand, `--primary` |
+| `accent2` | signal yellow | `#F2B705` | Permission / warning / active only. Dark foreground on yellow surfaces. Never yellow text on white. |
+| `accent3` | slate | `#3B4552` | Secondary trim |
+| `detail.dark` | near-black | `#1C1F24` | Dark end of the detail ramp; mid/light are derived |
+| `ground` | sandstone | `#E6D5B8` | Ground and rock faces only |
+
+Orange and teal are gone. Sandstone is not a UI fill.
 
 | Rock / agent fact | Scene hook | Clay stand-in |
 | --- | --- | --- |

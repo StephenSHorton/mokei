@@ -1,6 +1,7 @@
 import { RoundedBox } from '@react-three/drei'
 import { useMemo } from 'react'
 import { LatheGeometry, Vector2 } from 'three'
+import { useClayColor, type ClayColorProps, type MaterialRole } from '../theme/materials'
 import { Matte } from './Matte'
 
 type Vec3 = [number, number, number]
@@ -16,9 +17,8 @@ export function scaleSoft(value: number) {
   return value * SOFT_EDGE_SCALE
 }
 
-type SoftBoxProps = {
+type SoftBoxProps = ClayColorProps & {
   size: Vec3
-  color: string
   position?: Vec3
   rotation?: Vec3
   /** Corner radius in world units. Defaults to a generous share of the smallest side. */
@@ -33,6 +33,8 @@ type SoftBoxProps = {
 export function SoftBox({
   size,
   color,
+  material,
+  unsafeColor,
   position,
   rotation,
   r,
@@ -53,7 +55,7 @@ export function SoftBox({
       castShadow={cast}
       receiveShadow={receive}
     >
-      <Matte color={color} emissive={emissive} />
+      <Matte color={color} material={material} unsafeColor={unsafeColor} emissive={emissive} />
     </RoundedBox>
   )
 }
@@ -77,11 +79,10 @@ export function useRoundCylinder(radius: number, height: number, fillet: number,
   }, [radius, height, fillet, segments])
 }
 
-type RoundCylProps = {
+type RoundCylProps = ClayColorProps & {
   radius: number
   height: number
   fillet?: number
-  color: string
   position?: Vec3
   rotation?: Vec3
   cast?: boolean
@@ -93,6 +94,8 @@ export function RoundCyl({
   height,
   fillet,
   color,
+  material,
+  unsafeColor,
   position,
   rotation,
   cast = true,
@@ -101,7 +104,7 @@ export function RoundCyl({
   const geo = useRoundCylinder(radius, height, scaleSoft(fillet ?? Math.min(radius, height) * 0.35), segments)
   return (
     <mesh geometry={geo} position={position} rotation={rotation} castShadow={cast} receiveShadow>
-      <Matte color={color} />
+      <Matte color={color} material={material} unsafeColor={unsafeColor} />
     </mesh>
   )
 }
@@ -111,27 +114,49 @@ export function Wheel({
   position,
   radius = 0.36,
   width = 0.3,
-  tire = '#1f2533',
-  hub = '#cbd5e1',
+  tire = 'detail.dark',
+  hub = 'detail.light',
+  unsafeTire,
+  unsafeHub,
 }: {
   position: Vec3
   radius?: number
   width?: number
-  tire?: string
-  hub?: string
+  tire?: MaterialRole
+  hub?: MaterialRole
+  unsafeTire?: string
+  unsafeHub?: string
 }) {
   const side = position[0] >= 0 ? 1 : -1
   return (
     <group position={position} rotation={[0, 0, Math.PI / 2]}>
-      <RoundCyl radius={radius} height={width} fillet={width * 0.42} color={tire} />
+      <RoundCyl radius={radius} height={width} fillet={width * 0.42} material={tire} unsafeColor={unsafeTire} />
       <RoundCyl
         radius={radius * 0.46}
         height={0.05}
         fillet={0.02}
-        color={hub}
+        material={hub}
+        unsafeColor={unsafeHub}
         position={[0, (-side * width) / 2, 0]}
         cast={false}
       />
+    </group>
+  )
+}
+
+/** Gallery cart: white body, accent trim, slate bumper, signal lamp, dark wheels. */
+export function RoleCart({ position = [0, 0, 0] }: { position?: Vec3 }) {
+  const lamp = useClayColor({ material: 'accent2' })
+  return (
+    <group position={position}>
+      <SoftBox size={[1.9, 0.58, 1.15]} r={0.16} material="base" position={[0, 0.46, 0]} />
+      <SoftBox size={[1.96, 0.1, 1.2]} r={0.05} material="accent1" position={[0, 0.22, 0]} />
+      <SoftBox size={[0.18, 0.36, 1.18]} r={0.06} material="accent3" position={[0.96, 0.44, 0]} />
+      <SoftBox size={[0.16, 0.16, 0.16]} r={0.05} material="accent2" position={[-0.72, 0.84, 0]} emissive={lamp} />
+      <Wheel position={[-0.62, 0.22, 0.52]} radius={0.22} width={0.2} />
+      <Wheel position={[0.55, 0.22, 0.52]} radius={0.22} width={0.2} />
+      <Wheel position={[-0.62, 0.22, -0.52]} radius={0.22} width={0.2} />
+      <Wheel position={[0.55, 0.22, -0.52]} radius={0.22} width={0.2} />
     </group>
   )
 }

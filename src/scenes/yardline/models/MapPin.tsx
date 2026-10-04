@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
 import { LatheGeometry, Vector2 } from 'three'
 import { useLook } from '../../../kit/clay'
+import { useMaterialColor } from '../../../kit/theme'
 
 /** Soft 3D map pin: teardrop body with a white dot facing the camera. */
 export function MapPin({ height = 2.45 }: { height?: number }) {
-  const accent = useLook((s) => s.accent)
+  const accent = useMaterialColor('accent1')
   const az = useLook((s) => s.cameraAzimuth)
   const geo = useMemo(() => {
     const pts: Vector2[] = []

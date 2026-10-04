@@ -1,8 +1,15 @@
-/** Starter theme for the blank diorama — warmer stone clay, same glass language. */
+/** Starter theme for the blank diorama — warm near-white clay, ochre accents. */
 export declare const blankTheme: {
-    readonly id: "blank";
-    readonly name: "Blank diorama";
-    readonly description: "Sandstone clay and ochre accents for the blank starter pad.";
-    readonly dataTheme: "blank";
+    id: string;
+    name: string;
+    description: string;
+    dataTheme: string;
+    materials: {
+        base: string;
+        accent1: string;
+        accent2: string;
+        detail: import("./materials").DetailRamp;
+        ground: string;
+    };
 };
 //# sourceMappingURL=blank.d.ts.map

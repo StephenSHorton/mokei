@@ -1,5 +1,5 @@
-import { useLook } from '../../../kit/clay'
-import { SoftBox } from '../../../kit/clay'
+import { SoftBox, useLook } from '../../../kit/clay'
+import { useMaterialColor } from '../../../kit/theme'
 
 type PalletProps = {
   stacks?: number
@@ -13,8 +13,8 @@ const GAP = 0.035
 /** Wooden pallet loaded with a 2x2 grid of soft cardboard boxes per layer. */
 export function Pallet({ stacks = 2, wrap = 'tan', seed = 0 }: PalletProps) {
   const cardboard = useLook((s) => s.cardboard)
-  const accent = useLook((s) => s.accent)
-  const wood = wrap === 'blue' ? '#2a59d6' : '#c79560'
+  const accent = useMaterialColor('accent1')
+  const wood = wrap === 'blue' ? accent : '#c79560'
   const shades =
     wrap === 'blue'
       ? [accent, '#3b74f0', '#2f66e6']

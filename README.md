@@ -4,6 +4,8 @@ Stephen's design system and aesthetic playground. The visual language is **glass
 
 The package is `mokei` (the repo). It is **not** published to npm. Other apps install the kit as a git dependency or pull UI pieces from the Pages shadcn registry. License: MIT.
 
+**White is the primary material.** A theme may name at most three accents. Read [docs/PRINCIPLES.md](docs/PRINCIPLES.md).
+
 ## Yardline playground
 
 The root of the site is still the playable clay-diorama warehouse yard. The in-app product name is **Yardline**. Click a forklift, truck, or the building. The camera eases to follow the selected unit. Forklifts shuttle pallets; trucks loop in, back into dock bays, wait, and leave.
@@ -37,6 +39,7 @@ Items: `theme`, `button`, `card`, `badge`, `input`, `tabs`, `tooltip`, `progress
 ```css
 @import "tailwindcss";
 @import "./mokei/preset.css";
+@import "./mokei/tokens.css";
 ```
 
 The consumer project needs a Vite + Tailwind v4 + shadcn (`base-nova` / Base UI) setup first (`npx shadcn@latest init`).
@@ -54,19 +57,24 @@ Peer deps (you provide): `react`, `react-dom`, `three`, `@react-three/fiber`, `@
 Scenes are opt-in. `mokei` and `mokei/scene` do not import Yardline.
 
 ```ts
-import { activateScene, registerScene, getScene } from 'mokei'
+import { activateScene, registerScene, getScene, setDefaultSceneId } from 'mokei'
 import { SoftBox, SOFT_EDGE_SCALE } from 'mokei/clay'
 import type { SceneEvent } from 'mokei/scene'
 import 'mokei/theme/preset.css'
+import 'mokei/themes/quarry.css'
+import { quarryTheme } from 'mokei/theme/quarry'
 // import 'mokei/scene/yardline' // only if you want the warehouse
 
+setDefaultSceneId(hostScene.id)
 registerScene(hostScene)
 const scene = getScene('quarry') // undefined + warn if not registered
 activateScene(hostScene)
 scene?.dispatch?.({ type: 'tool-station', station: 'read' })
 ```
 
-Other exports: `mokei/theme`, `mokei/theme/tokens.css`, `mokei/theme/preset.css`, `mokei/scene`, `mokei/scene/yardline`, `mokei/scene/blank`, `mokei/clay`. Themes: `yardline`, `blank`, `quarry`.
+Clay takes `material="accent1"` (or `detail.dark`, `base`, …). `unsafeColor` is the discouraged hex hatch.
+
+Other exports: `mokei/theme`, `mokei/theme/<id>`, `mokei/theme/tokens.css`, `mokei/theme/preset.css`, `mokei/themes/<id>.css`, `mokei/scene`, `mokei/scene/yardline`, `mokei/scene/blank`, `mokei/clay`. Themes: `yardline`, `blank`, `quarry`. The kit does not default to Yardline — call `setDefaultSceneId` / `setDefaultThemeId` or the first registered entry is used.
 
 Playground: `/?scene=yardline` (default) and `/?scene=blank`. Author a new diorama with [docs/SCENES.md](docs/SCENES.md).
 
@@ -138,4 +146,4 @@ Vite + React 19 + TypeScript, Tailwind v4, shadcn/ui (Base UI / nova), react-thr
 
 ## Architecture
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/SCENES.md](docs/SCENES.md) for the scene contract and how a quarry (drills, carts, conveyors) would plug in.
+See [docs/PRINCIPLES.md](docs/PRINCIPLES.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and [docs/SCENES.md](docs/SCENES.md) for the white-dominant rule, the scene contract, and how a quarry (drills, carts, conveyors) would plug in.
