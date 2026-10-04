@@ -45,7 +45,7 @@ const buttonVariants = cva(
         "hud-icon": "size-[29px] rounded-lg [&_svg:not([class*='size-'])]:size-[18px]",
         "hud-cam": "h-[35px] w-[38px] rounded-[10px]",
         "hud-bell": "size-[34px] rounded-none",
-        "hud-row": "h-9 w-full gap-0 rounded-lg px-0.5 font-normal",
+        "hud-row": "flex h-9 w-full gap-0 rounded-lg px-0.5 font-normal",
         "hud-ship": "h-[113px] w-[282px] gap-0 rounded-[12px] pr-3.5 pl-3 font-normal",
       },
     },
