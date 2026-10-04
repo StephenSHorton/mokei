@@ -173,7 +173,7 @@ function TopBar() {
             <AvatarImage
               src={`${import.meta.env.BASE_URL}jordan-hale.svg`}
               alt="Jordan Hale"
-              className="m-auto size-[44px]"
+              className="m-auto size-[44px] max-w-[44px]"
             />
             <AvatarFallback className="bg-white">
               <UserMark />
