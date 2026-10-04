@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -42,7 +43,15 @@ export default function Showcase() {
 
   return (
     <TooltipProvider>
-      <div data-showcase className="min-h-full bg-background text-foreground" style={{ letterSpacing: 'var(--track)' }}>
+      <div
+        data-showcase
+        className="min-h-full bg-background text-foreground"
+        style={{
+          letterSpacing: 'var(--track)',
+          backgroundImage:
+            'radial-gradient(ellipse 80% 45% at 85% -10%, color-mix(in srgb, var(--clay-road) 55%, transparent), transparent), radial-gradient(ellipse 55% 40% at 0% 100%, color-mix(in srgb, var(--clay-grass) 40%, transparent), transparent)',
+        }}
+      >
         <header className="sticky top-0 z-10 flex items-center gap-4 border-b border-[color:var(--topbar-border)] bg-[color:var(--topbar-bg)] px-6 py-4 shadow-[var(--topbar-shadow)] backdrop-blur-[22px] backdrop-saturate-130">
           <div>
             <p className="text-[11px] font-bold tracking-[0.06em] text-blue-deep uppercase">Mokei</p>
@@ -215,9 +224,11 @@ export default function Showcase() {
                     <ChevronDown className="size-4" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuLabel>Sites</DropdownMenuLabel>
-                    <DropdownMenuItem>Northpoint Hub</DropdownMenuItem>
-                    <DropdownMenuItem>East Gate</DropdownMenuItem>
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>Sites</DropdownMenuLabel>
+                      <DropdownMenuItem>Northpoint Hub</DropdownMenuItem>
+                      <DropdownMenuItem>East Gate</DropdownMenuItem>
+                    </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>Manage sites</DropdownMenuItem>
                   </DropdownMenuContent>
