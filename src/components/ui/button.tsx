@@ -17,17 +17,17 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
-        hud: "border-[#dde3ee] bg-[rgba(255,255,255,0.92)] text-ink shadow-none hover:bg-[rgba(255,255,255,0.92)] aria-expanded:bg-[rgba(255,255,255,0.92)] aria-expanded:text-ink active:translate-y-0 focus-visible:border-[#dde3ee] focus-visible:ring-0",
+        hud: "border-[#dde3ee] bg-[rgba(255,255,255,0.92)] text-ink shadow-none hover:bg-[rgba(255,255,255,0.92)] aria-expanded:bg-[rgba(255,255,255,0.92)] aria-expanded:text-ink active:translate-y-0 focus-visible:border-[#dde3ee] focus-visible:ring-0 [&_svg]:!h-auto [&_svg]:!w-auto",
         "hud-icon":
-          "border-[#d9e0eb] bg-white text-ink shadow-[0_1px_2px_rgba(30,41,90,0.05)] hover:bg-white active:translate-y-0 focus-visible:border-[#d9e0eb] focus-visible:ring-0",
+          "border-[#d9e0eb] bg-white text-ink shadow-[0_1px_2px_rgba(30,41,90,0.05)] hover:bg-white active:translate-y-0 focus-visible:border-[#d9e0eb] focus-visible:ring-0 [&_svg]:!h-auto [&_svg]:!w-auto",
         "hud-ghost":
-          "border-transparent bg-transparent text-ink shadow-none hover:bg-transparent aria-expanded:bg-transparent active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0",
+          "border-transparent bg-transparent text-ink shadow-none hover:bg-transparent aria-expanded:bg-transparent active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0 [&_svg]:!h-auto [&_svg]:!w-auto",
         "hud-cam":
-          "rounded-[10px] border-transparent bg-transparent text-ink shadow-none hover:bg-[rgba(241,245,249,0.9)] active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0",
+          "rounded-[10px] border-transparent bg-transparent text-ink shadow-none hover:bg-[rgba(241,245,249,0.9)] active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0 [&_svg]:!h-auto [&_svg]:!w-auto",
         "hud-row":
-          "justify-start border-transparent bg-transparent text-left text-ink shadow-none hover:bg-[rgba(219,234,254,0.55)] aria-expanded:bg-transparent data-[selected=true]:bg-[rgba(219,234,254,0.55)] active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0",
+          "justify-start border-transparent bg-transparent text-left text-ink shadow-none hover:bg-[rgba(219,234,254,0.55)] aria-expanded:bg-transparent data-[selected=true]:bg-[rgba(219,234,254,0.55)] active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0 [&_svg]:!h-auto [&_svg]:!w-auto",
         "hud-ship":
-          "justify-start border-0 bg-[rgba(226,233,245,0.75)] bg-clip-border text-left text-ink shadow-none hover:bg-[rgba(226,233,245,0.75)] active:translate-y-0 focus-visible:border-0 focus-visible:ring-0",
+          "justify-start border-0 bg-[rgba(226,233,245,0.75)] bg-clip-border text-left text-ink shadow-none hover:bg-[rgba(226,233,245,0.75)] active:translate-y-0 focus-visible:border-0 focus-visible:ring-0 [&_svg]:!h-auto [&_svg]:!w-auto",
       },
       size: {
         default:
