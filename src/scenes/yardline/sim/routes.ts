@@ -1,4 +1,5 @@
-import { length2 } from '../../../lib/math.ts'
+import { length2, lerpAngle } from '../../../lib/math.ts'
+import { APRON_Z, DOCK_ARC_R, DOCK_Z, LOOP_Z } from './geom.ts'
 
 export type PathAction = 'pickup' | 'dropoff' | 'dock' | 'undock'
 
@@ -9,6 +10,7 @@ export type Waypoint = {
   wait?: number
   action?: PathAction
   task?: string
+  arc?: boolean
 }
 
 export type PathSample = {
@@ -33,10 +35,17 @@ export type CompiledRoute = {
   length: number
 }
 
-function pushPoint(out: { x: number; z: number; reverse: boolean }[], x: number, z: number, reverse: boolean) {
+function wrapAngle(a: number) {
+  let x = a
+  while (x > Math.PI) x -= Math.PI * 2
+  while (x < -Math.PI) x += Math.PI * 2
+  return x
+}
+
+function pushPoint(out: { x: number; z: number; reverse: boolean; arc?: boolean }[], x: number, z: number, reverse: boolean, arc = false) {
   const last = out[out.length - 1]
   if (last && Math.hypot(last.x - x, last.z - z) < 0.04) return
-  out.push({ x, z, reverse })
+  out.push({ x, z, reverse, arc })
 }
 
 function filletWaypoints(nodes: Waypoint[], radius: number) {
@@ -44,19 +53,20 @@ function filletWaypoints(nodes: Waypoint[], radius: number) {
     x: n.x,
     z: n.z,
     reverse: Boolean(n.reverse),
-    sharp: Boolean(n.action) || Boolean(n.reverse),
+    sharp: Boolean(n.action) || Boolean(n.reverse) || Boolean(n.arc),
+    arc: Boolean(n.arc),
   }))
   if (raw.length < 3) return raw
-  const out: { x: number; z: number; reverse: boolean }[] = []
-  pushPoint(out, raw[0].x, raw[0].z, raw[0].reverse)
+  const out: { x: number; z: number; reverse: boolean; arc?: boolean }[] = []
+  pushPoint(out, raw[0].x, raw[0].z, raw[0].reverse, raw[0].arc)
   for (let i = 1; i < raw.length - 1; i += 1) {
     const a = raw[i - 1]
     const b = raw[i]
     const c = raw[i + 1]
     const inLen = length2(b.x - a.x, b.z - a.z)
     const outLen = length2(c.x - b.x, c.z - b.z)
-    if (inLen < 0.2 || outLen < 0.2) {
-      pushPoint(out, b.x, b.z, b.reverse)
+    if (b.arc || a.arc || inLen < 0.2 || outLen < 0.2) {
+      pushPoint(out, b.x, b.z, b.reverse, b.arc)
       continue
     }
     const ix = (b.x - a.x) / inLen
@@ -68,7 +78,7 @@ function filletWaypoints(nodes: Waypoint[], radius: number) {
     const turn = Math.acos(dot)
     const reverseChange = a.reverse !== b.reverse || b.reverse !== c.reverse
     if (b.sharp || reverseChange || Math.abs(cross) < 0.02 || turn < 0.18 || turn > 2.4) {
-      pushPoint(out, b.x, b.z, b.reverse)
+      pushPoint(out, b.x, b.z, b.reverse, b.arc)
       continue
     }
     const half = turn / 2
@@ -83,7 +93,7 @@ function filletWaypoints(nodes: Waypoint[], radius: number) {
     const cz = t1z + ix * r * sign
     const start = Math.atan2(t1x - cx, t1z - cz)
     const sweep = turn * -sign
-    const steps = Math.max(4, Math.round((r * Math.abs(sweep)) / 0.38))
+    const steps = Math.max(6, Math.round((r * Math.abs(sweep)) / 0.28))
     pushPoint(out, t1x, t1z, b.reverse)
     for (let s = 1; s < steps; s += 1) {
       const ang = start + (sweep * s) / steps
@@ -92,48 +102,92 @@ function filletWaypoints(nodes: Waypoint[], radius: number) {
     pushPoint(out, t2x, t2z, b.reverse)
   }
   const last = raw[raw.length - 1]
-  pushPoint(out, last.x, last.z, last.reverse)
+  pushPoint(out, last.x, last.z, last.reverse, last.arc)
   return out
 }
 
 function headingOf(dx: number, dz: number, reverse: boolean) {
   const move = Math.atan2(dx, dz)
-  return reverse ? move + Math.PI : move
+  return wrapAngle(reverse ? move + Math.PI : move)
+}
+
+function appendStraight(
+  samples: PathSample[],
+  from: { x: number; z: number },
+  to: { x: number; z: number },
+  reverse: boolean,
+  s: number,
+) {
+  const span = length2(to.x - from.x, to.z - from.z)
+  const heading = headingOf(to.x - from.x, to.z - from.z, reverse)
+  const steps = Math.max(1, Math.round(span / 0.28))
+  for (let k = 1; k <= steps; k += 1) {
+    const t = k / steps
+    s += span / steps
+    samples.push({
+      x: from.x + (to.x - from.x) * t,
+      z: from.z + (to.z - from.z) * t,
+      heading,
+      reverse,
+      s,
+    })
+  }
+  return s
+}
+
+function appendQuarterArc(
+  samples: PathSample[],
+  from: { x: number; z: number },
+  to: { x: number; z: number },
+  reverse: boolean,
+  s: number,
+) {
+  const cx = Math.abs(from.x - to.x) > 0.05 && Math.abs(from.z - to.z) > 0.05 ? from.x : to.x
+  const cz = cx === from.x ? to.z : from.z
+  const r = length2(from.x - cx, from.z - cz)
+  let a0 = Math.atan2(from.x - cx, from.z - cz)
+  let a1 = Math.atan2(to.x - cx, to.z - cz)
+  let sweep = wrapAngle(a1 - a0)
+  if (Math.abs(sweep) < 0.05) return s
+  const steps = Math.max(10, Math.round((r * Math.abs(sweep)) / 0.22))
+  for (let k = 1; k <= steps; k += 1) {
+    const t = k / steps
+    const ang = a0 + sweep * t
+    const x = cx + Math.sin(ang) * r
+    const z = cz + Math.cos(ang) * r
+    const prev = samples[samples.length - 1]
+    const ds = length2(x - prev.x, z - prev.z)
+    s += ds
+    samples.push({
+      x,
+      z,
+      heading: headingOf(x - prev.x, z - prev.z, reverse),
+      reverse,
+      s,
+    })
+  }
+  return s
 }
 
 export function compileRoute(nodes: Waypoint[], radius: number): CompiledRoute {
   const densified = filletWaypoints(nodes, radius)
   const samples: PathSample[] = []
   let s = 0
-  for (let i = 0; i < densified.length; i += 1) {
+  if (densified.length) {
+    const nxt = densified[Math.min(1, densified.length - 1)]
+    samples.push({
+      x: densified[0].x,
+      z: densified[0].z,
+      heading: headingOf(nxt.x - densified[0].x, nxt.z - densified[0].z, densified[0].reverse || nxt.reverse),
+      reverse: densified[0].reverse,
+      s: 0,
+    })
+  }
+  for (let i = 1; i < densified.length; i += 1) {
+    const prev = densified[i - 1]
     const p = densified[i]
-    if (i > 0) {
-      const prev = densified[i - 1]
-      const span = length2(p.x - prev.x, p.z - prev.z)
-      const steps = Math.max(1, Math.round(span / 0.45))
-      for (let k = 1; k <= steps; k += 1) {
-        const t = k / steps
-        const x = prev.x + (p.x - prev.x) * t
-        const z = prev.z + (p.z - prev.z) * t
-        s += span / steps
-        samples.push({
-          x,
-          z,
-          heading: headingOf(p.x - prev.x, p.z - prev.z, p.reverse),
-          reverse: p.reverse,
-          s,
-        })
-      }
-    } else {
-      const nxt = densified[Math.min(1, densified.length - 1)]
-      samples.push({
-        x: p.x,
-        z: p.z,
-        heading: headingOf(nxt.x - p.x, nxt.z - p.z, nxt.reverse),
-        reverse: nxt.reverse,
-        s: 0,
-      })
-    }
+    if (p.arc) s = appendQuarterArc(samples, prev, p, p.reverse, s)
+    else s = appendStraight(samples, prev, p, p.reverse, s)
   }
   const events: PathEvent[] = []
   let cursor = 0
@@ -147,11 +201,7 @@ export function compileRoute(nodes: Waypoint[], radius: number): CompiledRoute {
         bestD = d
         cursor = i
       }
-      if (d < 0.85) {
-        best = samples[i]
-        cursor = i
-        break
-      }
+      if (d < 0.06) break
     }
     events.push({
       s: best.s,
@@ -177,7 +227,7 @@ export function sampleAt(route: CompiledRoute, s: number): PathSample {
   return {
     x: a.x + (b.x - a.x) * t,
     z: a.z + (b.z - a.z) * t,
-    heading: headingOf(b.x - a.x, b.z - a.z, t > 0.5 ? b.reverse : a.reverse),
+    heading: lerpAngle(a.heading, b.heading, t),
     reverse: t > 0.5 ? b.reverse : a.reverse,
     s: clamped,
   }
@@ -194,63 +244,81 @@ export function remainingPoints(route: CompiledRoute, s: number): [number, numbe
   return pts
 }
 
+function reverseDock(bayX: number, label: string, dwell: number): Waypoint[] {
+  const r = DOCK_ARC_R
+  return [
+    { x: bayX + r, z: APRON_Z, wait: 0.16, action: 'dock', task: `Align on ${label}` },
+    { x: bayX, z: APRON_Z - r, wait: 0.04, reverse: true, arc: true, task: `Reverse swing ${label}` },
+    { x: bayX, z: DOCK_Z, wait: dwell, reverse: true, action: 'dock', task: label.startsWith('Bay 4') ? `Loading at ${label}` : `Unloading at ${label}` },
+  ]
+}
+
+function pullOut(bayX: number): Waypoint[] {
+  const r = DOCK_ARC_R
+  return [
+    { x: bayX, z: APRON_Z - r, wait: 0.1, action: 'undock', task: 'Pull clear' },
+    { x: bayX + r, z: APRON_Z, wait: 0.08, arc: true, task: 'Swing onto apron' },
+  ]
+}
+
 export const ROUTES: Record<string, Waypoint[]> = {
   'fl-10': [
-    { x: 0.8, z: 8.2, wait: 0.25, task: 'Idle in yard' },
-    { x: -14.2, z: 8.2, wait: 0.15, action: 'pickup', task: 'Collect staged pallet' },
-    { x: -14.2, z: 6.4, wait: 0.05, task: 'Clear aisle' },
-    { x: -7.4, z: 6.4, wait: 0.12, action: 'dropoff', task: 'Stage at Bay 1' },
-    { x: -7.4, z: 8.2, wait: 0.05, task: 'Return to aisle' },
-    { x: 0.2, z: 8.2, wait: 0.05, task: 'Cross yard' },
-    { x: 0.2, z: 6.6, wait: 0.15, action: 'pickup', task: 'Collect inbound pallet' },
-    { x: 0.2, z: 8.2, wait: 0.05, task: 'Back to aisle' },
-    { x: 7.0, z: 8.2, wait: 0.05, task: 'Eastbound' },
-    { x: 7.0, z: 6.4, wait: 0.12, action: 'dropoff', task: 'Feed Bay 3' },
-    { x: 7.0, z: 8.2, wait: 0.05, task: 'Reposition' },
-    { x: 0.8, z: 8.2, wait: 0.2, task: 'Return to yard' },
+    { x: 0.8, z: 8.2, wait: 0.1, task: 'Idle in yard' },
+    { x: 0.2, z: 6.6, wait: 0.08, action: 'pickup', task: 'Collect inbound pallet' },
+    { x: 0.2, z: 8.2, wait: 0.04, reverse: true, task: 'Back to aisle' },
+    { x: -1.6, z: 8.2, wait: 0.04, task: 'Shift to face' },
+    { x: -1.6, z: 6.2, wait: 0.08, action: 'dropoff', task: 'Stage at Bay 2' },
+    { x: -1.6, z: 8.2, wait: 28, reverse: true, task: 'Back off the face' },
+    { x: 0.8, z: 8.2, wait: 0.2, task: 'Hold center' },
+    { x: -14.2, z: 8.2, wait: 0.08, action: 'pickup', task: 'Collect staged pallet' },
+    { x: -14.2, z: 8.8, wait: 0.04, reverse: true, task: 'Clear aisle' },
+    { x: -7.4, z: 8.8, wait: 0.04, task: 'West transfer' },
+    { x: -7.4, z: 6.4, wait: 0.08, action: 'dropoff', task: 'Stage at Bay 1' },
+    { x: -7.4, z: 8.2, wait: 0.04, reverse: true, task: 'Return to aisle' },
+    { x: 0.8, z: 8.2, wait: 0.16, task: 'Return to yard' },
   ],
   'fl-04': [
-    { x: -16.4, z: 5.6, wait: 0.35, task: 'Hold at west stack' },
-    { x: -16.0, z: 4.1, wait: 0.15, action: 'pickup', task: 'Lift west pallet' },
-    { x: -16.4, z: 5.8, wait: 0.05, task: 'Join south aisle' },
-    { x: -5.6, z: 5.8, wait: 0.12, action: 'dropoff', task: 'Build pick face' },
-    { x: 7.0, z: 5.8, wait: 0.05, task: 'East run' },
-    { x: 13.8, z: 6.2, wait: 0.15, action: 'pickup', task: 'Collect east pallet' },
-    { x: 7.0, z: 5.8, wait: 0.05, task: 'Return aisle' },
-    { x: 0.0, z: 5.8, wait: 0.12, action: 'dropoff', task: 'Stage at Bay 2' },
-    { x: -16.4, z: 5.8, wait: 0.05, task: 'Westbound' },
-    { x: -16.4, z: 5.6, wait: 0.25, task: 'Return west' },
+    { x: -16.4, z: 5.6, wait: 0.14, task: 'Hold at west stack' },
+    { x: -16.0, z: 4.1, wait: 0.08, action: 'pickup', task: 'Lift west pallet' },
+    { x: -16.4, z: 5.8, wait: 0.04, reverse: true, task: 'Join south aisle' },
+    { x: -5.6, z: 5.8, wait: 0.08, action: 'dropoff', task: 'Build pick face' },
+    { x: -5.6, z: 8.0, wait: 0.04, reverse: true, task: 'Clear pick face' },
+    { x: -14.8, z: 8.0, wait: 0.04, task: 'West run' },
+    { x: -14.8, z: 8.2, wait: 0.08, action: 'pickup', task: 'Collect staged pallet' },
+    { x: -14.8, z: 9.0, wait: 0.04, reverse: true, task: 'Clear staged' },
+    { x: -5.6, z: 8.0, wait: 0.04, task: 'Eastbound' },
+    { x: -5.6, z: 6.0, wait: 0.08, action: 'dropoff', task: 'Stage pick face' },
+    { x: -5.6, z: 8.0, wait: 0.04, reverse: true, task: 'Clear pick face' },
+    { x: -16.4, z: 5.8, wait: 0.04, task: 'Westbound' },
+    { x: -16.4, z: 5.6, wait: 0.18, task: 'Return west' },
   ],
   'trk-18': [
-    { x: -14.0, z: 11.2, wait: 0.15, task: 'Inbound to yard' },
-    { x: 3.5, z: 11.2, wait: 0.45, action: 'dock', task: 'Align on Bay 3' },
-    { x: 3.5, z: 0.75, wait: 6.4, reverse: true, action: 'dock', task: 'Unloading at Bay 3' },
-    { x: 3.5, z: 11.2, wait: 0.15, action: 'undock', task: 'Pull clear' },
-    { x: 19.6, z: 11.2, wait: 0.08, task: 'Outbound' },
-    { x: 19.6, z: 16.2, wait: 0.08, task: 'Loop north' },
-    { x: -15.4, z: 16.2, wait: 0.08, task: 'Loop west' },
-    { x: -15.4, z: 11.2, wait: 0.08, task: 'Re-enter' },
-    { x: -14.0, z: 11.2, wait: 0.12, task: 'Queue inbound' },
+    { x: -14.0, z: APRON_Z, wait: 0.1, task: 'Inbound to yard' },
+    ...reverseDock(3.5, 'Bay 3', 14.5),
+    ...pullOut(3.5),
+    { x: 19.6, z: APRON_Z, wait: 0.08, task: 'Outbound' },
+    { x: 19.6, z: LOOP_Z, wait: 0.08, task: 'Loop north' },
+    { x: -15.4, z: LOOP_Z, wait: 0.08, task: 'Loop west' },
+    { x: -15.4, z: APRON_Z, wait: 0.08, task: 'Re-enter' },
+    { x: -14.0, z: APRON_Z, wait: 0.1, task: 'Queue inbound' },
   ],
   'trk-12': [
-    { x: -10.5, z: 0.75, wait: 8.6, action: 'dock', task: 'Unloading at Bay 1' },
-    { x: -10.5, z: 11.2, wait: 0.18, action: 'undock', task: 'Pull clear' },
-    { x: 19.6, z: 11.2, wait: 0.08, task: 'Eastbound' },
-    { x: 19.6, z: 16.2, wait: 0.08, task: 'Loop north' },
-    { x: -15.4, z: 16.2, wait: 0.08, task: 'Circle yard' },
-    { x: -15.4, z: 11.2, wait: 0.1, task: 'Turn in' },
-    { x: -10.5, z: 11.2, wait: 0.4, action: 'dock', task: 'Align on Bay 1' },
-    { x: -10.5, z: 0.75, wait: 0.2, reverse: true, action: 'dock', task: 'Back into Bay 1' },
+    { x: -10.5, z: DOCK_Z, wait: 46, action: 'dock', task: 'Unloading at Bay 1' },
+    ...pullOut(-10.5),
+    { x: 19.6, z: APRON_Z, wait: 0.08, task: 'Eastbound' },
+    { x: 19.6, z: LOOP_Z, wait: 0.08, task: 'Loop north' },
+    { x: -15.4, z: LOOP_Z, wait: 0.08, task: 'Circle yard' },
+    { x: -15.4, z: APRON_Z, wait: 0.1, task: 'Turn in' },
+    ...reverseDock(-10.5, 'Bay 1', 0.2),
   ],
   'trk-22': [
-    { x: -23.6, z: 11.2, wait: 1.05, task: 'Hold inbound' },
-    { x: 10.5, z: 11.2, wait: 0.45, action: 'dock', task: 'Align on Bay 4' },
-    { x: 10.5, z: 0.75, wait: 5.8, reverse: true, action: 'dock', task: 'Loading at Bay 4' },
-    { x: 10.5, z: 11.2, wait: 0.15, action: 'undock', task: 'Pull clear' },
-    { x: 19.6, z: 11.2, wait: 0.12, task: 'Hold on apron' },
-    { x: 19.6, z: 16.2, wait: 0.08, task: 'Loop north' },
-    { x: -15.4, z: 16.2, wait: 0.08, task: 'Loop west' },
-    { x: -15.4, z: 11.2, wait: 0.12, task: 'Re-enter' },
-    { x: -23.6, z: 11.2, wait: 0.35, task: 'Hold inbound' },
+    { x: -23.6, z: APRON_Z, wait: 32, task: 'Hold inbound' },
+    ...reverseDock(10.5, 'Bay 4', 7.2),
+    ...pullOut(10.5),
+    { x: 19.6, z: APRON_Z, wait: 0.12, task: 'Hold on apron' },
+    { x: 19.6, z: LOOP_Z, wait: 0.08, task: 'Loop north' },
+    { x: -15.4, z: LOOP_Z, wait: 0.08, task: 'Loop west' },
+    { x: -15.4, z: APRON_Z, wait: 0.12, task: 'Re-enter' },
+    { x: -23.6, z: APRON_Z, wait: 0.35, task: 'Hold inbound' },
   ],
 }

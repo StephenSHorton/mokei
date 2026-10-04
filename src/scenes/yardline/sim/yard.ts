@@ -1,14 +1,19 @@
 import { create } from 'zustand'
 import { clamp, damp, length2 } from '../../../lib/math.ts'
 import {
+  DOCK_Z,
   FORK_HALF_L,
+  MAX_HEADING_STEP,
   STATIC_BOXES,
+  cargoInForkEnvelope,
   cellKey,
+  forkWorldPose,
+  lerpPose,
   overlapAabbObb,
   overlapOBB,
   truckOnRoad,
   unitOnSurface,
-  vehicleBox,
+  vehicleBoxes,
 } from './geom.ts'
 import {
   ROUTES,
@@ -78,10 +83,10 @@ type YardState = {
 }
 
 export const DOCKS = [
-  { id: 'bay-1', x: -10.5, z: 0.75, label: 'Bay 1' },
-  { id: 'bay-2', x: -3.5, z: 0.75, label: 'Bay 2' },
-  { id: 'bay-3', x: 3.5, z: 0.75, label: 'Bay 3' },
-  { id: 'bay-4', x: 10.5, z: 0.75, label: 'Bay 4' },
+  { id: 'bay-1', x: -10.5, z: DOCK_Z, label: 'Bay 1' },
+  { id: 'bay-2', x: -3.5, z: DOCK_Z, label: 'Bay 2' },
+  { id: 'bay-3', x: 3.5, z: DOCK_Z, label: 'Bay 3' },
+  { id: 'bay-4', x: 10.5, z: DOCK_Z, label: 'Bay 4' },
 ] as const
 
 export const WAREHOUSE_ID = 'wh-northpoint'
@@ -168,7 +173,7 @@ function initialUnits(): Record<string, Unit> {
       title: 'Bay 1 docked',
       task: 'Unloading at Bay 1',
       x: -10.5,
-      z: 0.75,
+      z: DOCK_Z,
       heading: 0,
       speed: 0,
       battery: 100,
@@ -203,7 +208,7 @@ function initialUnits(): Record<string, Unit> {
       title: 'Bay 2 docked',
       task: 'Unloading at Bay 2',
       x: -3.5,
-      z: 0.75,
+      z: DOCK_Z,
       heading: 0,
       speed: 0,
       battery: 100,
@@ -274,10 +279,22 @@ function emptyDocks(): Record<string, string | null> {
   return { 'bay-1': 'trk-12', 'bay-2': 'trk-07', 'bay-3': null, 'bay-4': null }
 }
 
+function seedUnitsFromRoutes(units: Record<string, Unit>) {
+  for (const unit of Object.values(units)) {
+    const route = compiled[unit.pathId]
+    if (!route) continue
+    const pose = sampleAt(route, 0)
+    unit.x = pose.x
+    unit.z = pose.z
+    unit.heading = pose.heading
+  }
+  return units
+}
+
 export function createRuntime(): Runtime {
   return {
     clock: 0,
-    units: initialUnits(),
+    units: seedUnitsFromRoutes(initialUnits()),
     pallets: initialPallets(),
     eventIndex: { 'fl-10': 0, 'fl-04': 0, 'trk-18': 0, 'trk-12': 0, 'trk-22': 0 },
     warehouseReceives: 0,
@@ -307,19 +324,25 @@ function wrapAngle(a: number) {
   return x
 }
 
+function steerToward(unit: Unit, target: number) {
+  const dh = wrapAngle(target - unit.heading)
+  unit.heading = wrapAngle(unit.heading + clamp(dh, -MAX_HEADING_STEP, MAX_HEADING_STEP))
+  return Math.abs(dh)
+}
+
 function nextEvent(route: CompiledRoute, index: number): PathEvent | null {
   return route.events[index] ?? null
 }
 
 function dockNear(x: number, z: number) {
-  return DOCKS.find((d) => Math.abs(d.x - x) < 2.2 && z < 4.2) ?? null
+  return DOCKS.find((d) => Math.abs(d.x - x) < 2.2 && z < 6.2) ?? null
 }
 
 function attachPallet(unit: Unit, pallet: Pallet) {
-  const reach = FORK_HALF_L + 0.55 + unit.insert * 0.35
-  pallet.x = unit.x + Math.sin(unit.heading) * reach
-  pallet.z = unit.z + Math.cos(unit.heading) * reach
-  pallet.y = 0.06 + unit.lift * 1.12
+  const pose = forkWorldPose(unit)
+  pallet.x = pose.x
+  pallet.z = pose.z
+  pallet.y = pose.y
   pallet.heading = unit.heading
 }
 
@@ -354,13 +377,11 @@ function beginAction(unit: Unit, event: PathEvent) {
     return
   }
   if (event.action === 'dock') {
-    const dock = dockNear(unit.x, unit.z) ?? DOCKS.find((d) => Math.abs(d.x - unit.x) < 2.4)
+    const dock =
+      DOCKS.find((d) => event.task.includes(d.label)) ??
+      dockNear(unit.x, unit.z) ??
+      DOCKS.find((d) => Math.abs(d.x - unit.x) < 3.2)
     if (dock) claimDock(unit, dock.id)
-    const route = compiled[unit.pathId]
-    if (route && !event.reverse) {
-      const ahead = sampleAt(route, event.s + 0.7)
-      if (ahead.reverse) unit.heading = ahead.heading
-    }
   }
   if (event.action === 'undock') releaseDock(unit)
   if (event.wait > 0) {
@@ -461,7 +482,7 @@ function stepPhase(unit: Unit, dt: number) {
     return
   }
   if (unit.phase === 'lift') {
-    unit.lift = damp(unit.lift, 0.82, 6, dt)
+    unit.lift = damp(unit.lift, 0.34, 6, dt)
     unit.insert = damp(unit.insert, 0.15, 6, dt)
     if (unit.phaseT <= 0) {
       unit.phase = 'drive'
@@ -506,20 +527,43 @@ function upcomingCurvature(route: CompiledRoute, s: number) {
   return Math.abs(wrapAngle(b.heading - a.heading))
 }
 
-function blockedByOthers(unit: Unit, x: number, z: number, heading: number, claims: Map<string, string>) {
-  const box = vehicleBox(unit.kind, x, z, heading)
+function poseHits(kind: Unit['kind'], x: number, z: number, heading: number, ignoreId: string, pad = 0.12) {
+  const boxes = vehicleBoxes(kind, x, z, heading)
   for (const other of Object.values(runtime.units)) {
-    if (other.id === unit.id) continue
-    const otherBox = vehicleBox(other.kind, other.x, other.z, other.heading)
-    if (overlapOBB(box, otherBox, 0.16)) return true
+    if (other.id === ignoreId) continue
+    for (const mine of boxes) {
+      for (const theirs of vehicleBoxes(other.kind, other.x, other.z, other.heading)) {
+        if (overlapOBB(mine, theirs, pad)) return true
+      }
+    }
   }
   for (const wall of STATIC_BOXES) {
-    if (overlapAabbObb(wall, box, 0.08)) return true
+    for (const mine of boxes) {
+      if (overlapAabbObb(wall, mine, 0)) return true
+    }
   }
+  return false
+}
+
+function blockedByOthers(unit: Unit, x: number, z: number, heading: number, claims: Map<string, string>) {
+  if (poseHits(unit.kind, x, z, heading, unit.id, 0.22)) return true
   const keys = [cellKey(x, z), cellKey(x + Math.sin(heading) * 2.2, z + Math.cos(heading) * 2.2)]
   for (const key of keys) {
     const owner = claims.get(key)
     if (owner && owner !== unit.id) return true
+  }
+  return false
+}
+
+function truckOnPath(unit: Unit, route: CompiledRoute, s: number, dist = 7.6) {
+  if (unit.kind !== 'truck') return false
+  const steps = 5
+  for (let i = 1; i <= steps; i += 1) {
+    const p = sampleAt(route, Math.min(route.length, s + (dist * i) / steps))
+    for (const other of Object.values(runtime.units)) {
+      if (other.id === unit.id || other.kind !== 'truck') continue
+      if (Math.hypot(other.x - p.x, other.z - p.z) < 5.4) return true
+    }
   }
   return false
 }
@@ -535,7 +579,8 @@ function claimCells(unit: Unit, claims: Map<string, string>) {
   if (unit.kind === 'truck' && unit.reservedDock) {
     const dock = DOCKS.find((d) => d.id === unit.reservedDock)
     if (dock) {
-      for (let z = 1.0; z <= 6.8; z += 2.2) {
+      const maxZ = unit.v > 0.25 || unit.z > 3.6 ? 11.4 : 4.6
+      for (let z = 0.4; z <= maxZ; z += 2.2) {
         const key = cellKey(dock.x, z)
         if (!claims.has(key)) claims.set(key, unit.id)
       }
@@ -572,7 +617,7 @@ export function tick(dt: number) {
 
     const evIndex = runtime.eventIndex[unit.id] ?? 0
     let event = nextEvent(route, evIndex)
-    if (event && unit.s >= event.s - 0.08 && unit.phase === 'drive') {
+    if (event && unit.s >= event.s && unit.phase === 'drive') {
       runtime.eventIndex[unit.id] = evIndex + 1
       beginAction(unit, event)
       event = nextEvent(route, runtime.eventIndex[unit.id] ?? 0)
@@ -595,33 +640,49 @@ export function tick(dt: number) {
     if (unit.phase !== 'drive') target = 0
     if (dockBlocked(unit, event)) target = 0
 
-    const lookAhead = unit.kind === 'truck' ? Math.max(1.1, unit.v * 0.55) : Math.max(0.55, unit.v * 0.4)
+    const lookAhead = curve > 0.45
+      ? 0.5
+      : unit.kind === 'truck'
+        ? Math.max(2.6, unit.v * 0.55)
+        : Math.max(0.55, unit.v * 0.4)
     const look = sampleAt(route, Math.min(route.length, unit.s + lookAhead))
-    if (blockedByOthers(unit, look.x, look.z, look.heading, claims)) target = 0
-
-    const a = target > unit.v ? accel : 4.6
-    if (target > unit.v) unit.v = Math.min(target, unit.v + a * step)
-    else unit.v = Math.max(target, unit.v - a * step)
+    if (unit.v > 0.25 && blockedByOthers(unit, look.x, look.z, look.heading, claims)) target = 0
+    const following = truckOnPath(unit, route, unit.s)
+    if (following) target = 0
 
     if (unit.phase === 'drive') {
-      const nextS = Math.min(route.length, unit.s + unit.v * step)
+      const steerLook = sampleAt(route, Math.min(route.length, unit.s + 0.35))
+      const err = steerToward(unit, steerLook.heading)
+      const headingReady = err <= 0.5
+      const inch = sampleAt(route, Math.min(route.length, unit.s + 0.16))
+      const inchClear = !blockedByOthers(unit, inch.x, inch.z, inch.heading, claims)
+      let speed = 0
+      if (headingReady && inchClear) {
+        if (target > 0) speed = Math.max(unit.v, 0.45)
+        else if (!following && unit.v < 0.2) speed = 0.4
+        else speed = unit.v
+      }
+      const nextS = Math.min(route.length, unit.s + speed * step)
       const next = sampleAt(route, nextS)
-      if (!blockedByOthers(unit, next.x, next.z, next.heading, claims)) {
+      if (headingReady && speed > 0 && !blockedByOthers(unit, next.x, next.z, next.heading, claims)) {
+        const a = target > unit.v ? accel : 4.6
+        if (target > unit.v) unit.v = Math.min(Math.max(target, speed), unit.v + a * step)
+        else unit.v = Math.max(target, unit.v - a * step)
         unit.s = nextS
         unit.x = next.x
         unit.z = next.z
-        unit.heading = next.heading
       } else {
-        unit.v = 0
+        unit.v = headingReady ? 0 : Math.min(unit.v, 0.15)
       }
     } else {
+      unit.v = Math.max(0, unit.v - 4.6 * step)
       unit.x = pose.x
       unit.z = pose.z
-      unit.heading = pose.heading
+      steerToward(unit, pose.heading)
     }
 
     if (unit.kind === 'forklift' && unit.phase === 'drive') {
-      unit.lift = damp(unit.lift, unit.carryingId ? 0.58 : 0, 5, step)
+      unit.lift = damp(unit.lift, unit.carryingId ? 0.22 : 0, 5, step)
       unit.insert = damp(unit.insert, 0, 5, step)
     }
 
@@ -671,15 +732,19 @@ export function overlapViolations() {
   const list = Object.values(runtime.units)
   for (let i = 0; i < list.length; i += 1) {
     const a = list[i]
-    const boxA = vehicleBox(a.kind, a.x, a.z, a.heading)
+    const boxesA = vehicleBoxes(a.kind, a.x, a.z, a.heading)
     for (let j = i + 1; j < list.length; j += 1) {
       const b = list[j]
-      if (overlapOBB(boxA, vehicleBox(b.kind, b.x, b.z, b.heading), 0.02)) {
-        hits.push(`${a.id} overlaps ${b.id}`)
+      for (const boxA of boxesA) {
+        for (const boxB of vehicleBoxes(b.kind, b.x, b.z, b.heading)) {
+          if (overlapOBB(boxA, boxB, 0.02)) hits.push(`${a.id} overlaps ${b.id}`)
+        }
       }
     }
     for (const wall of STATIC_BOXES) {
-      if (overlapAabbObb(wall, boxA, 0)) hits.push(`${a.id} hits static`)
+      for (const boxA of boxesA) {
+        if (overlapAabbObb(wall, boxA, 0)) hits.push(`${a.id} hits static`)
+      }
     }
     if (!unitOnSurface(a.kind, a.x, a.z) && a.kind === 'truck' && !truckOnRoad(a.x, a.z)) {
       hits.push(`${a.id} off road`)
@@ -690,6 +755,16 @@ export function overlapViolations() {
   }
   return hits
 }
+
+export function sweptOverlap(prev: { x: number; z: number; heading: number }, unit: Unit) {
+  for (const t of [0, 0.5, 1]) {
+    const pose = lerpPose(prev, unit, t)
+    if (poseHits(unit.kind, pose.x, pose.z, pose.heading, unit.id, 0.02)) return true
+  }
+  return false
+}
+
+export { cargoInForkEnvelope }
 
 export const useYard = create<YardState>((set) => ({
   selectedId: 'fl-10',

@@ -1,8 +1,15 @@
 import { useFillRole, useMaterialColor, useThemedHex, useWhiteFills } from '../../../kit/theme'
 import { RoundCyl, SoftBox, Wheel } from '../../../kit/clay'
+import { Pallet } from './Pallet'
+
+export type ForkCargo = {
+  stacks: number
+  wrap: 'tan' | 'blue'
+  seed: number
+}
 
 /** Chunky toy forklift: blue chassis, yellow body, black mast and cage. Forks face +Z. */
-export function Forklift({ lift = 0, insert = 0 }: { lift?: number; insert?: number }) {
+export function Forklift({ lift = 0, insert = 0, cargo = null }: { lift?: number; insert?: number; cargo?: ForkCargo | null }) {
   const yellow = useMaterialColor('accent2')
   const chassisRole = useFillRole('accent1')
   const bodyRole = useFillRole('accent2')
@@ -60,6 +67,11 @@ export function Forklift({ lift = 0, insert = 0 }: { lift?: number; insert?: num
       {/* forks */}
       <SoftBox size={[0.12, 0.07, 1.12]} r={0.03} color="#3b4256" position={[-0.24, forkY, forkZ]} />
       <SoftBox size={[0.12, 0.07, 1.12]} r={0.03} color="#3b4256" position={[0.24, forkY, forkZ]} />
+      {cargo ? (
+        <group position={[0, forkY + 0.02, forkZ - 0.04]} scale={0.58}>
+          <Pallet stacks={cargo.stacks} wrap={cargo.wrap} seed={cargo.seed} />
+        </group>
+      ) : null}
       {/* lamp */}
       <SoftBox size={[0.12, 0.08, 0.12]} r={0.04} color={lamp} position={[0, 2.3, -0.56]} cast={false} />
       <Wheel position={[-0.6, 0.3, 0.42]} radius={0.3} width={0.26} />
