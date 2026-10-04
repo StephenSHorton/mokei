@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import { HashRouter } from './app/router.tsx'
 import { activateScene, sceneIdFromSearch } from './kit/scene'
+import './kit/scene/blank'
+import './kit/scene/yardline'
 import Showcase from './pages/Showcase.tsx'
 import './index.css'
 

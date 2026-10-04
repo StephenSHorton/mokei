@@ -1,0 +1,72 @@
+name: Kit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  pkg-up-to-date:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build:kit
+      - name: pkg/ matches sources
+        run: git diff --exit-code -- pkg
+      - run: npm run build
+
+  consumer-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: smoke-src
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Anonymous install from this SHA + production build
+        env:
+          GITHUB_TOKEN: ''
+          GH_TOKEN: ''
+        run: |
+          git config --global --unset-all credential.helper || true
+          cp -R smoke-src/scripts/consumer-smoke /tmp/mokei-consumer
+          cd /tmp/mokei-consumer
+          npm install
+          npm install "github:StephenSHorton/mokei#${GITHUB_SHA}"
+          npm run build
+          echo '--- bundle proof ---'
+          if rg -n 'Yardline|forklift|FL-10|Northpoint|dispatchYardEvent|warehouse yard' dist; then
+            echo 'Yardline leaked into clay-only consumer bundle' >&2
+            exit 1
+          fi
+          echo 'no Yardline strings in consumer dist'
+          wc -c dist/assets/*
+
+  consumer-install-main:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: smoke-src
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Anonymous install from main
+        env:
+          GITHUB_TOKEN: ''
+          GH_TOKEN: ''
+        run: |
+          git config --global --unset-all credential.helper || true
+          cp -R smoke-src/scripts/consumer-smoke /tmp/mokei-consumer-main
+          cd /tmp/mokei-consumer-main
+          npm install
+          npm install github:StephenSHorton/mokei
+          npm run build

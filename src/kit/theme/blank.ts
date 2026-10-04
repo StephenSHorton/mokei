@@ -4,6 +4,6 @@ import type { ThemeDefinition } from './types'
 export const blankTheme = {
   id: 'blank',
   name: 'Blank diorama',
-  description: 'Sandstone clay and ochre accents. A quarry theme would replace this file.',
+  description: 'Sandstone clay and ochre accents for the blank starter pad.',
   dataTheme: 'blank',
 } as const satisfies ThemeDefinition

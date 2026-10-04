@@ -26,6 +26,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useLook } from '@/kit/clay'
 import { REGISTRY_BASE, registryAddCommand, registryCatalog } from '@/kit/registry-catalog'
 import { activateScene, getScene, listScenes, type SceneDefinition } from '@/kit/scene'
+import '@/kit/scene/blank'
+import '@/kit/scene/yardline'
 import { applyTheme, listThemes, type ThemeDefinition } from '@/kit/theme'
 
 const SWATCHES: { name: string; value: string; varName: string }[] = [

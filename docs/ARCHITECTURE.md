@@ -6,8 +6,8 @@ Mokei is the design system. **Yardline** is the first theme + scene (playground 
 
 ```
 src/kit/
-  theme/          token sets (yardline, blank, …)
-  scene/          registry + Scene contract + activateScene
+  theme/          token sets (yardline, blank, quarry, …)
+  scene/          empty registry + Scene contract + registerScene / activateScene
   clay/           SoftBox, RoundCyl, SOFT_EDGE_SCALE, Matte, look, Lights, PostFX, ClayGround, ClayCameraRig
 src/scenes/
   yardline/       warehouse World, models, sim, HUD
@@ -16,12 +16,12 @@ src/scenes/
 
 ```ts
 import { activateScene, getScene } from 'mokei'
+import 'mokei/scene/yardline' // opt-in; mokei/scene does not ship worlds
 
 activateScene('yardline')
 const scene = getScene('yardline')
-// <Canvas><scene.World /></Canvas>
-// {scene.Hud ? <scene.Hud /> : null}
-scene.dispatch?.({ type: 'task-started', id: 'fl-10' })
+// <Canvas><scene?.World /></Canvas>
+scene?.dispatch?.({ type: 'task-started', id: 'fl-10' })
 ```
 
 See [SCENES.md](./SCENES.md) to author a quarry (or any) scene.
@@ -43,13 +43,13 @@ See [SCENES.md](./SCENES.md) to author a quarry (or any) scene.
 
 ## Git dependency
 
-`package.json` `exports` point at `src/kit` and the scene packages. No `prepare` script.
+Compiled kit lives in `pkg/` (ESM + `.d.ts` + CSS). `dist/` is the Vite playground and is gitignored. No `prepare` script — git install does not need TypeScript.
 
 ```ts
 import { SoftBox, SOFT_EDGE_SCALE } from 'mokei/clay'
-import { getScene } from 'mokei/scene'
-import { yardlineScene } from 'mokei/scene/yardline'
-import { blankScene } from 'mokei/scene/blank'
+import { getScene, registerScene } from 'mokei/scene'
+import type { SceneEvent } from 'mokei/scene'
+import 'mokei/scene/yardline' // only if you want the warehouse
 ```
 
 ## Routes
