@@ -19,11 +19,31 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Kbd } from '@/components/ui/kbd'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import { Stepper } from '@/components/ui/stepper'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useLook } from '../look'
 import { DOCKS, trucksOnSite, useYard, WAREHOUSE_ID, type Unit } from '../sim/yard'
 import { FloatingLabels } from './FloatingLabel'
 import {
-  Avatar,
+  Avatar as UserMark,
   BoxArt,
   BrandCube,
   DockBoard,
@@ -59,9 +79,9 @@ function useHudScale() {
 export function Hud() {
   const scale = useHudScale()
   return (
-    <>
+    <TooltipProvider>
       <FloatingLabels />
-      <div className="hud" style={{ zoom: scale }}>
+      <div data-hud className="pointer-events-none absolute inset-0 z-[5] text-ink tracking-[var(--track)]" style={{ zoom: scale }}>
         <TopBar />
         <KpiRow />
         <CameraStack />
@@ -69,7 +89,7 @@ export function Hud() {
         <BottomTrack />
         <UnitBoard />
       </div>
-    </>
+    </TooltipProvider>
   )
 }
 
@@ -85,49 +105,86 @@ function TopBar() {
   }, [])
 
   return (
-    <header className="topbar pointer-events-auto">
-      <div className="brand">
-        <BrandCube size={38} />
-        <span>Yardline</span>
+    <header
+      className="pointer-events-auto absolute inset-x-0 top-0 flex h-20 items-center border-b border-[color:var(--topbar-border)] bg-[color:var(--topbar-bg)] pr-[38px] pl-[60px] shadow-[var(--topbar-shadow)] backdrop-blur-[22px] backdrop-saturate-130"
+    >
+      <div className="flex w-[265px] shrink-0 items-center gap-[17px]">
+        <span className="drop-shadow-[0_4px_6px_rgba(37,99,235,0.25)]">
+          <BrandCube size={38} />
+        </span>
+        <span className="text-[length:calc(24px*var(--fs))] font-bold tracking-tight text-ink">Yardline</span>
       </div>
-      <label className="search">
-        <Search size={20} strokeWidth={2} className="search__icon" />
-        <input placeholder="Search sites, trucks, forklifts, pallets, shipments..." />
-        <kbd>/</kbd>
+      <label className="relative flex h-[46px] w-[485px] shrink-0 items-center rounded-[12px] border border-[#dde3ee] bg-[rgba(255,255,255,0.9)] shadow-[0_1px_2px_rgba(30,41,90,0.04)]">
+        <Search size={20} strokeWidth={2} className="pointer-events-none absolute left-[19px] text-ink-2" />
+        <Input variant="hud" placeholder="Search sites, trucks, forklifts, pallets, shipments..." />
+        <Kbd className="absolute top-1/2 right-[13px] grid size-[23px] -translate-y-1/2 place-items-center rounded-md border border-[#cdd5e1] bg-white p-0 text-[length:calc(12px*var(--fs))] font-medium text-muted-foreground">
+          /
+        </Kbd>
       </label>
-      <button type="button" className="site">
-        <span className="site__badge">{SITE.code}</span>
-        <span className="site__text">
-          <b>{SITE.name}</b>
-          <span>
-            {Math.round((stock / SITE.capacity) * 100)}% full · {docked}/4 docked
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="hud" size="hud-site" className="ml-[115px]" />}>
+          <span className="grid h-[34px] w-12 place-items-center rounded-lg bg-[linear-gradient(160deg,#4c86fa_0%,#2357e6_100%)] text-[length:calc(14px*var(--fs))] font-bold tracking-tight text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
+            {SITE.code}
           </span>
-        </span>
-        <ChevronRight size={18} strokeWidth={2} className="site__chev" />
-        <span className="site__menu">
-          <ChevronDown size={19} strokeWidth={2.2} />
-        </span>
-      </button>
-      <div className="live">
-        <span className="live__dot" />
-        <b>Live</b>
-        <span className="live__time">{now}</span>
-      </div>
-      <button type="button" className="bell" aria-label="Notifications">
+          <span className="ml-3 flex min-w-0 flex-1 flex-col text-left leading-[1.2]">
+            <b className="overflow-hidden text-[length:calc(15.6px*var(--fs))] font-bold tracking-tight text-ellipsis whitespace-nowrap">
+              {SITE.name}
+            </b>
+            <span className="text-[length:calc(13.7px*var(--fs))] text-muted-foreground">
+              {Math.round((stock / SITE.capacity) * 100)}% full · {docked}/4 docked
+            </span>
+          </span>
+          <ChevronRight size={18} strokeWidth={2} className="mx-3 ml-1.5 text-[#94a3b8]" />
+          <span className="grid h-full w-10 place-items-center border-l border-[#dde3ee] text-ink-2">
+            <ChevronDown size={19} strokeWidth={2.2} />
+          </span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-[295px]">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Sites</DropdownMenuLabel>
+            <DropdownMenuItem>
+              {SITE.name}
+              <span className="ml-auto text-muted-foreground">{SITE.code}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem>East Gate</DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>Manage sites</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Badge variant="success" size="hud-live" className="ml-[18px]">
+        <span className="mr-[9px] size-[9px] rounded-full bg-[#22c55e] shadow-[0_0_0_4px_rgba(34,197,94,0.18)]" />
+        <b className="mr-[9px] font-semibold text-[#15803d]">Live</b>
+        <span className="font-semibold text-ink">{now}</span>
+      </Badge>
+      <Button type="button" variant="hud-ghost" size="hud-bell" className="relative ml-8" aria-label="Notifications">
         <Bell size={23} strokeWidth={2} />
-        <span />
-      </button>
-      <span className="topbar__rule" />
-      <div className="user">
-        <span className="user__avatar">
-          <Avatar />
-        </span>
-        <span className="user__text">
-          <b>Jordan Hale</b>
-          <span>Yard Lead</span>
-        </span>
-        <ChevronDown size={20} strokeWidth={2} className="user__chev" />
-      </div>
+        <span className="absolute top-[3px] right-[3px] size-[9px] rounded-full bg-destructive shadow-[0_0_0_2px_#fff]" />
+      </Button>
+      <Separator orientation="vertical" className="mx-[18px] ml-5 h-[38px] w-px self-auto bg-[#dfe5ef]" />
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="hud-ghost" className="h-auto flex-1 justify-start gap-0 rounded-none px-0 font-normal" />}>
+          <Avatar className="size-[50px] after:border-0">
+            <AvatarFallback className="bg-white shadow-[0_2px_8px_rgba(30,41,90,0.16)]">
+              <UserMark />
+            </AvatarFallback>
+          </Avatar>
+          <span className="ml-[19px] flex flex-col text-left leading-[1.25]">
+            <b className="text-[length:calc(16.5px*var(--fs))] font-semibold tracking-tight">Jordan Hale</b>
+            <span className="text-[length:calc(14.8px*var(--fs))] text-muted-foreground">Yard Lead</span>
+          </span>
+          <ChevronDown size={20} strokeWidth={2} className="ml-auto text-ink-2" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Jordan Hale</DropdownMenuLabel>
+            <DropdownMenuItem>Profile</DropdownMenuItem>
+            <DropdownMenuItem>Shift notes</DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>Sign out</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   )
 }
@@ -140,7 +197,7 @@ function KpiRow() {
   const units = useYard((s) => s.units)
   const trucks = trucksOnSite(units)
   return (
-    <div className="kpis">
+    <div className="absolute top-[94px] left-[37px] flex gap-[13px]">
       <Kpi icon={<KpiCube />} label="Stock on hand" value={stock.toLocaleString()} delta="+20" sub={`pallets · ${SITE.code}`} />
       <Kpi icon={<KpiTruck />} label="Trucks on site" value={String(trucks)} delta="+1" sub={`1 inbound · ${SITE.code}`} />
       <Kpi icon={<KpiClock />} label="On-time delivery" value={`${onTime.toFixed(1)}%`} delta="+0.4%" sub={`last 30 days · ${SITE.code}`} />
@@ -150,22 +207,22 @@ function KpiRow() {
 
 function Kpi({ icon, label, value, delta, sub }: { icon: ReactNode; label: string; value: string; delta: string; sub: string }) {
   return (
-    <div className="glass kpi pointer-events-auto">
-      <span className="kpi__tile">{icon}</span>
-      <div className="kpi__body">
-        <p className="kpi__label">{label}</p>
-        <p className="kpi__value">
+    <Card size="hud" className="pointer-events-auto flex h-[83px] w-[254px] flex-row items-center rounded-[14px] px-4">
+      <span className="grid size-[52px] shrink-0 place-items-center rounded-[12px] bg-[#e9eefc]">{icon}</span>
+      <div className="ml-[14px] leading-[1.2]">
+        <p className="m-0 text-[length:calc(14.2px*var(--fs))] font-medium text-ink-2">{label}</p>
+        <p className="my-px mb-0.5 flex items-center text-[length:calc(24px*var(--fs))] font-bold tracking-tight text-ink tabular-nums">
           {value}
-          <span className="delta">
-            <span className="delta__chip">
+          <span className="ml-3 inline-flex items-center text-[length:calc(14.2px*var(--fs))] font-medium tracking-normal text-[#16a34a]">
+            <span className="mr-1.5 grid size-5 place-items-center rounded-full bg-[#dcfce7]">
               <ArrowUp size={12} strokeWidth={2.6} />
             </span>
             {delta}
           </span>
         </p>
-        <p className="kpi__sub">{sub}</p>
+        <p className="m-0 text-[length:calc(14.2px*var(--fs))] text-muted-foreground">{sub}</p>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -176,25 +233,36 @@ function CameraStack() {
   const rotateBy = useLook((s) => s.rotateBy)
   const resetView = useLook((s) => s.resetView)
   return (
-    <div className="glass camstack pointer-events-auto">
-      <button type="button" aria-label="Zoom in" onClick={() => zoomBy(3)}>
+    <Card size="hud" className="pointer-events-auto absolute top-[94px] right-[449px] flex w-[47px] flex-col items-center rounded-[14px] py-1.5">
+      <CamBtn label="Zoom in" onClick={() => zoomBy(3)}>
         <Plus size={21} strokeWidth={2} />
-      </button>
-      <button type="button" aria-label="Zoom out" onClick={() => zoomBy(-3)}>
+      </CamBtn>
+      <CamBtn label="Zoom out" onClick={() => zoomBy(-3)}>
         <Minus size={21} strokeWidth={2} />
-      </button>
-      <span className="camstack__rule" />
-      <button type="button" aria-label="Rotate left" onClick={() => rotateBy(-15)}>
+      </CamBtn>
+      <Separator className="my-[3px] h-px w-6 bg-[#e2e8f0]" />
+      <CamBtn label="Rotate left" onClick={() => rotateBy(-15)}>
         <RotateCcw size={19} strokeWidth={2.1} />
-      </button>
-      <button type="button" aria-label="Rotate right" onClick={() => rotateBy(15)}>
+      </CamBtn>
+      <CamBtn label="Rotate right" onClick={() => rotateBy(15)}>
         <RotateCw size={19} strokeWidth={2.1} />
-      </button>
-      <span className="camstack__rule" />
-      <button type="button" aria-label="Reset view" onClick={resetView}>
+      </CamBtn>
+      <Separator className="my-[3px] h-px w-6 bg-[#e2e8f0]" />
+      <CamBtn label="Reset view" onClick={resetView}>
         <House size={19} strokeWidth={2.1} />
-      </button>
-    </div>
+      </CamBtn>
+    </Card>
+  )
+}
+
+function CamBtn({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger render={<Button type="button" variant="hud-cam" size="hud-cam" aria-label={label} onClick={onClick} />}>
+        {children}
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -215,33 +283,37 @@ function Inspector() {
       : { eyebrow: unit!.accent === 'teal' ? 'Nordline Freight' : 'Yardline Freight', title: unit!.code, sub: truckMeta(unit!.id), art: <TruckArt width={46} /> }
 
   return (
-    <aside className="glass inspector pointer-events-auto">
-      <div className="insp-head">
-        <span className="insp-head__thumb">{head.art}</span>
-        <div className="insp-head__text">
-          <p className="eyebrow">{head.eyebrow}</p>
-          <h2>{head.title}</h2>
-          <p className="insp-head__sub">{head.sub}</p>
+    <Card size="hud" className="pointer-events-auto absolute top-[94px] right-8 w-[403px] rounded-2xl px-[19px] pt-4 pb-3">
+      <div className="relative flex items-start gap-[13px]">
+        <span className="grid size-[52px] shrink-0 place-items-center rounded-[12px] bg-[#e8edf9]">{head.art}</span>
+        <div className="min-w-0 flex-1 leading-[1.2]">
+          <p className="mt-px mb-px pr-[110px] text-[length:calc(11.8px*var(--fs))] font-bold tracking-[0.06em] text-blue-deep uppercase">
+            {head.eyebrow}
+          </p>
+          <h2 className="m-0 overflow-hidden pr-[110px] text-[length:calc(18.6px*var(--fs))] font-bold tracking-tight text-ellipsis whitespace-nowrap">
+            {head.title}
+          </h2>
+          <p className="mt-0.5 mb-0 text-[length:calc(14.2px*var(--fs))] text-muted-foreground">{head.sub}</p>
         </div>
-        <div className="insp-head__actions">
-          <button type="button" className="icon-btn" aria-label="Locate">
+        <div className="absolute top-0 right-0 flex gap-[7px]">
+          <Button type="button" variant="hud-icon" size="hud-icon" aria-label="Locate">
             <LocateFixed size={18} strokeWidth={2.1} />
-          </button>
+          </Button>
           {warehouse ? null : (
             <>
-              <button type="button" className="icon-btn" aria-label="Open">
+              <Button type="button" variant="hud-icon" size="hud-icon" aria-label="Open">
                 <ArrowUpRight size={19} strokeWidth={2.1} />
-              </button>
-              <button type="button" className="icon-btn" aria-label="Close" onClick={() => select(null)}>
+              </Button>
+              <Button type="button" variant="hud-icon" size="hud-icon" aria-label="Close" onClick={() => select(null)}>
                 <X size={18} strokeWidth={2.2} />
-              </button>
+              </Button>
             </>
           )}
         </div>
       </div>
-      <div className="insp-rule" />
+      <Separator className="my-3 mt-3 mb-[11px] bg-[#e3e8f0]" />
       {warehouse ? <WarehouseBody /> : unit!.kind === 'forklift' ? <ForkliftBody unit={unit!} /> : <TruckBody unit={unit!} />}
-    </aside>
+    </Card>
   )
 }
 
@@ -276,25 +348,23 @@ function statusFor(unit: Unit): { label: string; tone: Tone } {
   return { label: 'En route', tone: 'blue' }
 }
 
-function Pill({ tone, children }: { tone: Tone; children: ReactNode }) {
-  return <span className={`pill pill--${tone}`}>{children}</span>
-}
-
-function Bar({ value, tone = 'blue' }: { value: number; tone?: 'blue' | 'green' }) {
-  return (
-    <span className="bar">
-      <span className={`bar__fill bar__fill--${tone}`} style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
-    </span>
-  )
+function badgeVariant(tone: Tone) {
+  if (tone === 'green') return 'success' as const
+  if (tone === 'amber') return 'warning' as const
+  if (tone === 'blue') return 'info' as const
+  return 'slate' as const
 }
 
 function Rows({ rows }: { rows: [string, ReactNode, boolean?][] }) {
   return (
-    <dl className="rows">
-      {rows.map(([label, value, link]) => (
-        <div key={label} className="rows__row">
-          <dt>{label}</dt>
-          <dd className={link ? 'is-link' : undefined}>{value}</dd>
+    <dl className="m-0">
+      {rows.map(([label, value, link], i) => (
+        <div
+          key={label}
+          className={`flex h-[31px] items-center justify-between text-[length:calc(14.3px*var(--fs))] ${i === rows.length - 1 ? '' : 'border-b border-[#e6ebf2]'}`}
+        >
+          <dt className="text-muted-foreground">{label}</dt>
+          <dd className={`m-0 font-semibold ${link ? 'text-blue-deep' : 'text-ink'}`}>{value}</dd>
         </div>
       ))}
     </dl>
@@ -305,12 +375,14 @@ function ForkliftBody({ unit }: { unit: Unit }) {
   const status = statusFor(unit)
   return (
     <>
-      <div className="insp-status">
-        <Pill tone={status.tone}>{status.label}</Pill>
+      <div className="flex items-center gap-3 text-[length:calc(14.2px*var(--fs))] text-muted-foreground">
+        <Badge variant={badgeVariant(status.tone)} size="hud">
+          {status.label}
+        </Badge>
         <span>{unit.title}</span>
       </div>
-      <div className="insp-battery">
-        <Bar value={unit.battery} tone="green" />
+      <div className="my-[15px] mb-1.5 flex items-center gap-6 text-[length:calc(14px*var(--fs))] whitespace-nowrap text-muted-foreground">
+        <Progress value={unit.battery} tone="green" size="hud-battery" className="min-w-0 flex-1" />
         <span>Battery {Math.round(unit.battery)}%</span>
       </div>
       <Rows
@@ -332,15 +404,19 @@ function TruckBody({ unit }: { unit: Unit }) {
   const progress = status.tone === 'green' ? 2 : 0
   return (
     <>
-      <div className="insp-status">
-        <Pill tone={status.tone}>{status.label}</Pill>
+      <div className="flex items-center gap-3 text-[length:calc(14.2px*var(--fs))] text-muted-foreground">
+        <Badge variant={badgeVariant(status.tone)} size="hud">
+          {status.label}
+        </Badge>
         <span>
           {SITE.code} · {bay ? bay.label : 'Yard'} · {progress}/6 pallets
         </span>
       </div>
-      <div className="insp-battery">
-        <Bar value={(progress / 6) * 100} tone="green" />
-        <span>{progress}/6</span>
+      <div className="my-[15px] mb-1.5 flex items-center gap-6 text-[length:calc(14px*var(--fs))] whitespace-nowrap text-muted-foreground">
+        <Progress value={(progress / 6) * 100} tone="green" size="hud-battery" className="min-w-0 flex-1" />
+        <span>
+          {progress}/6
+        </span>
       </div>
       <Rows
         rows={[
@@ -363,69 +439,73 @@ function WarehouseBody() {
   const working = Object.values(units).filter((u) => u.kind === 'forklift' && u.speed > 0.1).length
   return (
     <>
-      <div className="insp-status">
-        <Pill tone="green">Operational</Pill>
+      <div className="flex items-center gap-3 text-[length:calc(14.2px*var(--fs))] text-muted-foreground">
+        <Badge variant="success" size="hud">
+          Operational
+        </Badge>
         <span>{docked} docked · 1 arriving · 3 staged</span>
       </div>
-      <div className="tiles">
-        <div className="tile">
-          <p>Stock on hand</p>
-          <p className="tile__value">
-            {stock.toLocaleString()} <small>/ {SITE.capacity.toLocaleString()}</small>
+      <div className="mt-2.5 grid grid-cols-2 gap-[9px]">
+        <div className="rounded-[12px] bg-[rgba(233,239,248,0.85)] px-[11px] pt-2 pb-[9px] text-[length:calc(13.7px*var(--fs))] leading-[1.25] text-[#475569]">
+          <p className="m-0">Stock on hand</p>
+          <p className="mt-px mb-1.5 text-[length:calc(18.5px*var(--fs))] font-bold tracking-tight text-ink">
+            {stock.toLocaleString()} <small className="text-[length:calc(14px*var(--fs))] font-medium tracking-normal text-[#475569]">/ {SITE.capacity.toLocaleString()}</small>
           </p>
-          <Bar value={(stock / SITE.capacity) * 100} />
+          <Progress value={(stock / SITE.capacity) * 100} tone="blue" size="hud" />
         </div>
-        <div className="tile">
-          <p>Truck bays</p>
-          <p className="tile__value">
-            {docked} <small>/ 4 busy</small>
+        <div className="rounded-[12px] bg-[rgba(233,239,248,0.85)] px-[11px] pt-2 pb-[9px] text-[length:calc(13.7px*var(--fs))] leading-[1.25] text-[#475569]">
+          <p className="m-0">Truck bays</p>
+          <p className="mt-px mb-1.5 text-[length:calc(18.5px*var(--fs))] font-bold tracking-tight text-ink">
+            {docked} <small className="text-[length:calc(14px*var(--fs))] font-medium tracking-normal text-[#475569]">/ 4 busy</small>
           </p>
-          <Bar value={(docked / 4) * 100} tone="green" />
+          <Progress value={(docked / 4) * 100} tone="green" size="hud" />
         </div>
-        <div className="tile">
-          <p>Outbound today</p>
-          <p className="tile__value">
-            31 <small>trucks</small>
+        <div className="rounded-[12px] bg-[rgba(233,239,248,0.85)] px-[11px] pt-2 pb-[9px] text-[length:calc(13.7px*var(--fs))] leading-[1.25] text-[#475569]">
+          <p className="m-0">Outbound today</p>
+          <p className="mt-px mb-0 text-[length:calc(18.5px*var(--fs))] font-bold tracking-tight text-ink">
+            31 <small className="text-[length:calc(14px*var(--fs))] font-medium tracking-normal text-[#475569]">trucks</small>
           </p>
         </div>
-        <div className="tile">
-          <p>Put-aways today</p>
-          <p className="tile__value">
-            18 <small>pallets</small>
+        <div className="rounded-[12px] bg-[rgba(233,239,248,0.85)] px-[11px] pt-2 pb-[9px] text-[length:calc(13.7px*var(--fs))] leading-[1.25] text-[#475569]">
+          <p className="m-0">Put-aways today</p>
+          <p className="mt-px mb-0 text-[length:calc(18.5px*var(--fs))] font-bold tracking-tight text-ink">
+            18 <small className="text-[length:calc(14px*var(--fs))] font-medium tracking-normal text-[#475569]">pallets</small>
           </p>
         </div>
       </div>
-      <div className="inv-head">
-        <b>Inventory</b>
+      <div className="mt-[13px] mb-1 flex items-baseline justify-between text-[length:calc(13.7px*var(--fs))] text-muted-foreground">
+        <b className="text-[length:calc(14.2px*var(--fs))] font-semibold text-ink">Inventory</b>
         <span>units</span>
       </div>
-      <ul className="inv">
+      <ul className="m-0 list-none p-0">
         {[
           ['Cardboard Box (M)', '1,906', 'tan', 'In Stock'],
           ['Safety Helmet', '334', 'tan', 'In Stock'],
           ['Nitrile Gloves', '95', 'blue', 'Low Stock'],
           ['Stretch Film', '208', 'white', 'In Stock'],
         ].map(([name, qty, tone, state]) => (
-          <li key={name}>
-            <span className="inv__art">
+          <li key={name} className="flex h-[39px] items-center border-b border-[#e6ebf2] text-[length:calc(14.2px*var(--fs))]">
+            <span className="grid w-8 place-items-center">
               <BoxArt tone={tone as 'tan' | 'blue' | 'white'} />
             </span>
-            <span className="inv__name">{name}</span>
-            <b>{qty}</b>
-            <Pill tone={state === 'In Stock' ? 'green' : 'amber'}>{state}</Pill>
+            <span className="ml-4 flex-1 text-ink-2">{name}</span>
+            <b className="mr-[14px] w-[70px] text-right font-semibold tabular-nums">{qty}</b>
+            <Badge variant={state === 'In Stock' ? 'success' : 'warning'} size="hud" className="h-[27px] w-[92px] justify-center">
+              {state}
+            </Badge>
           </li>
         ))}
       </ul>
-      <div className="fleet">
-        <div className="inv-head">
-          <b>Forklift fleet</b>
+      <div>
+        <div className="mt-[9px] mb-1 flex items-baseline justify-between text-[length:calc(13.7px*var(--fs))] text-muted-foreground">
+          <b className="text-[length:calc(14.2px*var(--fs))] font-semibold text-ink">Forklift fleet</b>
           <span>{working}/2 working</span>
         </div>
-        <div className="fleet__row">
-          <b>FL-10</b>
-          <span>{units['fl-10']?.title ?? 'Idle'}</span>
-          <Bar value={units['fl-10']?.battery ?? 80} tone="green" />
-          <span className="fleet__pct">{Math.round(units['fl-10']?.battery ?? 80)}%</span>
+        <div className="flex h-[26px] items-center gap-3 text-[length:calc(13.7px*var(--fs))] text-[#475569]">
+          <b className="font-bold text-ink">FL-10</b>
+          <span className="flex-1 text-right">{units['fl-10']?.title ?? 'Idle'}</span>
+          <Progress value={units['fl-10']?.battery ?? 80} tone="green" size="hud" className="w-[52px]" />
+          <span className="w-[34px] text-right">{Math.round(units['fl-10']?.battery ?? 80)}%</span>
         </div>
       </div>
     </>
@@ -447,44 +527,37 @@ function BottomTrack() {
   const task = truck?.task.toLowerCase() ?? ''
   const current = task.includes('unloading') ? 4 : task.includes('align') || task.includes('apron') || task.includes('inbound') ? 3 : 4
   const done = task.includes('pull') || task.includes('outbound') || task.includes('loop') || task.includes('re-enter')
+  const pill = done ? 'Delivered' : current === 4 ? 'Unloading' : 'In transit'
 
   return (
-    <div className="glass track pointer-events-auto">
-      <div className="track__main">
-        <div className="track__head">
-          <span className="track__title">
+    <Card size="hud" className="pointer-events-auto absolute bottom-[42px] left-[37px] flex h-[138px] w-[985px] flex-row items-center rounded-2xl pr-[15px] pl-[22px]">
+      <div className="min-w-0 flex-1 self-stretch pt-5">
+        <div className="flex items-center justify-between pr-[22px]">
+          <span className="flex items-center gap-[15px] text-[length:calc(17.5px*var(--fs))] font-bold tracking-tight">
             <TrackTruck />
             Shipment Tracking
           </span>
-          <span className="track__meta">{truck?.code ?? 'TRK-18'} · Yardline Freight</span>
+          <span className="text-[length:calc(14.5px*var(--fs))] text-[#475569]">{truck?.code ?? 'TRK-18'} · Yardline Freight</span>
         </div>
-        <ol className="steps">
-          {STEPS.map((step, i) => {
-            const state = done || i < current ? 'done' : i === current ? 'current' : 'todo'
-            return (
-              <li key={step.label} className={`step step--${state}`}>
-                {i > 0 ? <span className={`step__line ${i <= current || done ? 'is-on' : ''}`} /> : null}
-                <span className="step__dot">{step.icon}</span>
-                <span className="step__label">{step.label}</span>
-                <span className="step__time">{step.time}</span>
-              </li>
-            )
-          })}
-        </ol>
+        <Stepper steps={STEPS} current={current} done={done} />
       </div>
-      <button type="button" className="shipcard">
-        <span className="shipcard__art">
+      <Button type="button" variant="hud-ship" size="hud-ship">
+        <span className="grid w-[82px] shrink-0 place-items-center">
           <TruckArt width={78} />
         </span>
-        <span className="shipcard__body">
-          <b>#SHP-44012</b>
+        <span className="ml-3 flex min-w-0 flex-1 flex-col items-start text-[length:calc(13.9px*var(--fs))] leading-[1.3] text-[#475569]">
+          <b className="text-[length:calc(15.8px*var(--fs))] font-bold tracking-tight text-ink">#SHP-44012</b>
           <span>To: Northpoint Hub</span>
-          <Pill tone="green">{done ? 'Delivered' : current === 4 ? 'Unloading' : 'In transit'}</Pill>
-          <span className="shipcard__meta">{SITE.code} · Bay 3 · 13 min left</span>
+          <Badge variant="success" size="hud-sm" className="my-1">
+            {pill}
+          </Badge>
+          <span className="whitespace-nowrap">
+            {SITE.code} · Bay 3 · 13 min left
+          </span>
         </span>
-        <ChevronRight size={20} strokeWidth={2.2} className="shipcard__chev" />
-      </button>
-    </div>
+        <ChevronRight size={20} strokeWidth={2.2} className="shrink-0 text-ink" />
+      </Button>
+    </Card>
   )
 }
 
@@ -515,7 +588,7 @@ function UnitBoard() {
         dot: t.accent === 'teal' ? '#0f766e' : '#2563eb',
         text: `${t.code} · ${t.accent === 'teal' ? 'Nordline' : 'Yardline'}`,
         pill: [s.tone, s.label],
-        tail: s.tone === 'green' ? <Progress value={2} of={6} /> : <span className="board__eta">{t.speed > 0.1 ? '2 min' : 'docked'}</span>,
+        tail: s.tone === 'green' ? <MiniProgress value={2} of={6} /> : <span className="pl-1">{t.speed > 0.1 ? '2 min' : 'docked'}</span>,
       }
     })
   } else {
@@ -529,65 +602,69 @@ function UnitBoard() {
         dot: '#2563eb',
         text: u.task,
         pill: [s.tone, s.label],
-        tail: u.kind === 'forklift' ? <Progress value={Math.round(u.battery)} of={100} pct /> : <span className="board__eta">{u.speed > 0.1 ? '2 min' : 'docked'}</span>,
+        tail: u.kind === 'forklift' ? <MiniProgress value={Math.round(u.battery)} of={100} pct /> : <span className="pl-1">{u.speed > 0.1 ? '2 min' : 'docked'}</span>,
       }
     })
   }
 
   return (
-    <div className="glass board pointer-events-auto">
-      <div className="board__head">
-        <span className="board__icon">
-          <DockBoard />
-        </span>
-        <div className="tabs">
-          <TabBtn active={tab === 'docks'} onClick={() => setTab('docks')} label="Docks" count={`${docked.length}/4`} />
-          <TabBtn active={tab === 'forklifts'} onClick={() => setTab('forklifts')} label="Forklifts" count={`${forklifts.filter((f) => f.speed > 0.1).length}/${forklifts.length}`} />
-          <TabBtn active={tab === 'trucks'} onClick={() => setTab('trucks')} label="Trucks" count={String(trucksOnSite(units))} />
+    <Card size="hud" className="pointer-events-auto absolute right-7 bottom-[27px] w-[522px] rounded-2xl pt-[11px] pr-[18px] pb-2.5 pl-[21px]">
+      <Tabs value={tab} onValueChange={(value) => setTab(value as Tab)} className="gap-0">
+        <div className="flex items-center">
+          <span className="grid w-[22px] place-items-center">
+            <DockBoard />
+          </span>
+          <TabsList variant="hud" className="ml-[14px]">
+            <TabsTrigger value="docks">
+              Docks <span className="ml-[3px] font-medium text-[#94a3b8] group-data-active/tabs-trigger:font-semibold group-data-active/tabs-trigger:text-blue-deep">{`${docked.length}/4`}</span>
+            </TabsTrigger>
+            <TabsTrigger value="forklifts">
+              Forklifts <span className="ml-[3px] font-medium text-[#94a3b8] group-data-active/tabs-trigger:font-semibold group-data-active/tabs-trigger:text-blue-deep">{`${forklifts.filter((f) => f.speed > 0.1).length}/${forklifts.length}`}</span>
+            </TabsTrigger>
+            <TabsTrigger value="trucks">
+              Trucks <span className="ml-[3px] font-medium text-[#94a3b8] group-data-active/tabs-trigger:font-semibold group-data-active/tabs-trigger:text-blue-deep">{String(trucksOnSite(units))}</span>
+            </TabsTrigger>
+          </TabsList>
+          <span className="ml-auto text-[length:calc(13.7px*var(--fs))] text-[#475569]">{SITE.name}</span>
         </div>
-        <span className="board__site">{SITE.name}</span>
-      </div>
-      <ul className="board__rows">
-        {rows.map((row) => (
-          <li key={row.name}>
-            <button
+      </Tabs>
+      <ul className="mt-1.5 mb-0 list-none p-0">
+        {rows.map((row, i) => (
+          <li key={row.name} className={i === 0 ? '' : 'border-t border-[#e3e8f0]'}>
+            <Button
               type="button"
-              className={row.id && row.id === selectedId ? 'is-selected' : undefined}
+              variant="hud-row"
+              size="hud-row"
+              data-selected={row.id && row.id === selectedId ? true : undefined}
               onClick={() => row.id && select(row.id)}
             >
-              <span className="board__name">
-                <b>{row.name}</b>
-                <span>{row.sub}</span>
+              <span className="flex w-[88px] shrink-0 flex-col leading-[1.1]">
+                <b className="text-[length:calc(14.2px*var(--fs))] font-bold text-ink">{row.name}</b>
+                <span className="text-[length:calc(12.3px*var(--fs))] text-muted-foreground">{row.sub}</span>
               </span>
-              <span className={`board__text ${row.dot ? '' : 'is-muted'}`}>
-                {row.dot ? <i style={{ background: row.dot }} /> : null}
+              <span className={`flex min-w-0 flex-1 items-center gap-[9px] overflow-hidden text-[length:calc(14.2px*var(--fs))] text-ellipsis whitespace-nowrap ${row.dot ? 'text-ink-2' : 'text-muted-foreground'}`}>
+                {row.dot ? <i className="size-[7px] shrink-0 rounded-full" style={{ background: row.dot }} /> : null}
                 {row.text}
               </span>
-              <span className="board__pill">
-                <Pill tone={row.pill[0]}>{row.pill[1]}</Pill>
+              <span className="w-[108px] shrink-0">
+                <Badge variant={badgeVariant(row.pill[0])} size="hud" className="h-7">
+                  {row.pill[1]}
+                </Badge>
               </span>
-              <span className="board__tail">{row.tail}</span>
-              <ChevronRight size={18} strokeWidth={2.2} className="board__chev" />
-            </button>
+              <span className="w-[66px] shrink-0 text-[length:calc(13.7px*var(--fs))] text-[#475569]">{row.tail}</span>
+              <ChevronRight size={18} strokeWidth={2.2} className="ml-1 shrink-0 text-ink-2" />
+            </Button>
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   )
 }
 
-function TabBtn({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count: string }) {
+function MiniProgress({ value, of, pct = false }: { value: number; of: number; pct?: boolean }) {
   return (
-    <button type="button" className={`tab ${active ? 'is-active' : ''}`} onClick={onClick}>
-      {label} <span>{count}</span>
-    </button>
-  )
-}
-
-function Progress({ value, of, pct = false }: { value: number; of: number; pct?: boolean }) {
-  return (
-    <span className="mini">
-      <Bar value={(value / of) * 100} tone="green" />
+    <span className="flex flex-col gap-0.5 text-[length:calc(13.2px*var(--fs))] leading-[1.1]">
+      <Progress value={(value / of) * 100} tone="green" size="hud-mini" />
       <span>{pct ? `${value}%` : `${value}/${of}`}</span>
     </span>
   )

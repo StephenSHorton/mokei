@@ -27,6 +27,7 @@ export const registryCatalog = [
   { name: 'kbd', title: 'Kbd', description: 'Keyboard hint, as in the search field.', type: 'registry:ui' },
   { name: 'label', title: 'Label', description: 'Form label.', type: 'registry:ui' },
   { name: 'dropdown-menu', title: 'Dropdown menu', description: 'Site and user menus.', type: 'registry:ui' },
+  { name: 'stepper', title: 'Stepper', description: 'Shipment tracking steps.', type: 'registry:ui' },
 ] as const satisfies readonly RegistryCatalogItem[]
 
 export function registryItemUrl(name: string) {

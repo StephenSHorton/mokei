@@ -17,6 +17,17 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        hud: "border-[#dde3ee] bg-[rgba(255,255,255,0.92)] text-ink shadow-none hover:bg-[rgba(255,255,255,0.92)] aria-expanded:bg-[rgba(255,255,255,0.92)] aria-expanded:text-ink active:translate-y-0 focus-visible:border-[#dde3ee] focus-visible:ring-0",
+        "hud-icon":
+          "border-[#d9e0eb] bg-white text-ink shadow-[0_1px_2px_rgba(30,41,90,0.05)] hover:bg-white active:translate-y-0 focus-visible:border-[#d9e0eb] focus-visible:ring-0",
+        "hud-ghost":
+          "border-transparent bg-transparent text-ink shadow-none hover:bg-transparent aria-expanded:bg-transparent active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0",
+        "hud-cam":
+          "rounded-[10px] border-transparent bg-transparent text-ink shadow-none hover:bg-[rgba(241,245,249,0.9)] active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0",
+        "hud-row":
+          "justify-start border-transparent bg-transparent text-left text-ink shadow-none hover:bg-[rgba(219,234,254,0.55)] aria-expanded:bg-transparent data-[selected=true]:bg-[rgba(219,234,254,0.55)] active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0",
+        "hud-ship":
+          "justify-start border-transparent bg-[rgba(226,233,245,0.75)] text-left text-ink shadow-none hover:bg-[rgba(226,233,245,0.75)] active:translate-y-0 focus-visible:border-transparent focus-visible:ring-0",
       },
       size: {
         default:
@@ -30,6 +41,12 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
+        "hud-site": "h-[46px] w-[295px] gap-0 rounded-[12px] pr-0 pl-1.5 font-normal",
+        "hud-icon": "size-[29px] rounded-lg [&_svg:not([class*='size-'])]:size-[18px]",
+        "hud-cam": "h-[35px] w-[38px] rounded-[10px]",
+        "hud-bell": "size-[34px] rounded-none",
+        "hud-row": "h-9 w-full gap-0 rounded-lg px-0.5 font-normal",
+        "hud-ship": "h-[113px] w-[282px] gap-0 rounded-[12px] pr-3.5 pl-3 font-normal",
       },
     },
     defaultVariants: {

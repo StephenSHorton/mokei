@@ -17,6 +17,7 @@ import { Kbd } from '@/components/ui/kbd'
 import { Label } from '@/components/ui/label'
 import { Progress, ProgressLabel, ProgressValue } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
+import { Stepper } from '@/components/ui/stepper'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { REGISTRY_BASE, registryAddCommand, registryCatalog } from '@/kit/registry-catalog'
@@ -237,6 +238,24 @@ export default function Showcase() {
           </section>
 
           <section>
+            <h2 className="mb-3 text-sm font-semibold tracking-tight">Stepper</h2>
+            <Card>
+              <CardContent className="pt-1">
+                <Stepper
+                  current={4}
+                  steps={[
+                    { label: 'Order Confirmed', time: '06:49' },
+                    { label: 'Picked', time: '08:20' },
+                    { label: 'Loaded', time: '09:12' },
+                    { label: 'In Transit', time: '09:38' },
+                    { label: 'Unloading 2/6', time: 'ETA 09:57' },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+          </section>
+
+          <section>
             <h2 className="mb-3 text-sm font-semibold tracking-tight">Avatar + menu</h2>
             <Card>
               <CardContent className="flex flex-wrap items-center gap-4 pt-1">
@@ -264,7 +283,7 @@ export default function Showcase() {
                 </DropdownMenu>
               </CardContent>
               <CardFooter>
-                HUD rebuild in a later slice will compose these instead of the measured CSS classes.
+                The Yardline playground HUD now composes these kit pieces.
               </CardFooter>
             </Card>
           </section>

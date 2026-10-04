@@ -5,18 +5,36 @@ function Progress({
   className,
   children,
   value,
+  tone = "primary",
+  size = "default",
   ...props
-}: ProgressPrimitive.Root.Props) {
+}: ProgressPrimitive.Root.Props & {
+  tone?: "primary" | "blue" | "green"
+  size?: "default" | "hud" | "hud-battery" | "hud-mini"
+}) {
   return (
     <ProgressPrimitive.Root
       value={value}
       data-slot="progress"
-      className={cn("flex flex-wrap gap-3", className)}
+      data-tone={tone}
+      data-size={size}
+      className={cn(size === "default" ? "flex flex-wrap gap-3" : "flex items-center", className)}
       {...props}
     >
       {children}
-      <ProgressTrack>
-        <ProgressIndicator />
+      <ProgressTrack
+        className={cn(
+          size === "hud" && "h-[7px] bg-[#dee5f0]",
+          size === "hud-battery" && "h-2 flex-1 bg-[#dee5f0]",
+          size === "hud-mini" && "h-[5px] w-[58px] bg-[#dee5f0]",
+        )}
+      >
+        <ProgressIndicator
+          className={cn(
+            tone === "green" && "bg-[linear-gradient(90deg,#46d86d,#1ca542)]",
+            tone === "blue" && "bg-[linear-gradient(90deg,#3f7bf0,#2a55e3)]",
+          )}
+        />
       </ProgressTrack>
     </ProgressPrimitive.Root>
   )

@@ -75,7 +75,7 @@
   --blur-glass: var(--glass-blur);
 }
 
-/* New surfaces. The playground HUD keeps its existing `.glass` class as-is. */
+/* Glass surface used by HUD cards and registry consumers. */
 @utility glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
