@@ -19,6 +19,7 @@ import { Progress, ProgressLabel, ProgressValue } from '@/components/ui/progress
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { REGISTRY_BASE, registryAddCommand, registryCatalog } from '@/kit/registry-catalog'
 import { listScenes } from '@/kit/scene'
 import { listThemes } from '@/kit/theme'
 
@@ -95,6 +96,34 @@ export default function Showcase() {
                   </Badge>
                 ))}
               </CardContent>
+            </Card>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-sm font-semibold tracking-tight">Registry</h2>
+            <p className="mb-3 text-sm text-muted-foreground">
+              Hosted at{' '}
+              <a className="text-primary underline-offset-4 hover:underline" href="https://stephenshorton.github.io/mokei/r/registry.json">
+                /r/registry.json
+              </a>
+              . Adding a component also pulls the theme.
+            </p>
+            <Card>
+              <CardContent className="divide-y divide-border pt-1">
+                {registryCatalog.map((item) => (
+                  <div key={item.name} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold">{item.title}</p>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                    </div>
+                    <code className="shrink-0 text-[11px] text-ink-2">{registryAddCommand(item.name)}</code>
+                  </div>
+                ))}
+              </CardContent>
+              <CardFooter className="text-xs text-muted-foreground">
+                Namespace:{' '}
+                <span className="font-mono">@mokei → {`${REGISTRY_BASE}/r/{name}.json`}</span>
+              </CardFooter>
             </Card>
           </section>
 

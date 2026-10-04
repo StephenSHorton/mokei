@@ -3,37 +3,77 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "description": "Glass + clay design system and swappable 3D scenes. Not published to npm — install from git.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/StephenSHorton/mokei.git"
+  },
+  "exports": {
+    ".": "./src/kit/index.ts",
+    "./theme": "./src/kit/theme/index.ts",
+    "./theme/tokens.css": "./src/kit/theme/tokens.css",
+    "./theme/preset.css": "./src/kit/theme/mokei.css",
+    "./scene": "./src/kit/scene/index.ts",
+    "./scene/yardline": "./src/kit/scene/yardline.ts"
+  },
+  "main": "./src/kit/index.ts",
+  "types": "./src/kit/index.ts",
+  "files": [
+    "src/kit",
+    "src/scene",
+    "src/models",
+    "src/sim",
+    "src/look.ts",
+    "src/lib/math.ts",
+    "src/ui/labelBridge.ts",
+    "README.md"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build:registry": "node scripts/build-registry.mjs",
+    "build": "npm run build:registry && tsc -b && vite build",
     "preview": "vite preview",
     "lint": "oxlint"
   },
+  "peerDependencies": {
+    "@react-three/drei": "^10.0.0",
+    "@react-three/fiber": "^9.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0",
+    "three": "^0.186.0"
+  },
+  "peerDependenciesMeta": {
+    "tailwindcss": {
+      "optional": true
+    }
+  },
   "dependencies": {
-    "@base-ui/react": "^1.8.0",
-    "@react-three/drei": "^10.7.9",
-    "@react-three/fiber": "^9.8.1",
     "@react-three/postprocessing": "^3.1.3",
     "@types/three": "^0.186.0",
-    "class-variance-authority": "^0.7.1",
-    "cn": "^0.4.0",
-    "leva": "^0.10.1",
-    "lucide-react": "^1.51.0",
     "postprocessing": "^6.39.5",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "shadcn": "^4.21.1",
-    "three": "^0.186.1",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@base-ui/react": "^1.8.0",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "class-variance-authority": "^0.7.1",
+    "cn": "^0.4.0",
+    "leva": "^0.10.1",
+    "lucide-react": "^1.51.0",
     "oxlint": "^1.81.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "shadcn": "^4.21.1",
     "tailwindcss": "^4.3.3",
+    "three": "^0.186.1",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
   }

@@ -1,4 +1,4 @@
-# Mokei architecture (slice 1)
+# Mokei architecture
 
 Mokei is the design system. Yardline is the first **theme + scene** that happens to also be the playground at `/`.
 
@@ -10,7 +10,8 @@ Nothing in the kit is warehouse-specific except the first registered implementat
 src/kit/
   theme/          UI token sets
     tokens.css    raw CSS variables (HUD + clay, mapped to shadcn)
-    preset.css    Tailwind v4 @theme + glass-panel utility
+    preset.css    playground Tailwind v4 @theme (HUD-safe base layer)
+    mokei.css     consumer preset (git export + registry)
     yardline.ts   first theme
     registry.ts
   scene/          3D worlds
@@ -47,11 +48,19 @@ The warehouse yard stays the default playground. Do not rescale it; `SOFT_EDGE_S
 - `src/lib/utils.ts` — `cn` from the `cn` package.
 - `src/components/ui/*` — generated components, then lightly themed (glass cards, HUD pill badge tones).
 
-Later slice: host a registry on Pages so other apps can `npx shadcn add <url>`.
+## shadcn registry (Pages)
 
-## Git dependency (later slice)
+`registry.json` at the repo root is the source catalog. `npm run build:registry` (`shadcn build` + URL rewrite) writes `public/r/<name>.json`. The site `build` script runs that first so GitHub Pages serves:
 
-`src/kit/index.ts` is the intended export surface for `github:StephenSHorton/mokei`. Slice 1 ships **TypeScript source**, same as the playground. A built `dist` is an open question — Vite consumers can compile the source; a prebuilt bundle is only needed if a consumer cannot.
+- `https://stephenshorton.github.io/mokei/r/registry.json`
+- `https://stephenshorton.github.io/mokei/r/theme.json`
+- `https://stephenshorton.github.io/mokei/r/button.json` (etc.)
+
+Each UI item lists `@mokei/theme` as a registry dependency. The build rewrites that to an absolute `…/r/theme.json` URL so `npx shadcn add <button url>` pulls the theme without extra config. Set `MOKEI_REGISTRY_BASE` when generating JSON for a local preview host.
+
+## Git dependency
+
+`package.json` `exports` point at `src/kit` TypeScript and CSS. There is no `prepare` script. Playground-only packages (Vite, leva, Base UI, lucide, shadcn CLI) are `devDependencies` so `npm install github:StephenSHorton/mokei` does not install or build the Yardline app. Scene runtime bits that consumers should not have to think about (`zustand`, postprocessing) stay in `dependencies`. React / three / r3f / drei / Tailwind are `peerDependencies`.
 
 ## Routes
 

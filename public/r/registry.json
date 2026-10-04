@@ -1,0 +1,361 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "mokei",
+  "homepage": "https://stephenshorton.github.io/mokei",
+  "items": [
+    {
+      "name": "theme",
+      "type": "registry:theme",
+      "title": "Mokei theme",
+      "description": "Glass + clay tokens and the Tailwind v4 preset. Sets CSS variables so Mokei components pick up the look.",
+      "dependencies": [
+        "shadcn"
+      ],
+      "files": [
+        {
+          "path": "src/kit/theme/tokens.css",
+          "type": "registry:file",
+          "target": "src/mokei/tokens.css"
+        },
+        {
+          "path": "src/kit/theme/mokei.css",
+          "type": "registry:file",
+          "target": "src/mokei/preset.css"
+        }
+      ],
+      "cssVars": {
+        "theme": {
+          "color-background": "var(--background)",
+          "color-foreground": "var(--foreground)",
+          "color-card": "var(--card)",
+          "color-card-foreground": "var(--card-foreground)",
+          "color-popover": "var(--popover)",
+          "color-popover-foreground": "var(--popover-foreground)",
+          "color-primary": "var(--primary)",
+          "color-primary-foreground": "var(--primary-foreground)",
+          "color-secondary": "var(--secondary)",
+          "color-secondary-foreground": "var(--secondary-foreground)",
+          "color-muted": "var(--muted-surface)",
+          "color-muted-foreground": "var(--muted-foreground)",
+          "color-accent": "var(--accent)",
+          "color-accent-foreground": "var(--accent-foreground)",
+          "color-destructive": "var(--destructive)",
+          "color-border": "var(--border)",
+          "color-input": "var(--input)",
+          "color-ring": "var(--ring)",
+          "color-success": "var(--success)",
+          "color-success-foreground": "var(--success-foreground)",
+          "color-warning": "var(--warning)",
+          "color-warning-foreground": "var(--warning-foreground)",
+          "color-info": "var(--info)",
+          "color-info-foreground": "var(--info-foreground)",
+          "radius-sm": "calc(var(--radius) * 0.66)",
+          "radius-md": "calc(var(--radius) * 0.83)",
+          "radius-lg": "var(--radius)",
+          "radius-xl": "calc(var(--radius) * 1.33)"
+        },
+        "light": {
+          "background": "#e9eef8",
+          "foreground": "#0f172a",
+          "card": "rgba(255, 255, 255, 0.9)",
+          "card-foreground": "#0f172a",
+          "popover": "rgba(255, 255, 255, 0.96)",
+          "popover-foreground": "#0f172a",
+          "primary": "#2563eb",
+          "primary-foreground": "#ffffff",
+          "secondary": "#e9eefc",
+          "secondary-foreground": "#1e293b",
+          "muted-surface": "#eef1f5",
+          "muted-foreground": "#64748b",
+          "accent": "#dbeafe",
+          "accent-foreground": "#1d4ed8",
+          "destructive": "#ef4444",
+          "border": "rgba(203, 213, 225, 0.6)",
+          "input": "#dde3ee",
+          "ring": "#2563eb",
+          "radius": "0.75rem",
+          "success": "#15803d",
+          "success-foreground": "#dcf5e3",
+          "warning": "#c2620a",
+          "warning-foreground": "#fdefd3",
+          "info": "#1d4ed8",
+          "info-foreground": "#d9e5fe",
+          "ink": "#0f172a",
+          "ink-2": "#1e293b",
+          "blue": "#2563eb",
+          "blue-deep": "#1d4ed8",
+          "glass-bg": "rgba(255, 255, 255, 0.9)",
+          "glass-border": "rgba(255, 255, 255, 0.95)",
+          "glass-shadow": "0 1px 2px rgba(30, 41, 90, 0.04), 0 8px 24px rgba(30, 41, 90, 0.08)",
+          "glass-blur": "20px",
+          "glass-saturate": "1.35",
+          "clay-ground": "#e9eef8",
+          "clay-road": "#c4d0f2",
+          "clay-grass": "#dcf4e6",
+          "clay-yellow": "#f2c14e",
+          "clay-cardboard": "#e0b17a",
+          "clay-tree": "#72d39c"
+        },
+        "dark": {
+          "background": "#e9eef8",
+          "foreground": "#0f172a",
+          "card": "rgba(255, 255, 255, 0.9)",
+          "card-foreground": "#0f172a",
+          "popover": "rgba(255, 255, 255, 0.96)",
+          "popover-foreground": "#0f172a",
+          "primary": "#2563eb",
+          "primary-foreground": "#ffffff",
+          "secondary": "#e9eefc",
+          "secondary-foreground": "#1e293b",
+          "muted-surface": "#eef1f5",
+          "muted-foreground": "#64748b",
+          "accent": "#dbeafe",
+          "accent-foreground": "#1d4ed8",
+          "destructive": "#ef4444",
+          "border": "rgba(203, 213, 225, 0.6)",
+          "input": "#dde3ee",
+          "ring": "#2563eb"
+        }
+      },
+      "css": {
+        "@utility glass-panel": {
+          "background": "var(--glass-bg)",
+          "backdrop-filter": "blur(var(--glass-blur)) saturate(var(--glass-saturate))",
+          "-webkit-backdrop-filter": "blur(var(--glass-blur)) saturate(var(--glass-saturate))",
+          "border": "1px solid var(--glass-border)",
+          "box-shadow": "var(--glass-shadow)"
+        }
+      },
+      "docs": "Import the copied preset from your CSS after Tailwind: `@import \"./mokei/preset.css\";` or rely on the injected CSS variables. Add `@mokei` as `https://stephenshorton.github.io/mokei/r/{name}.json` to use `npx shadcn add @mokei/button`."
+    },
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button",
+      "description": "Mokei-styled button.",
+      "dependencies": [
+        "@base-ui/react",
+        "class-variance-authority",
+        "cn"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/button.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "card",
+      "type": "registry:ui",
+      "title": "Card",
+      "description": "Glass panel card.",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/card.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "badge",
+      "type": "registry:ui",
+      "title": "Badge",
+      "description": "Status pill with HUD tones.",
+      "dependencies": [
+        "@base-ui/react",
+        "class-variance-authority",
+        "cn"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/badge.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "title": "Input",
+      "description": "Mokei-styled text field.",
+      "dependencies": [
+        "@base-ui/react",
+        "cn"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/input.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "title": "Tabs",
+      "description": "Segmented tabs.",
+      "dependencies": [
+        "@base-ui/react",
+        "class-variance-authority",
+        "cn"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/tabs.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "tooltip",
+      "type": "registry:ui",
+      "title": "Tooltip",
+      "description": "Hover hint.",
+      "dependencies": [
+        "@base-ui/react",
+        "cn"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/tooltip.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "progress",
+      "type": "registry:ui",
+      "title": "Progress",
+      "description": "Battery and cargo bar.",
+      "dependencies": [
+        "@base-ui/react",
+        "cn"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/progress.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "separator",
+      "type": "registry:ui",
+      "title": "Separator",
+      "description": "Hairline rule.",
+      "dependencies": [
+        "@base-ui/react",
+        "cn"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/separator.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "avatar",
+      "type": "registry:ui",
+      "title": "Avatar",
+      "description": "User avatar.",
+      "dependencies": [
+        "@base-ui/react",
+        "cn"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/avatar.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "kbd",
+      "type": "registry:ui",
+      "title": "Kbd",
+      "description": "Keyboard hint.",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/kbd.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "label",
+      "type": "registry:ui",
+      "title": "Label",
+      "description": "Form label.",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/label.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "dropdown-menu",
+      "type": "registry:ui",
+      "title": "Dropdown menu",
+      "description": "Site and overflow menus.",
+      "dependencies": [
+        "@base-ui/react",
+        "cn",
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "https://stephenshorton.github.io/mokei/r/theme.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/dropdown-menu.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    }
+  ]
+}
