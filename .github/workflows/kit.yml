@@ -42,6 +42,7 @@ jobs:
           cd /tmp/mokei-consumer
           npm install
           npm install "github:StephenSHorton/mokei#${GITHUB_SHA}"
+          node "$GITHUB_WORKSPACE/smoke-src/scripts/check-exports.mjs"
           npm run build
           echo '--- bundle proof ---'
           if rg -n 'Yardline|forklift|FL-10|Northpoint|dispatchYardEvent|warehouse yard' dist; then
@@ -71,4 +72,5 @@ jobs:
           cd /tmp/mokei-consumer-main
           npm install
           npm install github:StephenSHorton/mokei
+          node "$GITHUB_WORKSPACE/smoke-src/scripts/check-exports.mjs"
           npm run build
