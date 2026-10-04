@@ -3,35 +3,59 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Glass + clay design system and swappable 3D scenes. Not published to npm — install from git.",
-  "license": "UNLICENSED",
+  "description": "Glass + clay design system and swappable 3D scenes. Install from git.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/StephenSHorton/mokei.git"
   },
   "exports": {
-    ".": "./src/kit/index.ts",
-    "./theme": "./src/kit/theme/index.ts",
-    "./theme/tokens.css": "./src/kit/theme/tokens.css",
-    "./theme/preset.css": "./src/kit/theme/mokei.css",
-    "./scene": "./src/kit/scene/index.ts",
+    ".": {
+      "types": "./pkg/kit/index.d.ts",
+      "default": "./pkg/kit/index.js"
+    },
+    "./theme": {
+      "types": "./pkg/kit/theme/index.d.ts",
+      "default": "./pkg/kit/theme/index.js"
+    },
+    "./theme/tokens.css": "./pkg/kit/theme/tokens.css",
+    "./theme/preset.css": "./pkg/kit/theme/preset.css",
+    "./scene": {
+      "types": "./pkg/kit/scene/index.d.ts",
+      "default": "./pkg/kit/scene/index.js"
+    },
     "./scene/yardline": "./src/kit/scene/yardline.ts",
-    "./scene/blank": "./src/kit/scene/blank.ts",
-    "./clay": "./src/kit/clay/index.ts"
+    "./scene/blank": {
+      "types": "./pkg/kit/scene/blank.d.ts",
+      "default": "./pkg/kit/scene/blank.js"
+    },
+    "./clay": {
+      "types": "./pkg/kit/clay/index.d.ts",
+      "default": "./pkg/kit/clay/index.js"
+    }
   },
-  "main": "./src/kit/index.ts",
-  "types": "./src/kit/index.ts",
+  "main": "./pkg/kit/index.js",
+  "types": "./pkg/kit/index.d.ts",
   "files": [
+    "pkg",
     "src/kit",
     "src/scenes",
     "src/lib/math.ts",
+    "LICENSE",
     "README.md",
     "docs/SCENES.md"
+  ],
+  "sideEffects": [
+    "**/*.css",
+    "./pkg/kit/scene/blank.js",
+    "./src/kit/scene/blank.ts",
+    "./src/kit/scene/yardline.ts"
   ],
   "scripts": {
     "dev": "vite",
     "build:registry": "node scripts/build-registry.mjs",
-    "build": "npm run build:registry && tsc -b && vite build",
+    "build:kit": "node scripts/build-kit.mjs",
+    "build": "npm run build:registry && npm run build:kit && tsc -b && vite build",
     "preview": "vite preview",
     "lint": "oxlint"
   },

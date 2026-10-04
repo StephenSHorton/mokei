@@ -1,8 +1,8 @@
 # Mokei
 
-Stephen's private design system and aesthetic playground. The visual language is **glass panels on a clay diorama** — first realized as the Yardline warehouse-yard prototype.
+Stephen's design system and aesthetic playground. The visual language is **glass panels on a clay diorama** — first realized as the Yardline warehouse-yard prototype.
 
-The package is `mokei` (the repo). It is **not** published to npm. Other apps install the kit as a git dependency or pull UI pieces from the Pages shadcn registry.
+The package is `mokei` (the repo). It is **not** published to npm. Other apps install the kit as a git dependency or pull UI pieces from the Pages shadcn registry. License: MIT.
 
 ## Yardline playground
 
@@ -43,7 +43,7 @@ The consumer project needs a Vite + Tailwind v4 + shadcn (`base-nova` / Base UI)
 
 ### Git dependency (theme + scene kit)
 
-Source-first TypeScript. No `prepare` script — installing from git does not build the playground.
+Committed `pkg/` (ESM + `.d.ts` + CSS). No `prepare` script — installing from git does not build the playground and does not need TypeScript.
 
 ```bash
 npm install github:StephenSHorton/mokei
@@ -51,28 +51,30 @@ npm install github:StephenSHorton/mokei
 
 Peer deps (you provide): `react`, `react-dom`, `three`, `@react-three/fiber`, `@react-three/drei`. `tailwindcss` is optional (only if you import the CSS).
 
-```ts
-import { activateScene, getScene } from 'mokei'
-import { SoftBox, SOFT_EDGE_SCALE } from 'mokei/clay'
-import 'mokei/theme/preset.css'
+Scenes are opt-in. `mokei` and `mokei/scene` do not import Yardline.
 
-const scene = getScene('yardline') // or 'blank'
-activateScene(scene)
-// <Canvas><scene.World /></Canvas>
-// {scene.Hud ? <scene.Hud /> : null}
-scene.dispatch?.({ type: 'task-started', id: 'fl-10' })
+```ts
+import { activateScene, registerScene, getScene } from 'mokei'
+import { SoftBox, SOFT_EDGE_SCALE } from 'mokei/clay'
+import type { SceneEvent } from 'mokei/scene'
+import 'mokei/theme/preset.css'
+// import 'mokei/scene/yardline' // only if you want the warehouse
+
+registerScene(hostScene)
+const scene = getScene('quarry') // undefined + warn if not registered
+activateScene(hostScene)
+scene?.dispatch?.({ type: 'tool-station', station: 'read' })
 ```
 
-Other exports: `mokei/theme`, `mokei/theme/tokens.css`, `mokei/theme/preset.css`, `mokei/scene`, `mokei/scene/yardline`, `mokei/scene/blank`, `mokei/clay`.
+Other exports: `mokei/theme`, `mokei/theme/tokens.css`, `mokei/theme/preset.css`, `mokei/scene`, `mokei/scene/yardline`, `mokei/scene/blank`, `mokei/clay`. Themes: `yardline`, `blank`, `quarry`.
 
 Playground: `/?scene=yardline` (default) and `/?scene=blank`. Author a new diorama with [docs/SCENES.md](docs/SCENES.md).
 
-Vite should compile the package source. Prebundle drei/three so `stats.js` (a CJS drei dependency) interops:
+Prebundle drei/three so `stats.js` (a CJS drei dependency) interops:
 
 ```ts
 // vite.config.ts
 optimizeDeps: {
-  exclude: ['mokei'],
   include: ['stats.js', 'three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
 }
 ```

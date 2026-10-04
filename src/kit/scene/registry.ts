@@ -1,24 +1,30 @@
-import { blankScene } from '../../scenes/blank'
-import { yardlineScene } from '../../scenes/yardline'
 import type { SceneDefinition } from './types'
 
-const scenes = {
-  [yardlineScene.id]: yardlineScene,
-  [blankScene.id]: blankScene,
-} as const satisfies Record<string, SceneDefinition>
+const scenes = new Map<string, SceneDefinition>()
 
-export type SceneId = keyof typeof scenes
+export type SceneId = string
 
-export function listScenes(): SceneDefinition[] {
-  return Object.values(scenes)
+export const DEFAULT_SCENE_ID = 'yardline'
+
+export function registerScene(def: SceneDefinition): SceneDefinition {
+  scenes.set(def.id, def)
+  return def
 }
 
-export function getScene(id: SceneId | string): SceneDefinition {
-  const scene = scenes[id as SceneId]
+/** Returns the scene, or `undefined` if nothing is registered under `id`. */
+export function getScene(id: string): SceneDefinition | undefined {
+  const scene = scenes.get(id)
   if (!scene) {
-    throw new Error(`Unknown Mokei scene: ${id}. Known: ${Object.keys(scenes).join(', ')}`)
+    const known = [...scenes.keys()].join(', ') || '(none)'
+    console.warn(`[mokei] unknown scene "${id}". Known: ${known}. Import mokei/scene/<id> or call registerScene.`)
   }
   return scene
 }
 
-export const DEFAULT_SCENE_ID: SceneId = yardlineScene.id
+export function peekScene(id: string): SceneDefinition | undefined {
+  return scenes.get(id)
+}
+
+export function listScenes(): SceneDefinition[] {
+  return [...scenes.values()]
+}

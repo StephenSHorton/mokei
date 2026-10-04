@@ -18,6 +18,7 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    if (!scene) return
     activateScene(scene)
     document.title = `${scene.name} — clay-diorama`
   }, [scene])
@@ -30,6 +31,10 @@ export default function App() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+
+  if (!scene) {
+    return <div className="grid h-full place-items-center text-sm text-slate-500">No scene registered.</div>
+  }
 
   return (
     <div className="relative h-full w-full overflow-hidden" style={{ background: ground }}>
