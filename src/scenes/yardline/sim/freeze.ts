@@ -60,11 +60,29 @@ function applySelectFromUrl() {
 if (typeof location !== 'undefined') {
   applyFreeze()
   applySelectFromUrl()
-  if (location.search.includes('capture')) {
-    ;(window as unknown as { __yardSeek?: (t: number) => void }).__yardSeek = (t: number) => {
+  const bag = window as unknown as { __yardSeek?: (t: number) => void; __yardInfo?: () => unknown }
+  if (location.search.includes('capture') || location.search.includes('cam=')) {
+    bag.__yardSeek = (t: number) => {
       resetRuntime()
       seekSim(t)
       useYard.getState().publish()
+    }
+    bag.__yardInfo = () => {
+      const fl = runtime.units['fl-10']
+      const held = fl?.carryingId ? runtime.pallets[fl.carryingId] : null
+      return {
+        clock: runtime.clock,
+        fl: fl && {
+          x: fl.x,
+          z: fl.z,
+          heading: fl.heading,
+          lift: fl.lift,
+          insert: fl.insert,
+          carryingId: fl.carryingId,
+          phase: fl.phase,
+        },
+        pallet: held && { id: held.id, x: held.x, z: held.z, y: held.y, site: held.site },
+      }
     }
   }
 }

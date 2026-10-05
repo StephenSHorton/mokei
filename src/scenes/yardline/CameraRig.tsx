@@ -11,8 +11,8 @@ import { captureCam } from './sim/freeze'
 const HOME_TARGET = { x: -1.5, z: -5.5 }
 
 const CAPTURE_FRAMING = {
-  side: { azimuth: 92, elevation: 11, zoom: 58, follow: 'fl-10' as const },
-  top: { azimuth: 0, elevation: 84, zoom: 46, follow: 'trk-18' as const },
+  side: { azimuth: 92, elevation: 12, zoom: 118, follow: 'fl-10' as const },
+  top: { azimuth: 0, elevation: 84, zoom: 62, follow: 'trk-18' as const },
 }
 
 export function CameraRig() {
@@ -24,6 +24,19 @@ export function CameraRig() {
   const target = useRef(new Vector3(HOME_TARGET.x, 0, HOME_TARGET.z))
   const az = useRef((look.cameraAzimuth * Math.PI) / 180)
   const zoomBy = useLook((s) => s.zoomBy)
+  const setLook = useLook((s) => s.setLook)
+
+  useEffect(() => {
+    const shot = captureCam()
+    const framing = shot === 'home' ? null : CAPTURE_FRAMING[shot]
+    if (!framing) return
+    setLook({
+      cameraAzimuth: framing.azimuth,
+      cameraElevation: framing.elevation,
+      cameraZoom: framing.zoom,
+      zoomMax: 160,
+    })
+  }, [setLook])
 
   useEffect(() => {
     const element = gl.domElement
@@ -44,7 +57,7 @@ export function CameraRig() {
     const goalX = (unit ? HOME_TARGET.x * (1 - mix) + unit.x * mix : HOME_TARGET.x) + look.panX
     const goalZ = (unit ? HOME_TARGET.z * (1 - mix) + unit.z * mix : HOME_TARGET.z) + look.panZ
     if (framing && unit) {
-      const along = shot === 'side' ? 1.15 : 0
+      const along = shot === 'side' ? 1.55 : 0
       target.current.x = unit.x + Math.sin(unit.heading) * along
       target.current.z = unit.z + Math.cos(unit.heading) * along
       az.current = (framing.azimuth * Math.PI) / 180
@@ -69,7 +82,15 @@ export function CameraRig() {
     cam.near = -200
     cam.far = 400
     cam.updateProjectionMatrix()
+    if (framing && typeof window !== 'undefined') {
+      ;(window as unknown as { __yardCam?: unknown }).__yardCam = {
+        shot,
+        y: cam.position.y,
+        zoom: cam.zoom,
+        target: [target.current.x, target.current.z],
+      }
+    }
   })
 
-  return <OrthographicCamera makeDefault position={[40, 36, 40]} zoom={look.cameraZoom} near={-200} far={400} />
+  return <OrthographicCamera makeDefault near={-200} far={400} />
 }

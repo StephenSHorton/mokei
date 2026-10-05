@@ -89,24 +89,16 @@ function UnitMesh({
 
 function AnimatedForklift({ id }: { id: string }) {
   const live = runtime.units[id]
-  const held = live?.carryingId ? runtime.pallets[live.carryingId] : null
   const [pose, setPose] = useState(() => ({
     lift: live?.lift ?? 0,
     insert: live?.insert ?? 0,
-    cargo: held
-      ? { stacks: held.stacks, wrap: held.wrap, seed: held.code.length + held.stacks }
-      : null,
   }))
   useFrame(() => {
     const unit = runtime.units[id]
     if (!unit) return
-    const pallet = unit.carryingId ? runtime.pallets[unit.carryingId] : null
-    const cargo = pallet
-      ? { stacks: pallet.stacks, wrap: pallet.wrap, seed: pallet.code.length + pallet.stacks }
-      : null
-    setPose({ lift: unit.lift, insert: unit.insert, cargo })
+    setPose({ lift: unit.lift, insert: unit.insert })
   })
-  return <Forklift lift={pose.lift} insert={pose.insert} cargo={pose.cargo} />
+  return <Forklift lift={pose.lift} insert={pose.insert} cargo={null} />
 }
 
 function LabelTracker({ selectedId }: { selectedId: string | null }) {
@@ -152,10 +144,13 @@ function PalletActor({ id }: { id: string }) {
   useFrame(() => {
     const live = runtime.pallets[id]
     if (!group.current || !live) return
-    const visible = live.site === 'yard'
+    const visible = live.site === 'yard' || live.site === 'forklift'
+    const deck = live.site === 'forklift' ? 0.25 * 1.14 : 0
+    const scale = live.site === 'forklift' ? 0.7 : 1
     group.current.visible = visible
-    group.current.position.set(live.x, live.y, live.z)
+    group.current.position.set(live.x, Math.max(0, live.y - deck * scale), live.z)
     group.current.rotation.y = live.heading
+    group.current.scale.setScalar(scale)
     if (pin.current) pin.current.visible = live.site === 'yard' && !live.carriedBy
   })
 
