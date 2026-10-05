@@ -12,7 +12,7 @@ const HOME_TARGET = { x: -1.5, z: -5.5 }
 
 const CAPTURE_FRAMING = {
   side: { azimuth: 92, elevation: 12, zoom: 118, follow: 'fl-10' as const },
-  top: { azimuth: 0, elevation: 84, zoom: 62, follow: 'trk-18' as const },
+  top: { azimuth: 0, elevation: 84, zoom: 34, follow: 'trk-18' as const },
 }
 
 export function CameraRig() {
