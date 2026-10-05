@@ -81,6 +81,7 @@
     "check:scene-bundle": "node scripts/check-scene-bundle.mjs",
     "check:exports": "node scripts/check-exports.mjs",
     "check:yard-sim": "node --experimental-strip-types --no-warnings scripts/check-yard-sim.mts",
+    "log:yard-review": "node --experimental-strip-types --no-warnings scripts/log-yard-review.mts",
     "build": "npm run build:registry && npm run build:kit && npm run check:roles && npm run check:scene-bundle && npm run check:yard-sim && tsc -b && vite build",
     "preview": "vite preview",
     "lint": "oxlint"

@@ -1,5 +1,5 @@
 import { length2, lerpAngle } from '../../../lib/math.ts'
-import { APRON_Z, DOCK_ARC_R, DOCK_Z, LOOP_Z } from './geom.ts'
+import { APRON_Z, DOCK_ARC_R, DOCK_Z, LOOP_EAST_X, LOOP_WEST_X, LOOP_Z } from './geom.ts'
 
 export type PathAction = 'pickup' | 'dropoff' | 'dock' | 'undock'
 
@@ -247,8 +247,9 @@ export function remainingPoints(route: CompiledRoute, s: number): [number, numbe
 function reverseDock(bayX: number, label: string, dwell: number): Waypoint[] {
   const r = DOCK_ARC_R
   return [
-    { x: bayX + r, z: APRON_Z, wait: 0.16, action: 'dock', task: `Align on ${label}` },
-    { x: bayX, z: APRON_Z - r, wait: 0.04, reverse: true, arc: true, task: `Reverse swing ${label}` },
+    { x: bayX + 1.4, z: APRON_Z, wait: 0.06, task: `Pass ${label}` },
+    { x: bayX + r, z: APRON_Z, wait: 0.2, action: 'dock', task: `Align on ${label}` },
+    { x: bayX, z: APRON_Z - r, wait: 0.06, reverse: true, arc: true, task: `Reverse swing ${label}` },
     { x: bayX, z: DOCK_Z, wait: dwell, reverse: true, action: 'dock', task: label.startsWith('Bay 4') ? `Loading at ${label}` : `Unloading at ${label}` },
   ]
 }
@@ -258,6 +259,18 @@ function pullOut(bayX: number): Waypoint[] {
   return [
     { x: bayX, z: APRON_Z - r, wait: 0.1, action: 'undock', task: 'Pull clear' },
     { x: bayX + r, z: APRON_Z, wait: 0.08, arc: true, task: 'Swing onto apron' },
+  ]
+}
+
+function yardLoop(outTask: string, westTask: string, reenterTask: string): Waypoint[] {
+  const r = DOCK_ARC_R
+  return [
+    { x: LOOP_EAST_X, z: APRON_Z, wait: 0.08, task: outTask },
+    { x: LOOP_EAST_X, z: LOOP_Z - r, wait: 0.02, task: 'Northbound' },
+    { x: LOOP_EAST_X - r, z: LOOP_Z, wait: 0.08, arc: true, task: 'Loop north' },
+    { x: LOOP_WEST_X + r, z: LOOP_Z, wait: 0.02, task: westTask },
+    { x: LOOP_WEST_X, z: LOOP_Z - r, wait: 0.08, arc: true, task: 'Turn south' },
+    { x: LOOP_WEST_X, z: APRON_Z, wait: 0.08, task: reenterTask },
   ]
 }
 
@@ -290,29 +303,20 @@ export const ROUTES: Record<string, Waypoint[]> = {
     { x: -14.0, z: APRON_Z, wait: 0.1, task: 'Inbound to yard' },
     ...reverseDock(3.5, 'Bay 3', 14.5),
     ...pullOut(3.5),
-    { x: 19.6, z: APRON_Z, wait: 0.08, task: 'Outbound' },
-    { x: 19.6, z: LOOP_Z, wait: 0.08, task: 'Loop north' },
-    { x: -15.4, z: LOOP_Z, wait: 0.08, task: 'Loop west' },
-    { x: -15.4, z: APRON_Z, wait: 0.08, task: 'Re-enter' },
+    ...yardLoop('Outbound', 'Loop west', 'Re-enter'),
     { x: -14.0, z: APRON_Z, wait: 0.1, task: 'Queue inbound' },
   ],
   'trk-12': [
     { x: -10.5, z: DOCK_Z, wait: 46, action: 'dock', task: 'Unloading at Bay 1' },
     ...pullOut(-10.5),
-    { x: 19.6, z: APRON_Z, wait: 0.08, task: 'Eastbound' },
-    { x: 19.6, z: LOOP_Z, wait: 0.08, task: 'Loop north' },
-    { x: -15.4, z: LOOP_Z, wait: 0.08, task: 'Circle yard' },
-    { x: -15.4, z: APRON_Z, wait: 0.1, task: 'Turn in' },
+    ...yardLoop('Eastbound', 'Circle yard', 'Turn in'),
     ...reverseDock(-10.5, 'Bay 1', 0.2),
   ],
   'trk-22': [
     { x: -23.6, z: APRON_Z, wait: 32, task: 'Hold inbound' },
     ...reverseDock(10.5, 'Bay 4', 7.2),
     ...pullOut(10.5),
-    { x: 19.6, z: APRON_Z, wait: 0.12, task: 'Hold on apron' },
-    { x: 19.6, z: LOOP_Z, wait: 0.08, task: 'Loop north' },
-    { x: -15.4, z: LOOP_Z, wait: 0.08, task: 'Loop west' },
-    { x: -15.4, z: APRON_Z, wait: 0.12, task: 'Re-enter' },
+    ...yardLoop('Hold on apron', 'Loop west', 'Re-enter'),
     { x: -23.6, z: APRON_Z, wait: 0.35, task: 'Hold inbound' },
   ],
 }

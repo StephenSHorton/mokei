@@ -1,4 +1,4 @@
-import { cargoInForkEnvelope, CARRY_LIFT, lerpPose, MAX_HEADING_STEP, MAX_POS_STEP, truckOnRoad, unitOnSurface, vehicleBoxes } from '../src/scenes/yardline/sim/geom.ts'
+import { cargoInForkEnvelope, CARRY_LIFT, lerpPose, MAX_HEADING_STEP, MAX_POS_STEP, STOPPED_SPEED, TRUCK_R_MIN, truckOnRoad, unitOnSurface, vehicleBoxes } from '../src/scenes/yardline/sim/geom.ts'
 import { crateCensus, overlapViolations, palletVisible, resetRuntime, runtime, sweptOverlap, tick } from '../src/scenes/yardline/sim/yard.ts'
 
 /*
@@ -40,8 +40,9 @@ const seconds = 90
 const MAX_HEADING = MAX_HEADING_STEP + 0.05
 const MAX_JUMP = MAX_POS_STEP + 0.02
 const MAX_PALLET_JUMP = 0.32
+const TRUCK_OMEGA_EPS = 0.12
 const prev = Object.fromEntries(
-  Object.values(runtime.units).map((u) => [u.id, { x: u.x, z: u.z, heading: u.heading }]),
+  Object.values(runtime.units).map((u) => [u.id, { x: u.x, z: u.z, heading: u.heading, v: u.v }]),
 )
 const prevPallet = Object.fromEntries(
   Object.values(runtime.pallets).map((p) => [p.id, { x: p.x, z: p.z, y: p.y, site: p.site }]),
@@ -69,15 +70,33 @@ for (let i = 0; i < seconds / dt; i += 1) {
       console.error(`t=${runtime.clock.toFixed(2)} ${unit.id} jumped ${jump.toFixed(3)}m`)
       process.exit(1)
     }
-    if (turn > MAX_HEADING) {
+    if (unit.kind === 'truck') {
+      const omega = turn / dt
+      const vRef = Math.max(before.v, unit.v)
+      const limit = vRef / TRUCK_R_MIN + TRUCK_OMEGA_EPS
+      if (omega > limit) {
+        console.error(
+          `t=${runtime.clock.toFixed(2)} ${unit.id} bicycle |dH/dt|=${omega.toFixed(3)} > |v|/${TRUCK_R_MIN.toFixed(2)}+eps=${limit.toFixed(3)} v=${vRef.toFixed(3)}`,
+        )
+        process.exit(1)
+      }
+      if (vRef < STOPPED_SPEED && turn > 1e-4) {
+        console.error(`t=${runtime.clock.toFixed(2)} ${unit.id} turned ${turn.toFixed(4)}rad while stopped v=${vRef.toFixed(3)}`)
+        process.exit(1)
+      }
+    } else if (turn > MAX_HEADING) {
       console.error(`t=${runtime.clock.toFixed(2)} ${unit.id} heading snap ${turn.toFixed(3)}rad`)
+      process.exit(1)
+    }
+    if (unit.kind === 'forklift' && unit.v < STOPPED_SPEED && unit.insert > 0.12 && turn > 0.002) {
+      console.error(`t=${runtime.clock.toFixed(2)} ${unit.id} turned in a pallet insert=${unit.insert.toFixed(3)}`)
       process.exit(1)
     }
     if (sweptOverlap(before, unit)) {
       console.error(`t=${runtime.clock.toFixed(2)} ${unit.id} swept overlap`)
       process.exit(1)
     }
-    prev[unit.id] = { x: unit.x, z: unit.z, heading: unit.heading }
+    prev[unit.id] = { x: unit.x, z: unit.z, heading: unit.heading, v: unit.v }
     if (unit.kind === 'truck' && !truckOnRoad(unit.x, unit.z)) {
       console.error(`t=${runtime.clock.toFixed(2)} ${unit.id} left the road at ${unit.x.toFixed(2)},${unit.z.toFixed(2)}`)
       process.exit(1)
@@ -161,14 +180,14 @@ if (!liftSeen) {
 resetRuntime()
 let reverseDock = false
 let sawArc = false
-let lastH = runtime.units['trk-18']?.heading ?? 0
+const inboundH = runtime.units['trk-18']?.heading ?? 0
 const inboundZ = runtime.units['trk-18']?.z ?? 11.2
-for (let i = 0; i < 24 / dt; i += 1) {
+for (let i = 0; i < 40 / dt; i += 1) {
   tick(dt)
   const truck = runtime.units['trk-18']
-  const turn = wrapDelta(lastH, truck.heading)
-  if (turn > 0.015 && truck.v > 0.4 && truck.z < inboundZ - 0.4 && truck.z > 6) sawArc = true
-  lastH = truck.heading
+  if (truck.reverse && truck.v > 0.2 && truck.z < inboundZ - 0.4 && truck.z > 4) {
+    if (wrapDelta(inboundH, truck.heading) > 0.55) sawArc = true
+  }
   if (truck.reservedDock === 'bay-3' && truck.z < 1.2 && Math.abs(truck.heading) < 0.25 && sawArc) {
     reverseDock = true
     break

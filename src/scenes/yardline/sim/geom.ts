@@ -20,8 +20,20 @@ export const PALLET_HALF = 0.78
 
 export const APRON_Z = 11.2
 export const DOCK_Z = 0.75
-export const DOCK_ARC_R = 2.6
-export const LOOP_Z = 17.8
+export const TRUCK_WHEELBASE = 4.6
+export const TRUCK_MAX_STEER = (35 * Math.PI) / 180
+export const TRUCK_R_MIN = TRUCK_WHEELBASE / Math.tan(TRUCK_MAX_STEER)
+export const TRUCK_STEER_RATE = 0.72
+export const FORK_WHEELBASE = 1.35
+export const FORK_MAX_STEER = (55 * Math.PI) / 180
+export const FORK_R_MIN = FORK_WHEELBASE / Math.tan(FORK_MAX_STEER)
+export const FORK_STEER_RATE = 1.6
+export const STOPPED_SPEED = 0.05
+/** Path radius must stay above TRUCK_R_MIN (~6.57 m) so a box truck can track it. */
+export const DOCK_ARC_R = TRUCK_R_MIN + 0.24
+export const LOOP_Z = 18.6
+export const LOOP_EAST_X = 21.0
+export const LOOP_WEST_X = -15.4
 export const MAX_HEADING_STEP = 0.12
 export const MAX_POS_STEP = 0.2
 
@@ -74,12 +86,12 @@ export function pointInStatic(x: number, z: number) {
 
 export function truckOnRoad(x: number, z: number) {
   for (const bay of BAY_XS) {
-    if (Math.abs(x - bay) <= 5.4 && z >= -0.4 && z <= 13.4) return true
+    if (Math.abs(x - bay) <= 7.4 && z >= -0.4 && z <= 13.8) return true
   }
-  if (z >= 9.6 && z <= 13.0 && x >= -28.2 && x <= 22.8) return true
-  if (z >= 16.6 && z <= 19.0 && x >= -17.4 && x <= 22.8) return true
-  if (x >= -17.6 && x <= -13.2 && z >= 9.6 && z <= 19.0) return true
-  if (x >= 16.4 && x <= 22.8 && z >= 9.6 && z <= 19.0) return true
+  if (z >= 9.2 && z <= 13.6 && x >= -28.2 && x <= 24.2) return true
+  if (z >= 16.0 && z <= 20.2 && x >= -18.4 && x <= 24.2) return true
+  if (x >= -18.4 && x <= -12.4 && z >= 9.2 && z <= 20.2) return true
+  if (x >= 12.0 && x <= 24.2 && z >= 9.2 && z <= 20.2) return true
   return false
 }
 
@@ -119,23 +131,72 @@ function project(pts: [number, number][], ax: number, az: number) {
   return [min, max] as const
 }
 
-export function overlapOBB(a: OBB, b: OBB, pad = 0) {
-  const aa = { ...a, halfW: a.halfW + pad, halfL: a.halfL + pad }
-  const bb = { ...b, halfW: b.halfW + pad, halfL: b.halfL + pad }
-  const pa = corners(aa)
-  const pb = corners(bb)
+export function satClearance(a: OBB, b: OBB) {
+  const pa = corners(a)
+  const pb = corners(b)
   const axes: [number, number][] = [
-    [Math.cos(aa.heading), -Math.sin(aa.heading)],
-    [Math.sin(aa.heading), Math.cos(aa.heading)],
-    [Math.cos(bb.heading), -Math.sin(bb.heading)],
-    [Math.sin(bb.heading), Math.cos(bb.heading)],
+    [Math.cos(a.heading), -Math.sin(a.heading)],
+    [Math.sin(a.heading), Math.cos(a.heading)],
+    [Math.cos(b.heading), -Math.sin(b.heading)],
+    [Math.sin(b.heading), Math.cos(b.heading)],
   ]
+  let separated = false
+  let maxSep = -Infinity
+  let minPen = Infinity
   for (const [ax, az] of axes) {
     const [minA, maxA] = project(pa, ax, az)
     const [minB, maxB] = project(pb, ax, az)
-    if (maxA < minB || maxB < minA) return false
+    const gap = Math.max(minB - maxA, minA - maxB)
+    if (gap > 0) {
+      separated = true
+      if (gap > maxSep) maxSep = gap
+    } else if (-gap < minPen) {
+      minPen = -gap
+    }
   }
-  return true
+  return separated ? maxSep : -minPen
+}
+
+export function overlapOBB(a: OBB, b: OBB, pad = 0) {
+  const aa = { ...a, halfW: a.halfW + pad, halfL: a.halfL + pad }
+  const bb = { ...b, halfW: b.halfW + pad, halfL: b.halfL + pad }
+  return satClearance(aa, bb) <= 0
+}
+
+export function unitClearance(
+  a: { kind: 'truck' | 'forklift'; x: number; z: number; heading: number },
+  b: { kind: 'truck' | 'forklift'; x: number; z: number; heading: number },
+) {
+  let min = Infinity
+  for (const boxA of vehicleBoxes(a.kind, a.x, a.z, a.heading)) {
+    for (const boxB of vehicleBoxes(b.kind, b.x, b.z, b.heading)) {
+      const gap = satClearance(boxA, boxB)
+      if (gap < min) min = gap
+    }
+  }
+  return min
+}
+
+export function wallClearance(
+  kind: 'truck' | 'forklift',
+  x: number,
+  z: number,
+  heading: number,
+  wall: AABB,
+) {
+  const asObb: OBB = {
+    x: (wall.minX + wall.maxX) / 2,
+    z: (wall.minZ + wall.maxZ) / 2,
+    heading: 0,
+    halfW: (wall.maxX - wall.minX) / 2,
+    halfL: (wall.maxZ - wall.minZ) / 2,
+  }
+  let min = Infinity
+  for (const box of vehicleBoxes(kind, x, z, heading)) {
+    const gap = satClearance(asObb, box)
+    if (gap < min) min = gap
+  }
+  return min
 }
 
 export function overlapAabbObb(box: AABB, body: OBB, pad = 0.12) {

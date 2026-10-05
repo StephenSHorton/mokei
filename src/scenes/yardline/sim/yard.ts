@@ -2,10 +2,18 @@ import { create } from 'zustand'
 import { clamp, damp, length2 } from '../../../lib/math.ts'
 import {
   CARRY_LIFT,
+  DOCK_ARC_R,
   DOCK_Z,
+  FORK_MAX_STEER,
+  FORK_STEER_RATE,
+  FORK_WHEELBASE,
   MAX_HEADING_STEP,
   PICK_LIFT,
   STATIC_BOXES,
+  STOPPED_SPEED,
+  TRUCK_MAX_STEER,
+  TRUCK_STEER_RATE,
+  TRUCK_WHEELBASE,
   cargoInForkEnvelope,
   cellKey,
   forkWorldPose,
@@ -57,6 +65,7 @@ export type Unit = {
   reservedDock: string | null
   reverse: boolean
   lastDroppedId: string | null
+  steer: number
 }
 
 export type Pallet = {
@@ -101,12 +110,12 @@ export const TRUCK_CAPACITY = 6
 const compiled: Record<string, CompiledRoute> = {
   'fl-10': compileRoute(ROUTES['fl-10'], 1.35),
   'fl-04': compileRoute(ROUTES['fl-04'], 1.35),
-  'trk-18': compileRoute(ROUTES['trk-18'], 2.6),
-  'trk-12': compileRoute(ROUTES['trk-12'], 2.6),
-  'trk-22': compileRoute(ROUTES['trk-22'], 2.6),
+  'trk-18': compileRoute(ROUTES['trk-18'], DOCK_ARC_R),
+  'trk-12': compileRoute(ROUTES['trk-12'], DOCK_ARC_R),
+  'trk-22': compileRoute(ROUTES['trk-22'], DOCK_ARC_R),
 }
 
-function makeUnit(partial: Omit<Unit, 'lift' | 'insert' | 's' | 'v' | 'phase' | 'phaseT' | 'reservedDock' | 'cargo' | 'reverse' | 'lastDroppedId'> & Partial<Pick<Unit, 'cargo' | 'reservedDock' | 'reverse'>>): Unit {
+function makeUnit(partial: Omit<Unit, 'lift' | 'insert' | 's' | 'v' | 'phase' | 'phaseT' | 'reservedDock' | 'cargo' | 'reverse' | 'lastDroppedId' | 'steer'> & Partial<Pick<Unit, 'cargo' | 'reservedDock' | 'reverse'>>): Unit {
   return {
     lift: 0,
     insert: 0,
@@ -118,6 +127,7 @@ function makeUnit(partial: Omit<Unit, 'lift' | 'insert' | 's' | 'v' | 'phase' | 
     cargo: 0,
     reverse: false,
     lastDroppedId: null,
+    steer: 0,
     ...partial,
   }
 }
@@ -332,10 +342,31 @@ function wrapAngle(a: number) {
   return x
 }
 
-function steerToward(unit: Unit, target: number) {
-  const dh = wrapAngle(target - unit.heading)
-  unit.heading = wrapAngle(unit.heading + clamp(dh, -MAX_HEADING_STEP, MAX_HEADING_STEP))
-  return Math.abs(dh)
+function forksInPallet(unit: Unit) {
+  if (unit.kind !== 'forklift') return false
+  if (unit.insert > 0.12) return true
+  return unit.phase === 'insert' || unit.phase === 'lift' || unit.phase === 'lower' || unit.phase === 'set'
+}
+
+function applySteer(unit: Unit, desiredHeading: number, dt: number) {
+  const truck = unit.kind === 'truck'
+  const maxSteer = truck ? TRUCK_MAX_STEER : FORK_MAX_STEER
+  const steerRate = truck ? TRUCK_STEER_RATE : FORK_STEER_RATE
+  const wheelbase = truck ? TRUCK_WHEELBASE : FORK_WHEELBASE
+  const err = wrapAngle(desiredHeading - unit.heading)
+  const stopped = unit.v < STOPPED_SPEED
+  if (stopped && (truck || forksInPallet(unit))) return
+  const desiredSteer = clamp(err * 1.15, -maxSteer, maxSteer)
+  unit.steer = clamp(
+    unit.steer + clamp(desiredSteer - unit.steer, -steerRate * dt, steerRate * dt),
+    -maxSteer,
+    maxSteer,
+  )
+  if (stopped) {
+    unit.heading = wrapAngle(unit.heading + clamp(err, -MAX_HEADING_STEP, MAX_HEADING_STEP))
+    return
+  }
+  unit.heading = wrapAngle(unit.heading + (unit.v / wheelbase) * Math.tan(unit.steer) * dt)
 }
 
 function nextEvent(route: CompiledRoute, index: number): PathEvent | null {
@@ -768,20 +799,19 @@ export function tick(dt: number) {
     if (following) target = 0
 
     if (unit.phase === 'drive') {
-      const steerLook = sampleAt(route, Math.min(route.length, unit.s + 0.35))
-      const err = steerToward(unit, steerLook.heading)
-      const headingReady = err <= 0.5
+      const steerLook = sampleAt(route, Math.min(route.length, unit.s + (unit.kind === 'truck' ? 1.6 : 0.55)))
+      applySteer(unit, steerLook.heading, step)
       const inch = sampleAt(route, Math.min(route.length, unit.s + 0.16))
       const inchClear = !blockedByOthers(unit, inch.x, inch.z, inch.heading, claims)
       let speed = 0
-      if (headingReady && inchClear) {
+      if (inchClear) {
         if (target > 0) speed = Math.max(unit.v, 0.45)
         else if (!following && unit.v < 0.2) speed = 0.4
         else speed = unit.v
       }
       const nextS = Math.min(route.length, unit.s + speed * step)
       const next = sampleAt(route, nextS)
-      if (headingReady && speed > 0 && !blockedByOthers(unit, next.x, next.z, next.heading, claims)) {
+      if (speed > 0 && !blockedByOthers(unit, next.x, next.z, next.heading, claims)) {
         const a = target > unit.v ? accel : 4.6
         if (target > unit.v) unit.v = Math.min(Math.max(target, speed), unit.v + a * step)
         else unit.v = Math.max(target, unit.v - a * step)
@@ -789,13 +819,13 @@ export function tick(dt: number) {
         unit.x = next.x
         unit.z = next.z
       } else {
-        unit.v = headingReady ? 0 : Math.min(unit.v, 0.15)
+        unit.v = 0
       }
     } else {
       unit.v = Math.max(0, unit.v - 4.6 * step)
       unit.x = pose.x
       unit.z = pose.z
-      steerToward(unit, pose.heading)
+      applySteer(unit, pose.heading, step)
     }
 
     if (unit.kind === 'forklift' && unit.phase === 'drive') {
