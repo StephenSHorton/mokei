@@ -24,7 +24,6 @@ resetRuntime()
 const dt = 1 / 60
 const seconds = 40
 const wall = STATIC_BOXES[0]
-const startCensus = crateCensus()
 
 const windows = {
   aFl: { t0: 6, t1: 7, min: Infinity, at: 0 },
@@ -52,8 +51,6 @@ for (let i = 0; i < seconds / dt; i += 1) {
   const t = runtime.clock
   const truck = runtime.units['trk-18']
   const fl10 = runtime.units['fl-10']
-  const fl04 = runtime.units['fl-04']
-  const p3 = runtime.pallets.p3
   const census = crateCensus()
 
   const vsFl = unitClearance(truck, fl10)
