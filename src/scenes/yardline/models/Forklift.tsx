@@ -68,7 +68,7 @@ export function Forklift({ lift = 0, insert = 0, cargo = null }: { lift?: number
       <SoftBox size={[0.12, 0.07, 1.12]} r={0.03} color="#3b4256" position={[-0.24, forkY, forkZ]} />
       <SoftBox size={[0.12, 0.07, 1.12]} r={0.03} color="#3b4256" position={[0.24, forkY, forkZ]} />
       {cargo ? (
-        <group position={[0, forkY + 0.02, forkZ - 0.04]} scale={0.58}>
+        <group position={[0, forkY + 0.02, forkZ - 0.04]} scale={0.52}>
           <Pallet stacks={cargo.stacks} wrap={cargo.wrap} seed={cargo.seed} />
         </group>
       ) : null}

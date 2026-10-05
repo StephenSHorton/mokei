@@ -16,6 +16,7 @@ import {
   truckOnRoad,
   unitOnSurface,
   vehicleBoxes,
+  type AABB,
 } from './geom.ts'
 import {
   ROUTES,

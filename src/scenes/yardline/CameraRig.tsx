@@ -11,8 +11,8 @@ import { captureCam } from './sim/freeze'
 const HOME_TARGET = { x: -1.5, z: -5.5 }
 
 const CAPTURE_FRAMING = {
-  side: { azimuth: 88, elevation: 14, zoom: 54, follow: 'fl-10' as const },
-  top: { azimuth: 8, elevation: 78, zoom: 40, follow: 'trk-18' as const },
+  side: { azimuth: 92, elevation: 11, zoom: 58, follow: 'fl-10' as const },
+  top: { azimuth: 0, elevation: 84, zoom: 46, follow: 'trk-18' as const },
 }
 
 export function CameraRig() {
