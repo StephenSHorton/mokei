@@ -40,7 +40,16 @@ import { Stepper } from '@/components/ui/stepper'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useLook } from '../../../kit/clay'
-import { DOCKS, trucksOnSite, useYard, WAREHOUSE_ID, type Unit } from '../sim/yard'
+import {
+  DOCKS,
+  TRUCK_CAPACITY,
+  arrivingCount,
+  dockedCount,
+  trucksOnSite,
+  useYard,
+  WAREHOUSE_ID,
+  type Unit,
+} from '../sim/yard'
 import { FloatingLabels } from './FloatingLabel'
 import {
   Avatar as UserMark,
@@ -99,7 +108,7 @@ export function Hud() {
 function TopBar() {
   const frozen = freezeClockLabel()
   const [now, setNow] = useState(() => frozen ?? formatClock(new Date()))
-  const docked = useYard((s) => Object.values(s.units).filter((u) => u.kind === 'truck' && u.z < 1.2).length)
+  const docked = useYard((s) => dockedCount(s.units))
   const stock = useYard((s) => s.stockOnHand)
   useEffect(() => {
     if (frozen) return
@@ -339,6 +348,8 @@ type Tone = 'green' | 'amber' | 'blue' | 'slate'
 function statusFor(unit: Unit): { label: string; tone: Tone } {
   const task = unit.task.toLowerCase()
   if (unit.kind === 'forklift') {
+    if (unit.phase === 'lift' || unit.phase === 'insert' || unit.phase === 'align') return { label: 'Picking pallet', tone: 'blue' }
+    if (unit.phase === 'lower' || unit.phase === 'set' || unit.phase === 'backoff') return { label: 'Setting down', tone: 'green' }
     if (task.includes('collect') || task.includes('lift')) return { label: 'Picking pallet', tone: 'blue' }
     if (task.includes('stage') || task.includes('feed') || task.includes('build')) return { label: 'Loading truck', tone: 'green' }
     if (task.includes('hold') || task.includes('idle')) return { label: 'Idle', tone: 'slate' }
@@ -390,7 +401,7 @@ function ForkliftBody({ unit }: { unit: Unit }) {
       </div>
       <Rows
         rows={[
-          ['Carrying', unit.carryingId ? 'Pallet ' + unit.carryingId.toUpperCase() : 'Empty'],
+          ['Carrying', unit.carryingId ? `Pallet ${unit.carryingId.toUpperCase()}` : unit.phase === 'lift' || unit.phase === 'insert' ? 'Forks in' : 'Empty'],
           ['Moves today', String(unit.movesToday)],
           ['Speed', `${unit.speed.toFixed(1)} km/h`],
           ['Charger', unit.id === 'fl-10' ? 'C1' : 'C3', true],
@@ -403,8 +414,8 @@ function ForkliftBody({ unit }: { unit: Unit }) {
 
 function TruckBody({ unit }: { unit: Unit }) {
   const status = statusFor(unit)
-  const bay = DOCKS.find((d) => Math.abs(d.x - unit.x) < 1.2)
-  const progress = status.tone === 'green' ? 2 : 0
+  const bay = DOCKS.find((d) => d.id === unit.reservedDock) ?? DOCKS.find((d) => Math.abs(d.x - unit.x) < 1.2)
+  const progress = unit.cargo
   return (
     <>
       <div className="flex items-center gap-3 text-[length:calc(14.2px*var(--fs))] text-muted-foreground">
@@ -412,13 +423,13 @@ function TruckBody({ unit }: { unit: Unit }) {
           {status.label}
         </Badge>
         <span>
-          {SITE.code} · {bay ? bay.label : 'Yard'} · {progress}/6 pallets
+          {SITE.code} · {bay ? bay.label : 'Yard'} · {progress}/{TRUCK_CAPACITY} pallets
         </span>
       </div>
       <div className="my-[15px] mb-1.5 flex items-center gap-6 text-[length:calc(14px*var(--fs))] whitespace-nowrap text-muted-foreground">
-        <Progress value={(progress / 6) * 100} tone="green" size="hud-battery" className="min-w-0 flex-1" />
+          <Progress value={(progress / TRUCK_CAPACITY) * 100} tone="green" size="hud-battery" className="min-w-0 flex-1" />
         <span>
-          {progress}/6
+          {progress}/{TRUCK_CAPACITY}
         </span>
       </div>
       <Rows
@@ -428,7 +439,7 @@ function TruckBody({ unit }: { unit: Unit }) {
           ['Destination', `${SITE.code} ${SITE.name}`],
           ['Speed', `${unit.speed.toFixed(1)} km/h`],
           ['Bay', bay ? bay.label : '—'],
-          ['Cargo', `${progress + 1}/7 pallets · 1.2 t`],
+          ['Cargo', `${progress}/${TRUCK_CAPACITY} pallets`],
         ]}
       />
     </>
@@ -438,7 +449,9 @@ function TruckBody({ unit }: { unit: Unit }) {
 function WarehouseBody() {
   const stock = useYard((s) => s.stockOnHand)
   const units = useYard((s) => s.units)
-  const docked = Object.values(units).filter((u) => u.kind === 'truck' && u.z < 1.2).length
+  const docked = dockedCount(units)
+  const arriving = arrivingCount(units)
+  const receives = useYard((s) => s.warehouseReceives)
   const working = Object.values(units).filter((u) => u.kind === 'forklift' && u.speed > 0.1).length
   return (
     <>
@@ -446,7 +459,7 @@ function WarehouseBody() {
         <Badge variant="success" size="hud">
           Operational
         </Badge>
-        <span>{docked} docked · 1 arriving · 3 staged</span>
+        <span>{docked} docked · {arriving} arriving · {working} working</span>
       </div>
       <div className="mt-2.5 grid grid-cols-2 gap-[9px]">
         <div className="rounded-[12px] bg-[rgba(233,239,248,0.85)] px-[11px] pt-2 pb-[9px] text-[length:calc(13.7px*var(--fs))] leading-[1.25] text-[#475569]">
@@ -472,7 +485,7 @@ function WarehouseBody() {
         <div className="rounded-[12px] bg-[rgba(233,239,248,0.85)] px-[11px] pt-2 pb-[9px] text-[length:calc(13.7px*var(--fs))] leading-[1.25] text-[#475569]">
           <p className="m-0">Put-aways today</p>
           <p className="mt-px mb-0 text-[length:calc(18.5px*var(--fs))] font-bold tracking-tight text-ink">
-            18 <small className="text-[length:calc(14px*var(--fs))] font-medium tracking-normal text-[#475569]">pallets</small>
+            {receives} <small className="text-[length:calc(14px*var(--fs))] font-medium tracking-normal text-[#475569]">pallets</small>
           </p>
         </div>
       </div>
@@ -576,7 +589,7 @@ function UnitBoard() {
   const all = Object.values(units)
   const trucks = all.filter((u) => u.kind === 'truck')
   const forklifts = all.filter((u) => u.kind === 'forklift')
-  const docked = trucks.filter((u) => u.z < 1.2)
+  const docked = trucks.filter((u) => Boolean(u.reservedDock) && u.z < 2.4)
 
   let rows: { id: string | null; name: string; sub: string; dot: string | null; text: string; pill: [Tone, string]; tail: ReactNode }[] = []
   if (tab === 'docks') {
@@ -591,7 +604,7 @@ function UnitBoard() {
         dot: t.accent === 'teal' ? '#0f766e' : '#2563eb',
         text: `${t.code} · ${t.accent === 'teal' ? 'Nordline' : 'Yardline'}`,
         pill: [s.tone, s.label],
-        tail: s.tone === 'green' ? <MiniProgress value={2} of={6} /> : <span className="pl-1">{t.speed > 0.1 ? '2 min' : 'docked'}</span>,
+        tail: s.tone === 'green' ? <MiniProgress value={t.cargo} of={TRUCK_CAPACITY} /> : <span className="pl-1">{t.speed > 0.1 ? '2 min' : 'docked'}</span>,
       }
     })
   } else {

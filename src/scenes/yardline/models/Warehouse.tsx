@@ -1,7 +1,9 @@
-import { useMemo } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { useMemo, useRef } from 'react'
 import { ExtrudeGeometry, Shape } from 'three'
+import type { Group } from 'three'
 import { useFillRole, useMaterialColor, useThemedHex, useWhiteFills } from '../../../kit/theme'
-import { WAREHOUSE_ID, useYard } from '../sim/yard'
+import { WAREHOUSE_ID, dockOpen, useYard } from '../sim/yard'
 import { Matte } from '../../../kit/clay'
 import { Pallet } from './Pallet'
 import { RoundCyl, SoftBox, scaleSoft } from '../../../kit/clay'
@@ -147,8 +149,19 @@ function Hall({ W, D, H, RISE, doors, logo: showLogo = false, units = [] }: Hall
 
 function Dock({ x, index, z }: { x: number; index: number; z: number }) {
   const sign = useMemo(() => signTexture(`D${index + 1}`), [index])
+  const door = useRef<Group>(null)
+  useFrame((_, dt) => {
+    if (!door.current) return
+    const target = dockOpen(x) ? 2.15 : 0
+    const y = door.current.position.y
+    door.current.position.y = y + (target - y) * Math.min(1, dt * 3.2)
+  })
   return (
     <group position={[x, 0, z]}>
+      {/* roll-up curtain: slides up when a reserved truck is on this bay */}
+      <group ref={door} position={[0, 0, 0.08]}>
+        <SoftBox size={[2.42, 2.55, 0.08]} r={0.04} color="#9aa6c4" position={[0, 1.52, 0]} cast={false} />
+      </group>
       {/* interior: light recess with a soft top shade for depth */}
       <SoftBox size={[2.6, 3.0, 0.1]} r={0.04} color="#c9d2e6" position={[0, 1.85, 0.02]} cast={false} />
       <SoftBox size={[2.56, 0.5, 0.12]} r={0.04} color="#8f9cba" position={[0, 3.12, 0.04]} cast={false} />

@@ -1,4 +1,6 @@
-import { runtime, tick, useYard } from './yard'
+import { resetRuntime, runtime, tick, useYard } from './yard'
+
+export type CaptureCam = 'home' | 'side' | 'top'
 
 const DEFAULT_FREEZE_AT = 8
 const DEFAULT_CLOCK = '09:41'
@@ -20,6 +22,13 @@ export function freezeClockLabel(): string | null {
   return params.get('clock') || DEFAULT_CLOCK
 }
 
+export function captureCam(): CaptureCam {
+  if (typeof location === 'undefined') return 'home'
+  const cam = new URLSearchParams(location.search).get('cam')
+  if (cam === 'side' || cam === 'top') return cam
+  return 'home'
+}
+
 export function seekSim(target: number) {
   const step = 1 / 60
   while (runtime.clock < target) {
@@ -35,4 +44,45 @@ export function applyFreeze() {
   return true
 }
 
-if (typeof location !== 'undefined') applyFreeze()
+function applySelectFromUrl() {
+  if (typeof location === 'undefined') return
+  const params = new URLSearchParams(location.search)
+  const id = params.get('select')
+  if (id) {
+    useYard.getState().select(id)
+    return
+  }
+  const cam = captureCam()
+  if (cam === 'side') useYard.getState().select('fl-10')
+  if (cam === 'top') useYard.getState().select('trk-18')
+}
+
+if (typeof location !== 'undefined') {
+  applyFreeze()
+  applySelectFromUrl()
+  const bag = window as unknown as { __yardSeek?: (t: number) => void; __yardInfo?: () => unknown }
+  if (location.search.includes('capture') || location.search.includes('cam=')) {
+    bag.__yardSeek = (t: number) => {
+      resetRuntime()
+      seekSim(t)
+      useYard.getState().publish()
+    }
+    bag.__yardInfo = () => {
+      const fl = runtime.units['fl-10']
+      const held = fl?.carryingId ? runtime.pallets[fl.carryingId] : null
+      return {
+        clock: runtime.clock,
+        fl: fl && {
+          x: fl.x,
+          z: fl.z,
+          heading: fl.heading,
+          lift: fl.lift,
+          insert: fl.insert,
+          carryingId: fl.carryingId,
+          phase: fl.phase,
+        },
+        pallet: held && { id: held.id, x: held.x, z: held.z, y: held.y, site: held.site },
+      }
+    }
+  }
+}

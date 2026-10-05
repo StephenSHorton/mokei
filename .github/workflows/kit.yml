@@ -19,6 +19,7 @@ jobs:
       - run: npm run build:kit
       - run: npm run check:roles
       - run: npm run check:scene-bundle
+      - run: npm run check:yard-sim
       - name: pkg/ matches sources
         run: git diff --exit-code -- pkg
       - run: npm run build
