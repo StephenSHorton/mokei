@@ -1,5 +1,7 @@
 import { resetRuntime, runtime, tick, useYard } from './yard'
 
+export type CaptureCam = 'home' | 'side' | 'top'
+
 const DEFAULT_FREEZE_AT = 8
 const DEFAULT_CLOCK = '09:41'
 
@@ -20,6 +22,13 @@ export function freezeClockLabel(): string | null {
   return params.get('clock') || DEFAULT_CLOCK
 }
 
+export function captureCam(): CaptureCam {
+  if (typeof location === 'undefined') return 'home'
+  const cam = new URLSearchParams(location.search).get('cam')
+  if (cam === 'side' || cam === 'top') return cam
+  return 'home'
+}
+
 export function seekSim(target: number) {
   const step = 1 / 60
   while (runtime.clock < target) {
@@ -37,8 +46,15 @@ export function applyFreeze() {
 
 function applySelectFromUrl() {
   if (typeof location === 'undefined') return
-  const id = new URLSearchParams(location.search).get('select')
-  if (id) useYard.getState().select(id)
+  const params = new URLSearchParams(location.search)
+  const id = params.get('select')
+  if (id) {
+    useYard.getState().select(id)
+    return
+  }
+  const cam = captureCam()
+  if (cam === 'side') useYard.getState().select('fl-10')
+  if (cam === 'top') useYard.getState().select('trk-18')
 }
 
 if (typeof location !== 'undefined') {

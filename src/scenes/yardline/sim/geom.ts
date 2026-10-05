@@ -10,9 +10,13 @@ export type AABB = { minX: number; maxX: number; minZ: number; maxZ: number }
 
 export const TRUCK_HALF_W = 1.25
 export const TRUCK_HALF_L = 3.2
-export const FORK_HALF_W = 0.82
-export const FORK_HALF_L = 1.55
+export const FORK_HALF_W = 0.92
+export const FORK_HALF_L = 1.85
 export const FORK_SCALE = 1.22
+export const CARRY_LIFT = 0
+export const PICK_LIFT = 0.36
+export const PALLET_DECK_Y = 0.25 * 1.14
+export const PALLET_HALF = 0.78
 
 export const APRON_Z = 11.2
 export const DOCK_Z = 0.75
@@ -34,6 +38,18 @@ export const STATIC_BOXES: AABB[] = [
   { minX: -2.0, maxX: 0.0, minZ: 14.6, maxZ: 16.0 },
   { minX: 15.6, maxX: 18.2, minZ: 0.6, maxZ: 4.4 },
   { minX: 25.2, maxX: 28.0, minZ: 8.8, maxZ: 16.8 },
+]
+
+/** Decorative yard stacks that are not live Pallet actors. */
+export const STACK_BOXES: AABB[] = [
+  { minX: -8.18, maxX: -6.62, minZ: 13.82, maxZ: 15.38 },
+  { minX: -6.78, maxX: -5.22, minZ: 14.12, maxZ: 15.68 },
+  { minX: 10.42, maxX: 11.98, minZ: 13.62, maxZ: 15.18 },
+  { minX: 11.82, maxX: 13.38, minZ: 13.22, maxZ: 14.78 },
+  { minX: -21.58, maxX: -20.02, minZ: 3.82, maxZ: 5.38 },
+  { minX: 16.02, maxX: 17.58, minZ: 2.42, maxZ: 3.98 },
+  { minX: 16.12, maxX: 17.68, minZ: 0.82, maxZ: 2.38 },
+  { minX: -1.98, maxX: -0.42, minZ: 14.42, maxZ: 15.98 },
 ]
 
 const GRASS: AABB[] = [
@@ -139,7 +155,12 @@ function offsetAlongHeading(x: number, z: number, heading: number, along: number
 
 export function vehicleBoxes(kind: 'truck' | 'forklift', x: number, z: number, heading: number): OBB[] {
   if (kind === 'forklift') {
-    return [{ x, z, heading, halfW: FORK_HALF_W, halfL: FORK_HALF_L }]
+    const body = offsetAlongHeading(x, z, heading, -0.12)
+    const forks = offsetAlongHeading(x, z, heading, 1.62)
+    return [
+      { x: body.x, z: body.z, heading, halfW: FORK_HALF_W, halfL: 1.18 },
+      { x: forks.x, z: forks.z, heading, halfW: 0.72, halfL: 0.92 },
+    ]
   }
   const cab = offsetAlongHeading(x, z, heading, 2.32)
   const trailer = offsetAlongHeading(x, z, heading, -0.62)
@@ -150,9 +171,13 @@ export function vehicleBoxes(kind: 'truck' | 'forklift', x: number, z: number, h
 }
 
 export function vehicleBox(kind: 'truck' | 'forklift', x: number, z: number, heading: number): OBB {
-  return kind === 'truck'
-    ? { x, z, heading, halfW: TRUCK_HALF_W, halfL: TRUCK_HALF_L }
-    : { x, z, heading, halfW: FORK_HALF_W, halfL: FORK_HALF_L }
+  if (kind === 'truck') return { x, z, heading, halfW: TRUCK_HALF_W, halfL: TRUCK_HALF_L }
+  const mid = offsetAlongHeading(x, z, heading, 0.62)
+  return { x: mid.x, z: mid.z, heading, halfW: FORK_HALF_W, halfL: FORK_HALF_L }
+}
+
+export function palletStackBox(x: number, z: number): AABB {
+  return { minX: x - PALLET_HALF, maxX: x + PALLET_HALF, minZ: z - PALLET_HALF, maxZ: z + PALLET_HALF }
 }
 
 export function lerpPose(a: { x: number; z: number; heading: number }, b: { x: number; z: number; heading: number }, t: number) {
@@ -165,10 +190,10 @@ export function lerpPose(a: { x: number; z: number; heading: number }, b: { x: n
 export function forkWorldPose(unit: { x: number; z: number; heading: number; lift: number; insert: number }) {
   const forkY = 0.24 + unit.lift * 1.08
   const forkZ = 1.42 + unit.insert * 0.28
-  const reach = forkZ * FORK_SCALE
+  const localZ = forkZ - 0.04
   return {
-    x: unit.x + Math.sin(unit.heading) * reach,
-    z: unit.z + Math.cos(unit.heading) * reach,
+    x: unit.x + Math.sin(unit.heading) * localZ * FORK_SCALE,
+    z: unit.z + Math.cos(unit.heading) * localZ * FORK_SCALE,
     y: forkY * FORK_SCALE,
   }
 }
@@ -185,12 +210,12 @@ export function cargoInForkEnvelope(
   const localZ = dx * s + dz * c
   const fork = forkWorldPose(unit)
   return (
-    Math.abs(localX) < 0.55 &&
-    localZ > 0.9 &&
-    localZ < 2.35 &&
-    cargo.y > 0.18 &&
+    Math.abs(localX) < 0.62 &&
+    localZ > 0.85 &&
+    localZ < 2.55 &&
+    cargo.y > 0.12 &&
     cargo.y < 1.15 &&
-    Math.abs(cargo.y - fork.y) < 0.12
+    Math.abs(cargo.y - fork.y) < 0.16
   )
 }
 

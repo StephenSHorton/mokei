@@ -1,9 +1,10 @@
 import { create } from 'zustand'
 import { clamp, damp, length2 } from '../../../lib/math.ts'
 import {
+  CARRY_LIFT,
   DOCK_Z,
-  FORK_HALF_L,
   MAX_HEADING_STEP,
+  PICK_LIFT,
   STATIC_BOXES,
   cargoInForkEnvelope,
   cellKey,
@@ -11,6 +12,7 @@ import {
   lerpPose,
   overlapAabbObb,
   overlapOBB,
+  palletStackBox,
   truckOnRoad,
   unitOnSurface,
   vehicleBoxes,
@@ -27,7 +29,7 @@ import {
 export type UnitKind = 'forklift' | 'truck' | 'warehouse'
 export type CargoSite = 'yard' | 'forklift' | 'truck' | 'warehouse'
 
-export type UnitPhase = 'drive' | 'align' | 'insert' | 'lift' | 'lower' | 'set' | 'backoff' | 'wait'
+export type UnitPhase = 'drive' | 'align' | 'insert' | 'lift' | 'lower' | 'set' | 'backoff' | 'wait' | 'settle'
 
 export type Unit = {
   id: string
@@ -52,6 +54,8 @@ export type Unit = {
   phase: UnitPhase
   phaseT: number
   reservedDock: string | null
+  reverse: boolean
+  lastDroppedId: string | null
 }
 
 export type Pallet = {
@@ -101,7 +105,7 @@ const compiled: Record<string, CompiledRoute> = {
   'trk-22': compileRoute(ROUTES['trk-22'], 2.6),
 }
 
-function makeUnit(partial: Omit<Unit, 'lift' | 'insert' | 's' | 'v' | 'phase' | 'phaseT' | 'reservedDock' | 'cargo'> & Partial<Pick<Unit, 'cargo' | 'reservedDock'>>): Unit {
+function makeUnit(partial: Omit<Unit, 'lift' | 'insert' | 's' | 'v' | 'phase' | 'phaseT' | 'reservedDock' | 'cargo' | 'reverse' | 'lastDroppedId'> & Partial<Pick<Unit, 'cargo' | 'reservedDock' | 'reverse'>>): Unit {
   return {
     lift: 0,
     insert: 0,
@@ -111,6 +115,8 @@ function makeUnit(partial: Omit<Unit, 'lift' | 'insert' | 's' | 'v' | 'phase' | 
     phaseT: 0,
     reservedDock: null,
     cargo: 0,
+    reverse: false,
+    lastDroppedId: null,
     ...partial,
   }
 }
@@ -256,9 +262,9 @@ function initialPallets(): Record<string, Pallet> {
     p1: makePallet('p1', 'PAL-1026', -14.2, 8.2, 3, 'tan', true),
     p2: makePallet('p2', 'PAL-1044', 0.2, 6.6, 2, 'blue', true),
     p3: makePallet('p3', 'PAL-1088', -16.0, 4.1, 2, 'tan', false),
-    p4: makePallet('p4', 'PAL-1102', 13.8, 6.2, 3, 'tan', false),
-    p5: makePallet('p5', 'PAL-1118', 7.0, 6.4, 2, 'tan', false),
-    p6: makePallet('p6', 'PAL-1130', -5.6, 5.8, 3, 'blue', false),
+    p4: makePallet('p4', 'PAL-1102', 16.4, 6.8, 3, 'tan', false),
+    p5: makePallet('p5', 'PAL-1118', 8.8, 4.6, 2, 'tan', false),
+    p6: makePallet('p6', 'PAL-1130', -6.2, 4.6, 3, 'blue', false),
     p7: makePallet('p7', 'PAL-1144', 6.6, 14.4, 2, 'tan', false, 'truck', 'trk-18'),
     p8: makePallet('p8', 'PAL-1160', -20.4, 8.8, 2, 'tan', false, 'truck', 'trk-12'),
     p9: makePallet('p9', 'PAL-1172', -10.5, 0.75, 2, 'tan', false, 'truck', 'trk-12'),
@@ -287,6 +293,7 @@ function seedUnitsFromRoutes(units: Record<string, Unit>) {
     unit.x = pose.x
     unit.z = pose.z
     unit.heading = pose.heading
+    unit.reverse = pose.reverse
   }
   return units
 }
@@ -344,6 +351,17 @@ function attachPallet(unit: Unit, pallet: Pallet) {
   pallet.z = pose.z
   pallet.y = pose.y
   pallet.heading = unit.heading
+}
+
+function slidePalletOntoForks(unit: Unit) {
+  const target = nearestLoad(unit)
+  if (!target) return
+  const dest = forkWorldPose(unit)
+  const t = clamp(unit.insert, 0, 1)
+  target.x = target.spawnX + (dest.x - target.spawnX) * t
+  target.z = target.spawnZ + (dest.z - target.spawnZ) * t
+  target.y = dest.y * t
+  target.heading = 0.08 + (unit.heading - 0.08) * t
 }
 
 function claimDock(unit: Unit, dockId: string) {
@@ -412,12 +430,13 @@ function finishDropoff(unit: Unit) {
     unit.carryingId = null
     return
   }
+  const pose = forkWorldPose(unit)
   const dock = dockNear(unit.x, unit.z)
   const truck = dock ? Object.values(runtime.units).find((u) => u.reservedDock === dock.id && u.kind === 'truck') : null
   held.carriedBy = null
+  held.x = pose.x
+  held.z = pose.z
   held.y = 0
-  held.x = unit.x + Math.sin(unit.heading) * (FORK_HALF_L + 0.7)
-  held.z = unit.z + Math.cos(unit.heading) * (FORK_HALF_L + 0.7)
   held.heading = unit.heading
   if (truck && /load/i.test(truck.task) && !/unload/i.test(truck.task) && truck.cargo < TRUCK_CAPACITY) {
     held.site = 'truck'
@@ -434,6 +453,7 @@ function finishDropoff(unit: Unit) {
     held.spawnZ = held.z
   }
   unit.carryingId = null
+  unit.lastDroppedId = held.id
   unit.movesToday += 1
 }
 
@@ -473,7 +493,8 @@ function stepPhase(unit: Unit, dt: number) {
   }
   if (unit.phase === 'insert') {
     unit.insert = damp(unit.insert, 1, 10, dt)
-    unit.lift = damp(unit.lift, 0.02, 8, dt)
+    unit.lift = damp(unit.lift, CARRY_LIFT, 8, dt)
+    slidePalletOntoForks(unit)
     if (unit.phaseT <= 0) {
       finishPickup(unit)
       unit.phase = 'lift'
@@ -482,16 +503,27 @@ function stepPhase(unit: Unit, dt: number) {
     return
   }
   if (unit.phase === 'lift') {
-    unit.lift = damp(unit.lift, 0.34, 6, dt)
+    unit.lift = damp(unit.lift, PICK_LIFT, 6, dt)
     unit.insert = damp(unit.insert, 0.15, 6, dt)
     if (unit.phaseT <= 0) {
+      unit.phase = 'settle'
+      unit.phaseT = 0.48
+    }
+    return
+  }
+  if (unit.phase === 'settle') {
+    unit.v = 0
+    unit.lift = damp(unit.lift, CARRY_LIFT, 10, dt)
+    unit.insert = damp(unit.insert, 0, 8, dt)
+    if (unit.phaseT <= 0) {
       unit.phase = 'drive'
+      unit.lift = CARRY_LIFT
       unit.phaseT = 0
     }
     return
   }
   if (unit.phase === 'lower') {
-    unit.lift = damp(unit.lift, 0.02, 6, dt)
+    unit.lift = damp(unit.lift, CARRY_LIFT, 6, dt)
     if (unit.phaseT <= 0) {
       unit.phase = 'set'
       unit.phaseT = 0.18
@@ -527,6 +559,53 @@ function upcomingCurvature(route: CompiledRoute, s: number) {
   return Math.abs(wrapAngle(b.heading - a.heading))
 }
 
+function ignoredPalletIds(unitId: string) {
+  const skip = new Set<string>()
+  const unit = runtime.units[unitId]
+  if (!unit) return skip
+  if (unit.carryingId) skip.add(unit.carryingId)
+  if (unit.lastDroppedId) {
+    const dropped = runtime.pallets[unit.lastDroppedId]
+    if (!dropped || Math.hypot(dropped.x - unit.x, dropped.z - unit.z) > 3.6) unit.lastDroppedId = null
+    else skip.add(unit.lastDroppedId)
+  }
+  const route = compiled[unit.pathId]
+  const ev = route ? nextEvent(route, runtime.eventIndex[unit.id] ?? 0) : null
+  const acting =
+    unit.phase === 'align' ||
+    unit.phase === 'insert' ||
+    unit.phase === 'lift' ||
+    unit.phase === 'settle' ||
+    unit.phase === 'lower' ||
+    unit.phase === 'set' ||
+    unit.phase === 'backoff'
+  if (unit.kind === 'forklift' && (acting || ev?.action === 'pickup' || ev?.action === 'dropoff')) {
+    for (const pallet of Object.values(runtime.pallets)) {
+      if (pallet.site !== 'yard' || pallet.carriedBy) continue
+      if (Math.hypot(pallet.x - unit.x, pallet.z - unit.z) < 2.8) skip.add(pallet.id)
+    }
+    if (route && ev && (ev.action === 'pickup' || ev.action === 'dropoff')) {
+      const pose = sampleAt(route, ev.s)
+      for (const pallet of Object.values(runtime.pallets)) {
+        if (pallet.site !== 'yard' || pallet.carriedBy) continue
+        if (Math.hypot(pallet.x - pose.x, pallet.z - pose.z) < 2.2) skip.add(pallet.id)
+      }
+    }
+  }
+  return skip
+}
+
+function stackBoxesFor(unitId: string): AABB[] {
+  const skip = ignoredPalletIds(unitId)
+  const boxes: AABB[] = []
+  for (const pallet of Object.values(runtime.pallets)) {
+    if (pallet.site !== 'yard' || pallet.carriedBy) continue
+    if (skip.has(pallet.id)) continue
+    boxes.push(palletStackBox(pallet.x, pallet.z))
+  }
+  return boxes
+}
+
 function poseHits(kind: Unit['kind'], x: number, z: number, heading: number, ignoreId: string, pad = 0.12) {
   const boxes = vehicleBoxes(kind, x, z, heading)
   for (const other of Object.values(runtime.units)) {
@@ -542,11 +621,40 @@ function poseHits(kind: Unit['kind'], x: number, z: number, heading: number, ign
       if (overlapAabbObb(wall, mine, 0)) return true
     }
   }
+  for (const stack of stackBoxesFor(ignoreId)) {
+    for (const mine of boxes) {
+      if (overlapAabbObb(stack, mine, 0)) return true
+    }
+  }
+  return false
+}
+
+function truckIsReversing(unit: Unit) {
+  if (unit.kind !== 'truck') return false
+  if (unit.reverse && (unit.v > 0.04 || unit.reservedDock)) return true
+  return Boolean(unit.reservedDock && unit.z > 2.2 && unit.v > 0.04)
+}
+
+function reversingYield(unit: Unit, x: number, z: number, heading: number) {
+  if (unit.kind !== 'forklift') return false
+  const boxes = vehicleBoxes('forklift', x, z, heading)
+  for (const other of Object.values(runtime.units)) {
+    if (!truckIsReversing(other)) continue
+    for (const theirs of vehicleBoxes('truck', other.x, other.z, other.heading)) {
+      for (const mine of boxes) {
+        if (overlapOBB(mine, theirs, 0.18)) return true
+      }
+    }
+    if (!other.reservedDock) continue
+    const dock = DOCKS.find((d) => d.id === other.reservedDock)
+    if (dock && Math.abs(x - dock.x) < 2.2 && z < 12.2 && z > -0.2) return true
+  }
   return false
 }
 
 function blockedByOthers(unit: Unit, x: number, z: number, heading: number, claims: Map<string, string>) {
-  if (poseHits(unit.kind, x, z, heading, unit.id, 0.22)) return true
+  if (poseHits(unit.kind, x, z, heading, unit.id, 0.1)) return true
+  if (reversingYield(unit, x, z, heading)) return true
   const keys = [cellKey(x, z), cellKey(x + Math.sin(heading) * 2.2, z + Math.cos(heading) * 2.2)]
   for (const key of keys) {
     const owner = claims.get(key)
@@ -579,7 +687,8 @@ function claimCells(unit: Unit, claims: Map<string, string>) {
   if (unit.kind === 'truck' && unit.reservedDock) {
     const dock = DOCKS.find((d) => d.id === unit.reservedDock)
     if (dock) {
-      const maxZ = unit.v > 0.25 || unit.z > 3.6 ? 11.4 : 4.6
+      const reversing = truckIsReversing(unit)
+      const maxZ = reversing || unit.v > 0.2 || unit.z > 3.6 ? 11.4 : 5.2
       for (let z = 0.4; z <= maxZ; z += 2.2) {
         const key = cellKey(dock.x, z)
         if (!claims.has(key)) claims.set(key, unit.id)
@@ -596,11 +705,17 @@ function dockBlocked(unit: Unit, event: PathEvent | null) {
   return Boolean(held && held !== unit.id)
 }
 
+function moveRank(unit: Unit) {
+  if (unit.kind === 'truck' && truckIsReversing(unit)) return 0
+  if (unit.kind === 'truck') return 1
+  return 2
+}
+
 export function tick(dt: number) {
   const step = Math.min(dt, 0.05)
   runtime.clock += step
   const claims = new Map<string, string>()
-  const order = Object.values(runtime.units).sort((a, b) => a.id.localeCompare(b.id))
+  const order = Object.values(runtime.units).sort((a, b) => moveRank(a) - moveRank(b) || a.id.localeCompare(b.id))
   for (const unit of order) claimCells(unit, claims)
 
   for (const unit of order) {
@@ -629,6 +744,7 @@ export function tick(dt: number) {
     }
 
     const pose = sampleAt(route, unit.s)
+    unit.reverse = pose.reverse
     const vmax = unit.kind === 'truck' ? 6.4 : 3.6
     const accel = unit.kind === 'truck' ? 2.6 : 3.4
     const curve = upcomingCurvature(route, unit.s)
@@ -682,7 +798,7 @@ export function tick(dt: number) {
     }
 
     if (unit.kind === 'forklift' && unit.phase === 'drive') {
-      unit.lift = damp(unit.lift, unit.carryingId ? 0.22 : 0, 5, step)
+      unit.lift = damp(unit.lift, unit.carryingId ? CARRY_LIFT : 0, 5, step)
       unit.insert = damp(unit.insert, 0, 5, step)
     }
 
@@ -735,15 +851,30 @@ export function overlapViolations() {
     const boxesA = vehicleBoxes(a.kind, a.x, a.z, a.heading)
     for (let j = i + 1; j < list.length; j += 1) {
       const b = list[j]
+      let hit = false
       for (const boxA of boxesA) {
         for (const boxB of vehicleBoxes(b.kind, b.x, b.z, b.heading)) {
-          if (overlapOBB(boxA, boxB, 0.02)) hits.push(`${a.id} overlaps ${b.id}`)
+          if (overlapOBB(boxA, boxB, 0.02)) hit = true
         }
       }
+      if (!hit) continue
+      if (a.kind === 'forklift' && b.kind === 'truck') hits.push(`forklift ${a.id} overlaps truck ${b.id}`)
+      else if (a.kind === 'truck' && b.kind === 'forklift') hits.push(`forklift ${b.id} overlaps truck ${a.id}`)
+      else if (a.kind === 'forklift' && b.kind === 'forklift') hits.push(`forklift ${a.id} overlaps forklift ${b.id}`)
+      else hits.push(`${a.id} overlaps ${b.id}`)
     }
     for (const wall of STATIC_BOXES) {
       for (const boxA of boxesA) {
-        if (overlapAabbObb(wall, boxA, 0)) hits.push(`${a.id} hits static`)
+        if (overlapAabbObb(wall, boxA, 0)) {
+          hits.push(a.kind === 'forklift' ? `forklift ${a.id} hits static` : `${a.id} hits static`)
+        }
+      }
+    }
+    for (const stack of stackBoxesFor(a.id)) {
+      for (const boxA of boxesA) {
+        if (overlapAabbObb(stack, boxA, 0)) {
+          hits.push(a.kind === 'forklift' ? `forklift ${a.id} hits static` : `${a.id} hits static`)
+        }
       }
     }
     if (!unitOnSurface(a.kind, a.x, a.z) && a.kind === 'truck' && !truckOnRoad(a.x, a.z)) {
@@ -754,6 +885,10 @@ export function overlapViolations() {
     }
   }
   return hits
+}
+
+export function palletVisible(pallet: Pallet) {
+  return pallet.site === 'yard' || pallet.site === 'forklift'
 }
 
 export function sweptOverlap(prev: { x: number; z: number; heading: number }, unit: Unit) {
@@ -793,7 +928,7 @@ function snapshotUnits() {
 
 function titleFromTask(unit: Unit, task: string) {
   if (unit.kind === 'forklift') {
-    if (unit.phase === 'lift' || unit.phase === 'insert') return 'Lifting pallet'
+    if (unit.phase === 'lift' || unit.phase === 'insert' || unit.phase === 'settle') return 'Lifting pallet'
     if (task.toLowerCase().includes('collect') || task.toLowerCase().includes('lift')) return 'Collecting pallet'
     if (task.toLowerCase().includes('stage') || task.toLowerCase().includes('feed')) return 'Unloading truck'
     if (task.toLowerCase().includes('idle') || task.toLowerCase().includes('return')) return 'Repositioning'

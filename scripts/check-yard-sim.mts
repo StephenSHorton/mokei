@@ -1,5 +1,25 @@
-import { cargoInForkEnvelope, lerpPose, MAX_HEADING_STEP, MAX_POS_STEP, truckOnRoad, unitOnSurface, vehicleBoxes } from '../src/scenes/yardline/sim/geom.ts'
-import { crateCensus, overlapViolations, resetRuntime, runtime, sweptOverlap, tick } from '../src/scenes/yardline/sim/yard.ts'
+import { cargoInForkEnvelope, CARRY_LIFT, lerpPose, MAX_HEADING_STEP, MAX_POS_STEP, truckOnRoad, unitOnSurface, vehicleBoxes } from '../src/scenes/yardline/sim/geom.ts'
+import { crateCensus, overlapViolations, palletVisible, resetRuntime, runtime, sweptOverlap, tick } from '../src/scenes/yardline/sim/yard.ts'
+
+/*
+  Why the previous checker missed forklift clips
+  ---------------------------------------------
+  1. Fork OBB was a single 0.82×1.55 box on the chassis. Visual tines reach
+     ~2.42 m forward, so a forklift could drive forks through a cab / trailer
+     (Bay 2 at ~0:09, TRK-18 reverse at ~0:05) without overlapOBB firing.
+  2. Pallet stacks were not in the static set, so a load or decorative stack
+     was invisible to poseHits / sweptOverlap.
+  3. Dock-cell reservation only claimed the full bay when the truck was already
+     moving or past z=3.6. A slow reverse-arc left the bay mouth open, and
+     forklifts were not required to yield to a reversing truck.
+  4. The published clip crossfaded 1 s freeze stills (minterpolate=blend). A
+     forklift at t ghosted onto a truck at t+1 — that is not a sim overlap.
+
+  This run uses the same body+fork OBBs as the runtime, classifies every
+  forklift-vs-truck, forklift-vs-forklift, and forklift-vs-static/stack hit,
+  and asserts each visible pallet's world position is continuous so a load
+  cannot teleport onto a roof or vanish without an explicit site change.
+*/
 
 function wrapDelta(a: number, b: number) {
   let d = b - a
@@ -19,9 +39,15 @@ const dt = 1 / 60
 const seconds = 90
 const MAX_HEADING = MAX_HEADING_STEP + 0.05
 const MAX_JUMP = MAX_POS_STEP + 0.02
+const MAX_PALLET_JUMP = 0.32
 const prev = Object.fromEntries(
   Object.values(runtime.units).map((u) => [u.id, { x: u.x, z: u.z, heading: u.heading }]),
 )
+const prevPallet = Object.fromEntries(
+  Object.values(runtime.pallets).map((p) => [p.id, { x: p.x, z: p.z, y: p.y, site: p.site }]),
+)
+
+let classified = { flTruck: 0, flFl: 0, flStatic: 0 }
 
 for (let i = 0; i < seconds / dt; i += 1) {
   tick(dt)
@@ -29,6 +55,11 @@ for (let i = 0; i < seconds / dt; i += 1) {
   if (hits.length) {
     console.error(`t=${runtime.clock.toFixed(2)} ${hits.join('; ')}`)
     process.exit(1)
+  }
+  for (const hit of hits) {
+    if (hit.includes('forklift') && hit.includes('truck')) classified.flTruck += 1
+    if (hit.includes('overlaps forklift')) classified.flFl += 1
+    if (hit.includes('hits static')) classified.flStatic += 1
   }
   for (const unit of Object.values(runtime.units)) {
     const before = prev[unit.id]
@@ -64,11 +95,37 @@ for (let i = 0; i < seconds / dt; i += 1) {
         )
         process.exit(1)
       }
+      if (unit.phase === 'drive' && unit.lift > CARRY_LIFT + 0.08) {
+        console.error(`t=${runtime.clock.toFixed(2)} ${unit.id} carry height too high lift=${unit.lift.toFixed(3)}`)
+        process.exit(1)
+      }
     }
     if (unit.kind === 'truck' && vehicleBoxes('truck', unit.x, unit.z, unit.heading).length !== 2) {
       console.error(`${unit.id} is missing cab/trailer boxes`)
       process.exit(1)
     }
+    if (unit.kind === 'forklift' && vehicleBoxes('forklift', unit.x, unit.z, unit.heading).length !== 2) {
+      console.error(`${unit.id} is missing body/fork boxes`)
+      process.exit(1)
+    }
+  }
+  for (const pallet of Object.values(runtime.pallets)) {
+    const before = prevPallet[pallet.id]
+    const siteChanged = before.site !== pallet.site
+    if (palletVisible(pallet) && palletVisible({ ...pallet, site: before.site }) && !siteChanged) {
+      const jump = Math.hypot(pallet.x - before.x, pallet.z - before.z, pallet.y - before.y)
+      if (jump > MAX_PALLET_JUMP) {
+        console.error(
+          `t=${runtime.clock.toFixed(2)} ${pallet.id} pallet jump ${jump.toFixed(3)}m site=${pallet.site}`,
+        )
+        process.exit(1)
+      }
+    }
+    if (before.site === 'forklift' && pallet.site !== 'forklift' && pallet.site !== 'truck' && pallet.site !== 'warehouse' && pallet.site !== 'yard') {
+      console.error(`t=${runtime.clock.toFixed(2)} ${pallet.id} left forks without a set-down (${pallet.site})`)
+      process.exit(1)
+    }
+    prevPallet[pallet.id] = { x: pallet.x, z: pallet.z, y: pallet.y, site: pallet.site }
   }
   const now = crateCensus()
   if (now.total !== start.total || now.stacks !== start.stacks) {
@@ -77,12 +134,17 @@ for (let i = 0; i < seconds / dt; i += 1) {
   }
 }
 
+if (classified.flTruck || classified.flFl || classified.flStatic) {
+  console.error('classified overlap counts should stay at zero', classified)
+  process.exit(1)
+}
+
 resetRuntime()
 let liftSeen = false
 for (let i = 0; i < 16 / dt; i += 1) {
   tick(dt)
   for (const unit of Object.values(runtime.units)) {
-    if (unit.kind !== 'forklift' || !unit.carryingId || unit.lift <= 0.2) continue
+    if (unit.kind !== 'forklift' || !unit.carryingId || unit.phase !== 'lift') continue
     const pallet = runtime.pallets[unit.carryingId]
     if (pallet && pallet.site === 'forklift' && cargoInForkEnvelope(unit, pallet)) {
       liftSeen = true
@@ -122,4 +184,6 @@ if (!reverseDock) {
 
 void lerpPose
 
-console.log(`yard sim ok  ${seconds}s  pallets=${start.total} stacks=${start.stacks}  lift=${liftSeen}  reverseDock=${reverseDock}`)
+console.log(
+  `yard sim ok  ${seconds}s  pallets=${start.total} stacks=${start.stacks}  lift=${liftSeen}  reverseDock=${reverseDock}  fl-vs-truck=0 fl-vs-fl=0 fl-vs-static=0`,
+)
