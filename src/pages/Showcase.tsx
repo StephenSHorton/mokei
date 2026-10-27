@@ -60,6 +60,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
   Select,
   SelectContent,
+  SelectFieldLabel,
   SelectGroup,
   SelectItem,
   SelectLabel,
@@ -471,8 +472,8 @@ export default function Showcase() {
             <Card>
               <CardContent className="flex flex-wrap items-end gap-4 pt-1">
                 <div className="flex flex-col gap-2">
-                  <Label>Assign to bay</Label>
                   <Select items={BAYS} defaultValue="bay-3">
+                    <SelectFieldLabel>Assign to bay</SelectFieldLabel>
                     <SelectTrigger className="w-48">
                       <SelectValue />
                     </SelectTrigger>
@@ -496,8 +497,8 @@ export default function Showcase() {
                   </Select>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label>Sort (sm)</Label>
                   <Select items={SORTS} defaultValue={null}>
+                    <SelectFieldLabel>Sort (sm)</SelectFieldLabel>
                     <SelectTrigger size="sm" className="w-40">
                       <SelectValue placeholder="Sort by…" />
                     </SelectTrigger>
@@ -519,7 +520,7 @@ export default function Showcase() {
             <Card>
               <CardContent className="flex flex-col gap-4 pt-1">
                 <div className="flex flex-wrap items-center gap-3">
-                  <ToggleGroup defaultValue={['all']}>
+                  <ToggleGroup defaultValue={['all']} aria-label="Status">
                     <ToggleGroupItem value="all">All</ToggleGroupItem>
                     <ToggleGroupItem value="moving">Moving</ToggleGroupItem>
                     <ToggleGroupItem value="idle">Idle</ToggleGroupItem>
@@ -535,8 +536,8 @@ export default function Showcase() {
                   </ToggleGroup>
                 </div>
                 <div>
-                  <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Filter chips · multiple</p>
-                  <ToggleGroup variant="chips" multiple defaultValue={['forklifts', 'trucks']}>
+                  <p id="showcase-filter-chips" className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Filter chips · multiple</p>
+                  <ToggleGroup variant="chips" multiple defaultValue={['forklifts', 'trucks']} aria-labelledby="showcase-filter-chips">
                     <ToggleGroupItem value="forklifts">
                       <Forklift />
                       Forklifts

@@ -81,7 +81,7 @@ function SelectContent({
         <SelectPrimitive.Popup
           data-slot="select-content"
           className={cn(
-            "glass-panel relative isolate z-50 max-h-(--available-height) min-w-(--anchor-width) origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover! backdrop-blur-(--glass-blur) text-popover-foreground duration-100 outline-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "glass-panel relative isolate z-50 max-h-(--available-height) min-w-(--anchor-width) origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover! backdrop-blur-(--glass-blur) backdrop-saturate-(--glass-saturate) text-popover-foreground duration-100 outline-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
           )}
           {...props}
@@ -94,6 +94,25 @@ function SelectContent({
         </SelectPrimitive.Popup>
       </SelectPrimitive.Positioner>
     </SelectPrimitive.Portal>
+  )
+}
+
+/* The label for the whole select. Put it inside <Select> so Base UI wires
+ * aria-labelledby onto the trigger and the list. SelectLabel below is the
+ * heading of one SelectGroup. */
+function SelectFieldLabel({
+  className,
+  ...props
+}: SelectPrimitive.Label.Props) {
+  return (
+    <SelectPrimitive.Label
+      data-slot="select-field-label"
+      className={cn(
+        "flex items-center gap-2 text-sm leading-none font-medium select-none data-disabled:opacity-50",
+        className
+      )}
+      {...props}
+    />
   )
 }
 
@@ -193,6 +212,7 @@ function SelectScrollDownButton({
 export {
   Select,
   SelectContent,
+  SelectFieldLabel,
   SelectGroup,
   SelectItem,
   SelectLabel,

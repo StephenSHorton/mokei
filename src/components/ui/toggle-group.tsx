@@ -65,15 +65,32 @@ function ToggleGroup<Value extends string>({
   className,
   variant = "default",
   size = "default",
+  allowEmpty = false,
+  multiple,
+  onValueChange,
   children,
   ...props
-}: ToggleGroupPrimitive.Props<Value> & VariantProps<typeof toggleGroupVariants>) {
+}: ToggleGroupPrimitive.Props<Value> &
+  VariantProps<typeof toggleGroupVariants> & {
+    /** Single-select groups keep one item pressed unless this is true. */
+    allowEmpty?: boolean
+  }) {
   return (
     <ToggleGroupPrimitive
       data-slot="toggle-group"
       data-variant={variant}
       data-size={size}
       className={cn(toggleGroupVariants({ variant, size }), className)}
+      multiple={multiple}
+      onValueChange={(next, eventDetails) => {
+        /* A segmented switch or view toggle should never end up with
+         * nothing selected: ignore the click that would unpress the last. */
+        if (!multiple && !allowEmpty && next.length === 0) {
+          eventDetails.cancel()
+          return
+        }
+        onValueChange?.(next, eventDetails)
+      }}
       {...props}
     >
       <ToggleGroupContext.Provider value={{ variant, size }}>

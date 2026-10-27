@@ -39,6 +39,8 @@ function RadioGroupItem<Value>({
 }: RadioPrimitive.Root.Props<Value>) {
   const variant = React.useContext(RadioGroupContext)
 
+  /* Chips carry their own text; the default dot does not, so wrap it in a
+   * Label for its text. */
   if (variant === "chips") {
     return (
       <RadioPrimitive.Root
@@ -60,7 +62,7 @@ function RadioGroupItem<Value>({
       data-slot="radio-group-item"
       data-variant="default"
       className={cn(
-        "group/radio-group-item peer relative flex aspect-square size-4 shrink-0 items-center justify-center rounded-full border border-input bg-background outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground data-disabled:cursor-not-allowed data-disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30",
+        "group/radio-group-item peer relative flex aspect-square size-4 shrink-0 items-center justify-center rounded-full border border-muted-foreground/80 bg-background outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground data-disabled:cursor-not-allowed data-disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30",
         className
       )}
       {...props}
@@ -71,7 +73,6 @@ function RadioGroupItem<Value>({
       >
         <span className="size-1.5 rounded-full bg-primary-foreground" />
       </RadioPrimitive.Indicator>
-      {children}
     </RadioPrimitive.Root>
   )
 }
