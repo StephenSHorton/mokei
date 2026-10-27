@@ -11,6 +11,7 @@ mkdirSync(outDir, { recursive: true })
 
 const built = spawnSync('npx', ['shadcn', 'build', path.join(root, 'registry.json'), '-o', outDir], {
   cwd: root,
+  shell: process.platform === 'win32',
   stdio: 'inherit',
 })
 if (built.status !== 0) process.exit(built.status ?? 1)
@@ -25,6 +26,12 @@ function rewriteItem(item) {
   if (!item || typeof item !== 'object') return item
   if (Array.isArray(item.registryDependencies)) {
     item.registryDependencies = item.registryDependencies.map(rewriteDep)
+  }
+  // Windows checkouts (core.autocrlf) hand shadcn CRLF sources; ship LF.
+  if (Array.isArray(item.files)) {
+    for (const file of item.files) {
+      if (typeof file?.content === 'string') file.content = file.content.replace(/\r\n/g, '\n')
+    }
   }
   return item
 }

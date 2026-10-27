@@ -21,7 +21,7 @@ const built = spawnSync(
     '--external:react-dom',
     '--external:react/jsx-runtime',
   ],
-  { cwd: root, encoding: 'utf8' },
+  { cwd: root, encoding: 'utf8', shell: process.platform === 'win32' },
 )
 
 if (built.status !== 0) {
