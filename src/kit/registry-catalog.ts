@@ -28,6 +28,13 @@ export const registryCatalog = [
   { name: 'label', title: 'Label', description: 'Form label.', type: 'registry:ui' },
   { name: 'dropdown-menu', title: 'Dropdown menu', description: 'Site and user menus.', type: 'registry:ui' },
   { name: 'stepper', title: 'Stepper', description: 'Shipment tracking steps.', type: 'registry:ui' },
+  { name: 'select', title: 'Select', description: 'Glass select with groups, separators, and a sm size.', type: 'registry:ui' },
+  { name: 'textarea', title: 'Textarea', description: 'Multi-line field with optional auto height.', type: 'registry:ui' },
+  { name: 'toggle-group', title: 'Toggle group', description: 'Segmented toggles and filter chips.', type: 'registry:ui' },
+  { name: 'radio-group', title: 'Radio group', description: 'Radio list or horizontal chips.', type: 'registry:ui' },
+  { name: 'switch', title: 'Switch', description: 'On/off switch that pairs with Label.', type: 'registry:ui' },
+  { name: 'dialog', title: 'Dialog', description: 'Glass modal, plus an alert dialog for confirms.', type: 'registry:ui' },
+  { name: 'popover', title: 'Popover', description: 'Glass popover with an optional arrow.', type: 'registry:ui' },
   {
     name: 'scene',
     title: 'Scene contract',

@@ -34,7 +34,7 @@ npx shadcn@latest registry add @mokei=https://stephenshorton.github.io/mokei/r/{
 npx shadcn@latest add @mokei/theme @mokei/card
 ```
 
-Items: `theme`, `button`, `card`, `badge`, `input`, `tabs`, `tooltip`, `progress`, `separator`, `avatar`, `kbd`, `label`, `dropdown-menu`, `stepper`. After adding `theme`, import the copied preset. `npx shadcn add` merges new CSS variables but does not overwrite nova `:root` keys, so call `applyTheme('yardline')` (or set `data-theme="yardline"` on `<html>`) — those selectors beat the host `:root`.
+Items: `theme`, `button`, `card`, `badge`, `input`, `tabs`, `tooltip`, `progress`, `separator`, `avatar`, `kbd`, `label`, `dropdown-menu`, `stepper`, `select`, `textarea`, `toggle-group`, `radio-group`, `switch`, `dialog` (includes the alert dialog), `popover`. After adding `theme`, import the copied preset. `npx shadcn add` merges new CSS variables but does not overwrite nova `:root` keys, so call `applyTheme('yardline')` (or set `data-theme="yardline"` on `<html>`) — those selectors beat the host `:root`.
 
 ```css
 @import "tailwindcss";

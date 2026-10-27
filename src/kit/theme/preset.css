@@ -83,7 +83,9 @@ html.is-apple {
 @utility glass-panel {
   background: var(--glass-bg);
   /* Match main's LightningCSS output: -webkit only, so Linux Chrome does
-   * not frost the scene behind HUD glass. */
+   * not frost the scene behind HUD glass. Select, dialog and popover popups
+   * add the unprefixed blur and saturate themselves, because page text must
+   * not read through them; they are not HUD glass. */
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);

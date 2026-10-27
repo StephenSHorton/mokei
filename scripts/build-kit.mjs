@@ -7,6 +7,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
 const built = spawnSync('npx', ['tsc', '-p', 'tsconfig.kit.json'], {
   cwd: root,
+  shell: process.platform === 'win32',
   stdio: 'inherit',
 })
 if (built.status !== 0) process.exit(built.status ?? 1)
