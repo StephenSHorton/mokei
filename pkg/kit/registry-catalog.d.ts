@@ -77,6 +77,41 @@ export declare const registryCatalog: readonly [{
     readonly description: "Shipment tracking steps.";
     readonly type: "registry:ui";
 }, {
+    readonly name: "select";
+    readonly title: "Select";
+    readonly description: "Glass select with groups, separators, and a sm size.";
+    readonly type: "registry:ui";
+}, {
+    readonly name: "textarea";
+    readonly title: "Textarea";
+    readonly description: "Multi-line field with optional auto height.";
+    readonly type: "registry:ui";
+}, {
+    readonly name: "toggle-group";
+    readonly title: "Toggle group";
+    readonly description: "Segmented toggles and filter chips.";
+    readonly type: "registry:ui";
+}, {
+    readonly name: "radio-group";
+    readonly title: "Radio group";
+    readonly description: "Radio list or horizontal chips.";
+    readonly type: "registry:ui";
+}, {
+    readonly name: "switch";
+    readonly title: "Switch";
+    readonly description: "On/off switch that pairs with Label.";
+    readonly type: "registry:ui";
+}, {
+    readonly name: "dialog";
+    readonly title: "Dialog";
+    readonly description: "Glass modal, plus an alert dialog for confirms.";
+    readonly type: "registry:ui";
+}, {
+    readonly name: "popover";
+    readonly title: "Popover";
+    readonly description: "Glass popover with an optional arrow.";
+    readonly type: "registry:ui";
+}, {
     readonly name: "scene";
     readonly title: "Scene contract";
     readonly description: "SceneDefinition + SceneEvent types. Worlds ship via the git package (mokei/scene, mokei/clay).";

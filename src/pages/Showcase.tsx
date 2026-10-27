@@ -1,6 +1,17 @@
 import { OrthographicCamera } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
-import { ChevronDown, LocateFixed, Plus, Search } from 'lucide-react'
+import {
+  ChevronDown,
+  Forklift,
+  ListIcon,
+  LocateFixed,
+  MapIcon,
+  Package,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  Truck,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -15,13 +26,53 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Kbd } from '@/components/ui/kbd'
 import { Label } from '@/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Progress, ProgressLabel, ProgressValue } from '@/components/ui/progress'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Stepper } from '@/components/ui/stepper'
+import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Lights, RoleCart, SceneCanvas, applyLook, useLook } from '@/kit/clay'
 import { REGISTRY_BASE, registryAddCommand, registryCatalog } from '@/kit/registry-catalog'
@@ -47,6 +98,22 @@ const SWATCHES: { name: string; varName: string }[] = [
   { name: 'Detail light', varName: '--mokei-detail-light' },
   { name: 'Ground', varName: '--mokei-ground' },
 ]
+
+const BAYS: Record<string, string> = {
+  'bay-1': 'Bay 1',
+  'bay-2': 'Bay 2',
+  'bay-3': 'Bay 3',
+  'bay-4': 'Bay 4',
+  'bay-5': 'Bay 5',
+  'bay-6': 'Bay 6 · maintenance',
+}
+
+const SORTS: Record<string, string> = {
+  eta: 'ETA',
+  dock: 'Dock',
+  carrier: 'Carrier',
+  status: 'Status',
+}
 
 function AimOrigin() {
   const camera = useThree((s) => s.camera)
@@ -396,6 +463,245 @@ export default function Showcase() {
               <CardFooter>
                 The Yardline playground HUD now composes these kit pieces.
               </CardFooter>
+            </Card>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-sm font-semibold tracking-tight">Select</h2>
+            <Card>
+              <CardContent className="flex flex-wrap items-end gap-4 pt-1">
+                <div className="flex flex-col gap-2">
+                  <Label>Assign to bay</Label>
+                  <Select items={BAYS} defaultValue="bay-3">
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Inbound</SelectLabel>
+                        <SelectItem value="bay-1">Bay 1</SelectItem>
+                        <SelectItem value="bay-2">Bay 2</SelectItem>
+                        <SelectItem value="bay-3">Bay 3</SelectItem>
+                      </SelectGroup>
+                      <SelectSeparator />
+                      <SelectGroup>
+                        <SelectLabel>Outbound</SelectLabel>
+                        <SelectItem value="bay-4">Bay 4</SelectItem>
+                        <SelectItem value="bay-5">Bay 5</SelectItem>
+                        <SelectItem value="bay-6" disabled>
+                          Bay 6 · maintenance
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label>Sort (sm)</Label>
+                  <Select items={SORTS} defaultValue={null}>
+                    <SelectTrigger size="sm" className="w-40">
+                      <SelectValue placeholder="Sort by…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(SORTS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-sm font-semibold tracking-tight">Toggle group</h2>
+            <Card>
+              <CardContent className="flex flex-col gap-4 pt-1">
+                <div className="flex flex-wrap items-center gap-3">
+                  <ToggleGroup defaultValue={['all']}>
+                    <ToggleGroupItem value="all">All</ToggleGroupItem>
+                    <ToggleGroupItem value="moving">Moving</ToggleGroupItem>
+                    <ToggleGroupItem value="idle">Idle</ToggleGroupItem>
+                    <ToggleGroupItem value="charging">Charging</ToggleGroupItem>
+                  </ToggleGroup>
+                  <ToggleGroup size="sm" defaultValue={['map']} aria-label="View">
+                    <ToggleGroupItem value="map" aria-label="Map">
+                      <MapIcon />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="list" aria-label="List">
+                      <ListIcon />
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Filter chips · multiple</p>
+                  <ToggleGroup variant="chips" multiple defaultValue={['forklifts', 'trucks']}>
+                    <ToggleGroupItem value="forklifts">
+                      <Forklift />
+                      Forklifts
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="trucks">
+                      <Truck />
+                      Trucks
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="pallets">
+                      <Package />
+                      Pallets
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="alerts">Alerts</ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-2">
+            <div>
+              <h2 className="mb-3 text-sm font-semibold tracking-tight">Radio group</h2>
+              <Card className="h-[calc(100%-2rem)]">
+                <CardContent className="flex flex-col gap-4 pt-1">
+                  <RadioGroup defaultValue="fastest" aria-label="Route">
+                    <Label className="font-normal">
+                      <RadioGroupItem value="fastest" />
+                      Fastest route
+                    </Label>
+                    <Label className="font-normal">
+                      <RadioGroupItem value="fewest" />
+                      Fewest crossings
+                    </Label>
+                    <Label className="font-normal">
+                      <RadioGroupItem value="manual" disabled />
+                      Manual (needs supervisor)
+                    </Label>
+                  </RadioGroup>
+                  <Separator />
+                  <RadioGroup variant="chips" defaultValue="shift-a" aria-label="Shift">
+                    <RadioGroupItem value="shift-a">Shift A</RadioGroupItem>
+                    <RadioGroupItem value="shift-b">Shift B</RadioGroupItem>
+                    <RadioGroupItem value="night">Night</RadioGroupItem>
+                  </RadioGroup>
+                </CardContent>
+              </Card>
+            </div>
+            <div>
+              <h2 className="mb-3 text-sm font-semibold tracking-tight">Switch</h2>
+              <Card className="h-[calc(100%-2rem)]">
+                <CardContent className="flex flex-col gap-4 pt-1">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <Label htmlFor="showcase-auto-dock">Auto-dock</Label>
+                      <p className="mt-1 text-sm text-muted-foreground">Assign the next free bay on arrival.</p>
+                    </div>
+                    <Switch id="showcase-auto-dock" defaultChecked />
+                  </div>
+                  <Separator />
+                  <Label className="font-normal">
+                    <Switch size="sm" />
+                    Show routes on the map
+                  </Label>
+                  <Label className="font-normal">
+                    <Switch size="sm" disabled defaultChecked />
+                    Night lighting (locked)
+                  </Label>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-sm font-semibold tracking-tight">Textarea</h2>
+            <Card>
+              <CardContent className="grid gap-4 pt-1 md:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="showcase-note">Shift note</Label>
+                  <Textarea id="showcase-note" placeholder="Bay 3 door sticks at half height…" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="showcase-auto-note">Auto height</Label>
+                  <Textarea
+                    id="showcase-auto-note"
+                    autoSize
+                    className="max-h-40"
+                    defaultValue={'FL-10 picked 14 pallets.\nTruck 2 left at 09:38.'}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-sm font-semibold tracking-tight">Dialog + popover</h2>
+            <Card>
+              <CardContent className="flex flex-wrap items-center gap-2 pt-1">
+                <Dialog>
+                  <DialogTrigger render={<Button variant="outline" />}>Rename site</DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Rename site</DialogTitle>
+                      <DialogDescription>Shown in the site menu and on shipment labels.</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="showcase-site-name">Site name</Label>
+                      <Input id="showcase-site-name" defaultValue="Northpoint Hub" />
+                    </div>
+                    <DialogFooter>
+                      <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+                      <DialogClose render={<Button />}>Save</DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <AlertDialog>
+                  <AlertDialogTrigger render={<Button variant="destructive" />}>Recall FL-10</AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Recall FL-10?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        It drops its current pallet at the nearest rack and returns to charging.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogClose render={<Button variant="outline" />}>Keep working</AlertDialogClose>
+                      <AlertDialogClose render={<Button variant="destructive" />}>Recall</AlertDialogClose>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                <Popover>
+                  <PopoverTrigger render={<Button variant="outline" />}>
+                    Bay 3
+                    <ChevronDown className="size-4" />
+                  </PopoverTrigger>
+                  <PopoverContent arrow align="start">
+                    <PopoverHeader>
+                      <PopoverTitle>Bay 3 · unloading</PopoverTitle>
+                      <PopoverDescription>Truck 2 · 4 of 6 pallets off</PopoverDescription>
+                    </PopoverHeader>
+                    <Progress value={66}>
+                      <ProgressLabel>Cargo</ProgressLabel>
+                      <ProgressValue />
+                    </Progress>
+                  </PopoverContent>
+                </Popover>
+
+                <Popover>
+                  <PopoverTrigger render={<Button variant="ghost" size="icon" aria-label="Map filters" />}>
+                    <SlidersHorizontal className="size-4" />
+                  </PopoverTrigger>
+                  <PopoverContent side="right" className="w-60">
+                    <PopoverTitle>Map layers</PopoverTitle>
+                    <Label className="font-normal">
+                      <Switch size="sm" defaultChecked />
+                      Routes
+                    </Label>
+                    <Label className="font-normal">
+                      <Switch size="sm" />
+                      Heatmap
+                    </Label>
+                  </PopoverContent>
+                </Popover>
+              </CardContent>
             </Card>
           </section>
         </main>
