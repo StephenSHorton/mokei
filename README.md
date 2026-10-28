@@ -97,6 +97,33 @@ npm run dev
 
 Then open [http://127.0.0.1:43123](http://127.0.0.1:43123).
 
+## Checks (run locally - no CI)
+
+There is no CI on PRs or pushes, to save GitHub Actions minutes (only the Pages deploy runs on `main`). Before opening or merging a PR, or pushing to `main`, run these locally (Node 22) and make sure they pass:
+
+```bash
+npm ci
+npm run lint
+npm run build:kit
+npm run check:roles
+npm run check:scene-bundle
+npm run check:yard-sim
+git diff --exit-code -- pkg   # pkg/ must match sources; commit the rebuilt pkg/ if not
+npm run build
+```
+
+When the kit's exports or bundling change, also run the consumer smoke test against a pushed commit (`<sha>` = a commit already on GitHub; use `main` after merging). It installs anonymously, so the repo must be public:
+
+```bash
+cp -R scripts/consumer-smoke /tmp/mokei-consumer && cd /tmp/mokei-consumer
+npm install
+npm install "github:StephenSHorton/mokei#<sha>"
+node <repo>/scripts/check-exports.mjs
+npm run build
+# Yardline must not leak into the clay-only bundle; this must print nothing:
+grep -rEn 'Yardline|forklift|FL-10|Northpoint|dispatchYardEvent|warehouse yard' dist
+```
+
 ## GitHub Pages
 
 Live site: [https://stephenshorton.github.io/mokei/](https://stephenshorton.github.io/mokei/)
